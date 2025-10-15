@@ -45,3 +45,26 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         raise HTTPException(status_code=404, detail="User not found")
     
     return User(**user)
+async def get_current_user_optional(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+) -> User | None:
+    """
+    Get the current authenticated user from JWT token if provided.
+    Returns None if no credentials are given or token is invalid.
+    """
+    if not credentials:
+        return None
+
+    try:
+        user_id = verify_token(credentials.credentials)
+        if not user_id:
+            return None
+
+        user = await db.database.users.find_one({"id": user_id})
+        if not user:
+            return None
+
+        return User(**user)
+    except Exception as e:
+        logger.debug(f"Optional user auth failed: {e}")
+        return None

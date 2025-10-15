@@ -60,7 +60,7 @@ class TicketService:
         tickets = await self.ticket_repo.get_tickets_by_filters(
             status=status,
             priority=priority,
-            user_role=current_user.role.value,
+            user_role=current_user.role,
             user_id=current_user.id
         )
         

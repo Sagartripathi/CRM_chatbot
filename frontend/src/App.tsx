@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import axios from "axios";
 import { Toaster } from "sonner";
@@ -23,8 +23,36 @@ const API = BACKEND_URL ? `${BACKEND_URL}/api` : "/api";
 // Configure axios defaults
 axios.defaults.baseURL = API;
 
+// Add global axios interceptor for authentication errors
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Only handle 401 (Unauthorized) - this means token is invalid/expired
+      const isAuthEndpoint = error.config?.url?.includes("/auth/");
+
+      if (!isAuthEndpoint) {
+        // Clear token and redirect to login
+        localStorage.removeItem("token");
+        delete axios.defaults.headers.common["Authorization"];
+
+        // Only redirect if not already on login page
+        if (window.location.pathname !== "/login") {
+          window.location.href = "/login";
+        }
+      }
+    }
+    // Don't handle 403 (Forbidden) globally - let components handle their own errors
+    return Promise.reject(error);
+  }
+);
+
 // Private Route Component
-function PrivateRoute({ children }) {
+interface PrivateRouteProps {
+  children: React.ReactNode;
+}
+
+function PrivateRoute({ children }: PrivateRouteProps): React.ReactElement {
   const { user, loading } = useAuth();
 
   if (loading) {
@@ -35,11 +63,11 @@ function PrivateRoute({ children }) {
     );
   }
 
-  return user ? children : <Navigate to="/login" />;
+  return user ? <>{children}</> : <Navigate to="/login" />;
 }
 
 // Main App Routes
-function AppRoutes() {
+function AppRoutes(): React.ReactElement {
   const { user } = useAuth();
 
   return (
@@ -109,7 +137,7 @@ function AppRoutes() {
   );
 }
 
-function App() {
+function App(): React.ReactElement {
   return (
     <AuthProvider>
       <BrowserRouter>

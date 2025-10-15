@@ -5,6 +5,9 @@ Runs the FastAPI application with uvicorn.
 
 import uvicorn
 from app.main import app
+from app.dependencies import get_current_user
+
+
 
 if __name__ == "__main__":
     uvicorn.run(

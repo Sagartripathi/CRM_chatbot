@@ -1,27 +1,39 @@
-import React, { useState } from 'react';
-import { Button } from './ui/button';
-import { Menu } from 'lucide-react';
-import GlobalSidebar from './GlobalSidebar';
+import React, { useState } from "react";
+import { Button } from "./ui/button";
+import { Menu } from "lucide-react";
+import GlobalSidebar from "./GlobalSidebar";
 
-function Layout({ children, title, headerActions }) {
+interface LayoutProps {
+  children: React.ReactNode;
+  title?: string;
+  subtitle?: string;
+  headerActions?: React.ReactNode;
+}
+
+function Layout({
+  children,
+  title,
+  subtitle,
+  headerActions,
+}: LayoutProps): React.ReactElement {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-gray-50 lg:flex">
       {/* Sidebar */}
-      <GlobalSidebar 
-        isOpen={sidebarOpen} 
-        onClose={() => setSidebarOpen(false)} 
+      <GlobalSidebar
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
       />
-      
+
       {/* Mobile Overlay */}
       {sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
-      
+
       {/* Main Content */}
       <div className="flex-1 lg:ml-0">
         {/* Header */}
@@ -39,7 +51,7 @@ function Layout({ children, title, headerActions }) {
                 </Button>
                 <h1 className="text-xl font-semibold text-gray-900">{title}</h1>
               </div>
-              
+
               {headerActions && (
                 <div className="flex items-center space-x-3">
                   {headerActions}
@@ -48,11 +60,9 @@ function Layout({ children, title, headerActions }) {
             </div>
           </header>
         )}
-        
+
         {/* Page Content */}
-        <main className={title ? "p-6" : ""}>
-          {children}
-        </main>
+        <main className={title ? "p-6" : ""}>{children}</main>
       </div>
     </div>
   );

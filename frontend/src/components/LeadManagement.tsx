@@ -43,7 +43,7 @@ import {
 } from "lucide-react";
 
 function LeadManagement() {
-  const { user, logout } = useAuth();
+  const { user, logout, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [leads, setLeads] = useState([]);
   const [filteredLeads, setFilteredLeads] = useState([]);
@@ -77,8 +77,10 @@ function LeadManagement() {
   });
 
   useEffect(() => {
-    fetchLeads();
-  }, []);
+    if (user && !authLoading) {
+      fetchLeads();
+    }
+  }, [user, authLoading]);
 
   useEffect(() => {
     // Filter leads based on search and filters
@@ -109,16 +111,30 @@ function LeadManagement() {
   const fetchLeads = async () => {
     try {
       setLoading(true);
+
+      if (!user) {
+        console.log("User not authenticated, skipping leads data fetch");
+        return;
+      }
+
+      const tokenHeader = {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      };
       const [leadsResponse, campaignsResponse] = await Promise.all([
-        axios.get("/leads"),
-        axios.get("/campaigns"),
+        axios.get("/leads", tokenHeader),
+        axios.get("/campaigns", tokenHeader),
       ]);
       setLeads(leadsResponse.data);
       setFilteredLeads(leadsResponse.data);
       setCampaigns(campaignsResponse.data);
-    } catch (error) {
-      toast.error("Failed to load data");
-      console.error("Fetch error:", error);
+    } catch (error: any) {
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        console.log("Authentication error - user may need to log in");
+        toast.error("Please log in to access leads data");
+      } else {
+        toast.error("Failed to load data");
+        console.error("Fetch error:", error);
+      }
     } finally {
       setLoading(false);
     }
@@ -144,6 +160,7 @@ function LeadManagement() {
         source: "",
         notes: "",
         status: "new",
+        campaign_id: "",
       });
       fetchLeads();
     } catch (error) {

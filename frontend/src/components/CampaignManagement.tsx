@@ -45,7 +45,7 @@ import {
 } from "lucide-react";
 
 function CampaignManagement() {
-  const { user, logout } = useAuth();
+  const { user, logout, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [campaigns, setCampaigns] = useState([]);
   const [leads, setLeads] = useState([]);
@@ -81,22 +81,38 @@ function CampaignManagement() {
   const [newCampaign, setNewCampaign] = useState({ ...emptyCampaign });
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (user && !authLoading) {
+      fetchData();
+    }
+  }, [user, authLoading]);
 
   const fetchData = async () => {
     try {
       setLoading(true);
+
+      if (!user) {
+        console.log("User not authenticated, skipping data fetch");
+        return;
+      }
+
+      const tokenHeader = {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      };
       const [campaignsResponse, leadsResponse] = await Promise.all([
-        axios.get("/campaigns"),
-        axios.get("/leads"),
+        axios.get("/campaigns", tokenHeader),
+        axios.get("/leads", tokenHeader),
       ]);
 
       setCampaigns(campaignsResponse.data);
       setLeads(leadsResponse.data);
-    } catch (error) {
-      toast.error("Failed to load data");
-      console.error("Fetch error:", error);
+    } catch (error: any) {
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        console.log("Authentication error - user may need to log in");
+        toast.error("Please log in to access this data");
+      } else {
+        toast.error("Failed to load data");
+        console.error("Fetch error:", error);
+      }
     } finally {
       setLoading(false);
     }
@@ -138,7 +154,12 @@ function CampaignManagement() {
         lead_ids: selectedLeads,
       };
 
-      await axios.post("/campaigns", payload);
+      // Ensure Authorization header is sent even if axios.defaults wasn't set yet
+      await axios.post("/campaigns", payload, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
 
       toast.success("Campaign created successfully!");
       setCreateDialogOpen(false);
@@ -210,7 +231,12 @@ function CampaignManagement() {
         lead_ids: selectedLeads,
       };
 
-      await axios.put(`/campaigns/${selectedCampaign.id}`, payload);
+      // Ensure Authorization header is sent explicitly
+      await axios.put(`/campaigns/${selectedCampaign.id}`, payload, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
 
       toast.success("Campaign updated successfully!");
       setEditDialogOpen(false);
@@ -482,11 +508,11 @@ function CampaignManagement() {
               <div className="flex items-center space-x-3 mt-6">
                 <Checkbox
                   id="weekend-adjustment"
-                  checked={newCampaign.weekend_adjustment_pc}
+                  checked={!!newCampaign.weekend_adjustment_pc}
                   onCheckedChange={(checked) =>
                     setNewCampaign({
                       ...newCampaign,
-                      weekend_adjustment_pc: checked,
+                      weekend_adjustment_pc: checked as boolean,
                     })
                   }
                 />
@@ -520,9 +546,12 @@ function CampaignManagement() {
               <div className="flex items-center space-x-3 mt-2">
                 <Checkbox
                   id="is-active"
-                  checked={newCampaign.is_active}
+                  checked={!!newCampaign.is_active}
                   onCheckedChange={(checked) =>
-                    setNewCampaign({ ...newCampaign, is_active: checked })
+                    setNewCampaign({
+                      ...newCampaign,
+                      is_active: checked as boolean,
+                    })
                   }
                 />
                 <Label htmlFor="is-active" className="text-sm">
@@ -887,7 +916,9 @@ function CampaignManagement() {
                           <span className="capitalize">
                             {outcome.replace("_", " ")}
                           </span>
-                          <Badge variant="secondary">{count}</Badge>
+                          <Badge variant="secondary">
+                            {count as React.ReactNode}
+                          </Badge>
                         </div>
                       )
                     )}

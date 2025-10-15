@@ -10,6 +10,17 @@ from app.models import (
     User, UserRole, NextLeadResponse, Lead
 )
 from app.repositories import CampaignRepository, LeadRepository
+import logging
+
+
+def _role_value(role) -> str:
+    """Return the string value for a role whether it's an Enum or a string."""
+    try:
+        # If role is an Enum member
+        return role.value
+    except Exception:
+        # If role is already a string
+        return str(role)
 
 
 class CampaignService:
@@ -43,7 +54,15 @@ class CampaignService:
         Raises:
             HTTPException: If user not authorized to create campaigns
         """
-        if current_user.role not in [UserRole.ADMIN, UserRole.AGENT]:
+        # Log incoming create attempt for debugging role-based authorization
+        logger = logging.getLogger(__name__)
+        try:
+            logger.info("create_campaign called by user=%s role=%s", current_user.id, current_user.role)
+        except Exception:
+            logger.debug("create_campaign called but failed to log user info")
+
+        role_val = _role_value(current_user.role)
+        if role_val not in [UserRole.ADMIN.value, UserRole.AGENT.value]:
             raise HTTPException(status_code=403, detail="Not authorized to create campaigns")
         
         return await self.campaign_repo.create_campaign(campaign_data, current_user.id)
@@ -59,7 +78,7 @@ class CampaignService:
             List[Campaign]: List of campaign objects
         """
         campaigns = await self.campaign_repo.get_campaigns_by_user(
-            current_user.id, current_user.role.value
+            current_user.id, current_user.role
         )
         return [Campaign(**campaign) for campaign in campaigns]
     
@@ -97,7 +116,8 @@ class CampaignService:
         Raises:
             HTTPException: If user not authorized or no leads available
         """
-        if current_user.role != UserRole.AGENT:
+        role_val = _role_value(current_user.role)
+        if role_val != UserRole.AGENT.value:
             raise HTTPException(status_code=403, detail="Only agents can start campaigns")
         
         # Find campaign
@@ -143,7 +163,8 @@ class CampaignService:
         Raises:
             HTTPException: If user not authorized or campaign lead not found
         """
-        if current_user.role != UserRole.AGENT:
+        role_val = _role_value(current_user.role)
+        if role_val != UserRole.AGENT.value:
             raise HTTPException(status_code=403, detail="Only agents can log calls")
         
         # Get campaign lead
@@ -191,7 +212,8 @@ class CampaignService:
         Raises:
             HTTPException: If user not authorized or campaign not found
         """
-        if current_user.role not in [UserRole.ADMIN, UserRole.AGENT]:
+        role_val = _role_value(current_user.role)
+        if role_val not in [UserRole.ADMIN.value, UserRole.AGENT.value]:
             raise HTTPException(status_code=403, detail="Not authorized to update campaigns")
         
         # Find existing campaign
@@ -200,7 +222,8 @@ class CampaignService:
             raise HTTPException(status_code=404, detail="Campaign not found")
         
         # Check permissions (only creator or admin can edit)
-        if current_user.role != UserRole.ADMIN and existing_campaign["created_by"] != current_user.id:
+        role_val = _role_value(current_user.role)
+        if role_val != UserRole.ADMIN.value and existing_campaign["created_by"] != current_user.id:
             raise HTTPException(status_code=403, detail="Not authorized to update this campaign")
         
         updated_campaign = await self.campaign_repo.update_campaign(
@@ -223,7 +246,8 @@ class CampaignService:
         Raises:
             HTTPException: If user not authorized, campaign not found, or campaign has active calls
         """
-        if current_user.role not in [UserRole.ADMIN, UserRole.AGENT]:
+        role_val = _role_value(current_user.role)
+        if role_val not in [UserRole.ADMIN.value, UserRole.AGENT.value]:
             raise HTTPException(status_code=403, detail="Not authorized to delete campaigns")
         
         # Find existing campaign
@@ -232,7 +256,8 @@ class CampaignService:
             raise HTTPException(status_code=404, detail="Campaign not found")
         
         # Check permissions (only creator or admin can delete)
-        if current_user.role != UserRole.ADMIN and existing_campaign["created_by"] != current_user.id:
+        role_val = _role_value(current_user.role)
+        if role_val != UserRole.ADMIN.value and existing_campaign["created_by"] != current_user.id:
             raise HTTPException(status_code=403, detail="Not authorized to delete this campaign")
         
         # Check if campaign has active calls

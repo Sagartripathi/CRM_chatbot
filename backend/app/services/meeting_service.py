@@ -79,7 +79,7 @@ class MeetingService:
             List[Meeting]: List of meeting objects
         """
         meetings = await self.meeting_repo.get_meetings_by_user(
-            current_user.id, current_user.role.value
+            current_user.id, current_user.role
         )
         return [Meeting(**meeting) for meeting in meetings]
     
