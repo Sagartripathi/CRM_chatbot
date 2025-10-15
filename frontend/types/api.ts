@@ -15,6 +15,16 @@ export interface User {
   updated_at: string;
 }
 
+// Add this new interface
+export interface DemoBooking {
+  booking_name_shared?: string;
+  booking_phone_shared?: string;
+  booking_email_shared?: string;
+  booking_date_shared?: string;
+  booking_time_shared?: string;
+  calendar_event_id_shared?: string;
+}
+
 export interface UserCreate {
   email: string;
   password: string;
@@ -50,6 +60,28 @@ export interface Lead {
   created_by: string;
   created_at: string;
   updated_at: string;
+
+  business_name?: string;
+  business_address?: string;
+  business_phone?: string;
+  business_summary_vb?: string;
+  leads_notes?: string;
+  decision_maker_identified_shared?: boolean;
+  first_contact_name_vb?: string;
+  referral_name_vb?: string;
+  referral_phone_vb?: string;
+  referral_email_vb?: string;
+  referral_role_vb?: string;
+  next_attempt_at_vb?: string;
+  call_status_vb?: string;
+  call_duration_vb?: number;
+  conversation_summary_vb?: string;
+  follow_up_count_pc?: boolean;
+  follow_up_next_attempt_at_vb?: string;
+  undetermined_flag_pc?: boolean;
+  meeting_booked_shared?: boolean;
+  demo_booking_shared?: DemoBooking;
+  updated_by_shared?: string;
 }
 
 export interface LeadCreate {
@@ -62,6 +94,27 @@ export interface LeadCreate {
   status?: "new" | "contacted" | "converted" | "lost" | "no_response";
   assigned_to?: string;
   campaign_id?: string;
+
+  // NEW: Optional fields for creation
+  business_name?: string;
+  business_address?: string;
+  business_phone?: string;
+  business_summary_vb?: string;
+  leads_notes?: string;
+  decision_maker_identified_shared?: boolean;
+  first_contact_name_vb?: string;
+  referral_name_vb?: string;
+  referral_phone_vb?: string;
+  referral_email_vb?: string;
+  referral_role_vb?: string;
+  call_status_vb?: string;
+  call_duration_vb?: number;
+  conversation_summary_vb?: string;
+  follow_up_count_pc?: boolean;
+  undetermined_flag_pc?: boolean;
+  meeting_booked_shared?: boolean;
+  demo_booking_shared?: DemoBooking;
+  updated_by_shared?: string;
 }
 
 export interface CampaignHistory {
