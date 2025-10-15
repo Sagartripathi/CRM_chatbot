@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
-import axios from "axios";
+import { useAuth, apiClient } from "../contexts/AuthContext";
 import {
   Card,
   CardContent,
@@ -48,10 +47,8 @@ function CampaignDetail() {
     try {
       setLoading(true);
       const [campaignResponse, statsResponse] = await Promise.all([
-        axios.get(`/campaigns`),
-        axios.get(`/campaigns/${campaignId}/stats`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        }),
+        apiClient.get(`/campaigns`),
+        apiClient.get(`/campaigns/${campaignId}/stats`),
       ]);
 
       const campaignData = campaignResponse.data.find(
@@ -65,7 +62,7 @@ function CampaignDetail() {
       setCampaignStats(statsResponse.data);
 
       // Fetch campaign leads (would need new endpoint, for now using leads)
-      const leadsResponse = await axios.get("/leads");
+      const leadsResponse = await apiClient.get("/leads");
       setCampaignLeads(leadsResponse.data.slice(0, 5)); // Mock: first 5 leads
     } catch (error) {
       toast.error("Failed to load campaign details");

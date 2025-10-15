@@ -13,6 +13,29 @@ import axios, { AxiosResponse } from "axios";
 import { User, LoginRequest, LoginResponse, UserCreate } from "../../types/api";
 import { AuthContextType, LoginResult, RegisterResult } from "../../types/auth";
 
+// Create axios instance with request interceptor for automatic token injection
+const apiClient = axios.create();
+
+// Request interceptor to add token to all requests and ensure trailing slashes
+apiClient.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    // Ensure URL has trailing slash to avoid redirects that lose auth headers
+    if (config.url && !config.url.includes("?") && !config.url.endsWith("/")) {
+      config.url = config.url + "/";
+    }
+
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function useAuth(): AuthContextType {
@@ -36,43 +59,18 @@ export function AuthProvider({
     localStorage.getItem("token")
   );
 
-  // Ensure axios Authorization header is present immediately from localStorage
-  // This avoids a short race where components make requests before the
-  // React effect runs and sets axios.defaults.headers.common["Authorization"].
-  try {
-    const _stored = localStorage.getItem("token");
-    if (_stored) {
-      axios.defaults.headers.common["Authorization"] = `Bearer ${_stored}`;
-    }
-  } catch (e) {
-    // localStorage may not be available in some execution contexts; ignore
-  }
-
-  useEffect(() => {
-    // Set axios default authorization header
-    if (token) {
-      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-    } else {
-      delete axios.defaults.headers.common["Authorization"];
-    }
-  }, [token]);
-
   useEffect(() => {
     // Check if user is logged in on app load
     const checkAuth = async (): Promise<void> => {
       const storedToken = localStorage.getItem("token");
       if (storedToken) {
         try {
-          axios.defaults.headers.common[
-            "Authorization"
-          ] = `Bearer ${storedToken}`;
-          const response: AxiosResponse<User> = await axios.get("/auth/me");
+          const response: AxiosResponse<User> = await apiClient.get("/auth/me");
           setUser(response.data);
           setToken(storedToken);
         } catch (error) {
           // Token is invalid, remove it
           localStorage.removeItem("token");
-          delete axios.defaults.headers.common["Authorization"];
         }
       }
       setLoading(false);
@@ -87,14 +85,13 @@ export function AuthProvider({
   ): Promise<LoginResult> => {
     try {
       const loginData: LoginRequest = { email, password };
-      const response: AxiosResponse<LoginResponse> = await axios.post(
+      const response: AxiosResponse<LoginResponse> = await apiClient.post(
         "/auth/login",
         loginData
       );
       const { access_token, user: userData } = response.data;
 
       localStorage.setItem("token", access_token);
-      axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
       setToken(access_token);
       setUser(userData);
 
@@ -109,7 +106,7 @@ export function AuthProvider({
 
   const register = async (userData: UserCreate): Promise<RegisterResult> => {
     try {
-      await axios.post("/auth/register", userData);
+      await apiClient.post("/auth/register", userData);
       return { success: true };
     } catch (error: any) {
       return {
@@ -121,7 +118,6 @@ export function AuthProvider({
 
   const logout = (): void => {
     localStorage.removeItem("token");
-    delete axios.defaults.headers.common["Authorization"];
     setToken(null);
     setUser(null);
   };
@@ -136,3 +132,6 @@ export function AuthProvider({
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
+
+// Export the configured axios instance for use in components
+export { apiClient };

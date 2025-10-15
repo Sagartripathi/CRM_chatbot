@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth, apiClient } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import {
   Card,
   CardContent,
@@ -59,23 +58,10 @@ function CampaignManagement() {
   const [selectedCampaignStats, setSelectedCampaignStats] = useState(null);
   // Sidebar managed by Layout component
 
-  // Replace simple object with full shape matching the updated form
+  // Campaign form state matching backend Campaign model
   const emptyCampaign = {
-    campaign_id: "",
-    campaign_name: "",
+    name: "",
     description: "",
-    client_id: "",
-    agent_id_vb: "",
-    main_sequence_attempts: 0,
-    follow_up_delay_days_pc: 0,
-    follow_up_max_attempts_pc: 0,
-    holiday_calendar_pc: "",
-    weekend_adjustment_pc: false,
-    timezone_shared: "",
-    is_active: false,
-    start_call: "",
-    created_at: "",
-    updated_at: "",
     lead_ids: [],
   };
   const [newCampaign, setNewCampaign] = useState({ ...emptyCampaign });
@@ -95,12 +81,9 @@ function CampaignManagement() {
         return;
       }
 
-      const tokenHeader = {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      };
       const [campaignsResponse, leadsResponse] = await Promise.all([
-        axios.get("/campaigns", tokenHeader),
-        axios.get("/leads", tokenHeader),
+        apiClient.get("/campaigns"),
+        apiClient.get("/leads"),
       ]);
 
       setCampaigns(campaignsResponse.data);
@@ -121,45 +104,19 @@ function CampaignManagement() {
   const handleCreateCampaign = async (e) => {
     e.preventDefault();
 
-    // validate the new campaign_name (form field)
-    if (!newCampaign.campaign_name || !newCampaign.campaign_name.trim()) {
+    if (!newCampaign.name || !newCampaign.name.trim()) {
       toast.error("Campaign name is required");
       return;
     }
 
-    // Lead selection is optional - campaigns can be created empty
-
     try {
-      // Map form fields to the payload expected by the backend.
-      // Keep name field (legacy/standard) populated from campaign_name.
       const payload = {
-        name: newCampaign.campaign_name,
-        campaign_id: newCampaign.campaign_id || undefined,
+        name: newCampaign.name,
         description: newCampaign.description || undefined,
-        client_id: newCampaign.client_id || undefined,
-        agent_id_vb: newCampaign.agent_id_vb || undefined,
-        main_sequence_attempts: Number(newCampaign.main_sequence_attempts) || 0,
-        follow_up_delay_days_pc:
-          Number(newCampaign.follow_up_delay_days_pc) || 0,
-        follow_up_max_attempts_pc:
-          Number(newCampaign.follow_up_max_attempts_pc) || 0,
-        holiday_calendar_pc: newCampaign.holiday_calendar_pc || undefined,
-        weekend_adjustment_pc: !!newCampaign.weekend_adjustment_pc,
-        timezone_shared: newCampaign.timezone_shared || undefined,
-        is_active: !!newCampaign.is_active,
-        start_call: newCampaign.start_call || undefined,
-        created_at: newCampaign.created_at || undefined,
-        updated_at: newCampaign.updated_at || undefined,
-        // selectedLeads is the source of truth for lead ids chosen in UI
         lead_ids: selectedLeads,
       };
 
-      // Ensure Authorization header is sent even if axios.defaults wasn't set yet
-      await axios.post("/campaigns", payload, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
+      await apiClient.post("/campaigns", payload);
 
       toast.success("Campaign created successfully!");
       setCreateDialogOpen(false);
@@ -177,7 +134,7 @@ function CampaignManagement() {
 
   const handleViewStats = async (campaign) => {
     try {
-      const response = await axios.get(`/campaigns/${campaign.id}/stats`);
+      const response = await apiClient.get(`/campaigns/${campaign.id}/stats`);
       setSelectedCampaignStats(response.data);
       setStatsDialogOpen(true);
     } catch (error) {
@@ -196,47 +153,19 @@ function CampaignManagement() {
   const handleEditCampaign = async (e) => {
     e.preventDefault();
 
-    const updatedName = (
-      selectedCampaign?.campaign_name ??
-      selectedCampaign?.name ??
-      ""
-    ).trim();
-
-    if (!updatedName) {
+    if (!selectedCampaign?.name || !selectedCampaign.name.trim()) {
       toast.error("Campaign name is required");
       return;
     }
 
     try {
-      // Build payload mirroring create payload shape
       const payload = {
-        name: updatedName,
-        campaign_id: selectedCampaign.campaign_id || undefined,
+        name: selectedCampaign.name,
         description: selectedCampaign.description || undefined,
-        client_id: selectedCampaign.client_id || undefined,
-        agent_id_vb: selectedCampaign.agent_id_vb || undefined,
-        main_sequence_attempts:
-          Number(selectedCampaign.main_sequence_attempts) || 0,
-        follow_up_delay_days_pc:
-          Number(selectedCampaign.follow_up_delay_days_pc) || 0,
-        follow_up_max_attempts_pc:
-          Number(selectedCampaign.follow_up_max_attempts_pc) || 0,
-        holiday_calendar_pc: selectedCampaign.holiday_calendar_pc || undefined,
-        weekend_adjustment_pc: !!selectedCampaign.weekend_adjustment_pc,
-        timezone_shared: selectedCampaign.timezone_shared || undefined,
-        is_active: !!selectedCampaign.is_active,
-        start_call: selectedCampaign.start_call || undefined,
-        created_at: selectedCampaign.created_at || undefined,
-        updated_at: selectedCampaign.updated_at || undefined,
         lead_ids: selectedLeads,
       };
 
-      // Ensure Authorization header is sent explicitly
-      await axios.put(`/campaigns/${selectedCampaign.id}`, payload, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
+      await apiClient.put(`/campaigns/${selectedCampaign.id}`, payload);
 
       toast.success("Campaign updated successfully!");
       setEditDialogOpen(false);
@@ -249,25 +178,10 @@ function CampaignManagement() {
   };
 
   const openEditDialog = (campaign) => {
-    // copy all form fields into selectedCampaign so edit form can be fully pre-filled
     setSelectedCampaign({
       ...campaign,
-      campaign_id: campaign.campaign_id ?? "",
-      campaign_name: campaign.campaign_name ?? campaign.name ?? "",
-      name: campaign.name ?? campaign.campaign_name ?? "",
+      name: campaign.name ?? "",
       description: campaign.description ?? "",
-      client_id: campaign.client_id ?? "",
-      agent_id_vb: campaign.agent_id_vb ?? "",
-      main_sequence_attempts: campaign.main_sequence_attempts ?? 0,
-      follow_up_delay_days_pc: campaign.follow_up_delay_days_pc ?? 0,
-      follow_up_max_attempts_pc: campaign.follow_up_max_attempts_pc ?? 0,
-      holiday_calendar_pc: campaign.holiday_calendar_pc ?? "",
-      weekend_adjustment_pc: !!campaign.weekend_adjustment_pc,
-      timezone_shared: campaign.timezone_shared ?? "",
-      is_active: !!campaign.is_active,
-      start_call: campaign.start_call ?? "",
-      created_at: campaign.created_at ?? "",
-      updated_at: campaign.updated_at ?? "",
       lead_ids:
         campaign.lead_ids ??
         (campaign.leads ? campaign.leads.map((l) => l.id) : []),
@@ -288,7 +202,7 @@ function CampaignManagement() {
 
   const handleDeleteCampaign = async () => {
     try {
-      await axios.delete(`/campaigns/${selectedCampaign.id}`);
+      await apiClient.delete(`/campaigns/${selectedCampaign.id}`);
       toast.success("Campaign deleted successfully!");
       setDeleteDialogOpen(false);
       setSelectedCampaign(null);
@@ -342,30 +256,14 @@ function CampaignManagement() {
           {/* Basic Info */}
           <div className="space-y-4">
             <div>
-              <Label htmlFor="campaign-id">Campaign ID</Label>
-              <Input
-                id="campaign-id"
-                value={newCampaign.campaign_id}
-                onChange={(e) =>
-                  setNewCampaign({
-                    ...newCampaign,
-                    campaign_id: e.target.value,
-                  })
-                }
-                placeholder="Enter unique campaign ID"
-                required
-              />
-            </div>
-
-            <div>
               <Label htmlFor="campaign-name">Campaign Name</Label>
               <Input
                 id="campaign-name"
-                value={newCampaign.campaign_name}
+                value={newCampaign.name}
                 onChange={(e) =>
                   setNewCampaign({
                     ...newCampaign,
-                    campaign_name: e.target.value,
+                    name: e.target.value,
                   })
                 }
                 placeholder="Enter campaign name"
@@ -389,222 +287,6 @@ function CampaignManagement() {
                 placeholder="Describe this campaign"
                 rows={3}
               />
-            </div>
-
-            <div>
-              <Label htmlFor="client-id">Client ID</Label>
-              <Input
-                id="client-id"
-                value={newCampaign.client_id}
-                onChange={(e) =>
-                  setNewCampaign({ ...newCampaign, client_id: e.target.value })
-                }
-                placeholder="Enter client ID"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="agent-id-vb">Agent ID (VB)</Label>
-              <Input
-                id="agent-id-vb"
-                value={newCampaign.agent_id_vb}
-                onChange={(e) =>
-                  setNewCampaign({
-                    ...newCampaign,
-                    agent_id_vb: e.target.value,
-                  })
-                }
-                placeholder="Enter agent ID"
-              />
-            </div>
-          </div>
-
-          {/* Scheduling & Attempts */}
-          <div className="pt-4 border-t">
-            <h3 className="text-base font-semibold mb-2">
-              Scheduling & Attempts
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="main-sequence-attempts">
-                  Main Sequence Attempts
-                </Label>
-                <Input
-                  id="main-sequence-attempts"
-                  type="number"
-                  min="0"
-                  value={newCampaign.main_sequence_attempts}
-                  onChange={(e) =>
-                    setNewCampaign({
-                      ...newCampaign,
-                      main_sequence_attempts: Number(e.target.value),
-                    })
-                  }
-                  placeholder="e.g. 3"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="follow-up-delay-days">
-                  Follow-up Delay (Days)
-                </Label>
-                <Input
-                  id="follow-up-delay-days"
-                  type="number"
-                  min="0"
-                  value={newCampaign.follow_up_delay_days_pc}
-                  onChange={(e) =>
-                    setNewCampaign({
-                      ...newCampaign,
-                      follow_up_delay_days_pc: Number(e.target.value),
-                    })
-                  }
-                  placeholder="e.g. 2"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="follow-up-max-attempts">
-                  Follow-up Max Attempts
-                </Label>
-                <Input
-                  id="follow-up-max-attempts"
-                  type="number"
-                  min="0"
-                  value={newCampaign.follow_up_max_attempts_pc}
-                  onChange={(e) =>
-                    setNewCampaign({
-                      ...newCampaign,
-                      follow_up_max_attempts_pc: Number(e.target.value),
-                    })
-                  }
-                  placeholder="e.g. 5"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Config Parameters */}
-          <div className="pt-4 border-t">
-            <h3 className="text-base font-semibold mb-2">Config Parameters</h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="holiday-calendar">Holiday Calendar</Label>
-                <Input
-                  id="holiday-calendar"
-                  value={newCampaign.holiday_calendar_pc}
-                  onChange={(e) =>
-                    setNewCampaign({
-                      ...newCampaign,
-                      holiday_calendar_pc: e.target.value,
-                    })
-                  }
-                  placeholder='e.g. "server_side_US_federal"'
-                />
-              </div>
-
-              <div className="flex items-center space-x-3 mt-6">
-                <Checkbox
-                  id="weekend-adjustment"
-                  checked={!!newCampaign.weekend_adjustment_pc}
-                  onCheckedChange={(checked) =>
-                    setNewCampaign({
-                      ...newCampaign,
-                      weekend_adjustment_pc: checked as boolean,
-                    })
-                  }
-                />
-                <Label htmlFor="weekend-adjustment" className="text-sm">
-                  Weekend Adjustment (Move to Monday)
-                </Label>
-              </div>
-
-              <div>
-                <Label htmlFor="timezone-shared">Timezone Shared</Label>
-                <Input
-                  id="timezone-shared"
-                  value={newCampaign.timezone_shared}
-                  onChange={(e) =>
-                    setNewCampaign({
-                      ...newCampaign,
-                      timezone_shared: e.target.value,
-                    })
-                  }
-                  placeholder="e.g. America/New_York"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Operational */}
-          <div className="pt-4 border-t">
-            <h3 className="text-base font-semibold mb-2">Operational</h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-center space-x-3 mt-2">
-                <Checkbox
-                  id="is-active"
-                  checked={!!newCampaign.is_active}
-                  onCheckedChange={(checked) =>
-                    setNewCampaign({
-                      ...newCampaign,
-                      is_active: checked as boolean,
-                    })
-                  }
-                />
-                <Label htmlFor="is-active" className="text-sm">
-                  Is Active
-                </Label>
-              </div>
-
-              <div>
-                <Label htmlFor="start-call">Start Call Trigger</Label>
-                <Input
-                  id="start-call"
-                  value={newCampaign.start_call}
-                  onChange={(e) =>
-                    setNewCampaign({
-                      ...newCampaign,
-                      start_call: e.target.value,
-                    })
-                  }
-                  placeholder="API trigger endpoint"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-              <div>
-                <Label htmlFor="created-at">Created At</Label>
-                <Input
-                  id="created-at"
-                  type="datetime-local"
-                  value={newCampaign.created_at}
-                  onChange={(e) =>
-                    setNewCampaign({
-                      ...newCampaign,
-                      created_at: e.target.value,
-                    })
-                  }
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="updated-at">Updated At</Label>
-                <Input
-                  id="updated-at"
-                  type="datetime-local"
-                  value={newCampaign.updated_at}
-                  onChange={(e) =>
-                    setNewCampaign({
-                      ...newCampaign,
-                      updated_at: e.target.value,
-                    })
-                  }
-                />
-              </div>
             </div>
           </div>
 
@@ -698,15 +380,10 @@ function CampaignManagement() {
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">
                     <CardTitle className="text-lg truncate">
-                      {campaign.campaign_name || campaign.name}
+                      {campaign.name}
                     </CardTitle>
                     <CardDescription className="mt-1">
                       {campaign.description || "No description"}
-                      {campaign.campaign_id && (
-                        <div className="text-xs text-gray-400 mt-1">
-                          ID: {campaign.campaign_id}
-                        </div>
-                      )}
                     </CardDescription>
                   </div>
                   <Badge variant={campaign.is_active ? "default" : "secondary"}>

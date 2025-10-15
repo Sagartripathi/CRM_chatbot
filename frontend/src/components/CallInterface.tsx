@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
-import axios from "axios";
+import { useAuth, apiClient } from "../contexts/AuthContext";
 import {
   Card,
   CardContent,
@@ -67,7 +66,7 @@ function CallInterface() {
         return;
       }
 
-      const response = await axios.post(`/campaigns/${campaignId}/start`);
+      const response = await apiClient.post(`/campaigns/${campaignId}/start`);
 
       setCurrentLead(response.data.lead);
       setCampaignLead(response.data.campaign_lead);
@@ -124,7 +123,7 @@ function CallInterface() {
         ? Math.round((new Date().getTime() - callStartTime.getTime()) / 1000)
         : null;
 
-      await axios.post("/calls", {
+      await apiClient.post("/calls", {
         campaign_lead_id: campaignLead.id,
         outcome: callOutcome,
         duration_seconds: callDuration,

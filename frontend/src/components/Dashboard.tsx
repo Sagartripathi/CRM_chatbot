@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth, apiClient } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import {
   Card,
   CardContent,
@@ -51,11 +50,11 @@ function Dashboard(): React.ReactElement {
       }
 
       // Fetch campaigns
-      const campaignsResponse = await axios.get<Campaign[]>("/campaigns");
+      const campaignsResponse = await apiClient.get<Campaign[]>("/campaigns");
       const campaigns = campaignsResponse.data;
 
       // Fetch leads
-      const leadsResponse = await axios.get<Lead[]>("/leads");
+      const leadsResponse = await apiClient.get<Lead[]>("/leads");
       const leads = leadsResponse.data;
 
       // Calculate stats

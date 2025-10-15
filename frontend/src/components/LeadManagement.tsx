@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth, apiClient } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import {
   Card,
   CardContent,
@@ -117,12 +116,9 @@ function LeadManagement() {
         return;
       }
 
-      const tokenHeader = {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      };
       const [leadsResponse, campaignsResponse] = await Promise.all([
-        axios.get("/leads", tokenHeader),
-        axios.get("/campaigns", tokenHeader),
+        apiClient.get("/leads"),
+        apiClient.get("/campaigns"),
       ]);
       setLeads(leadsResponse.data);
       setFilteredLeads(leadsResponse.data);
@@ -149,7 +145,7 @@ function LeadManagement() {
     }
 
     try {
-      await axios.post("/leads", newLead);
+      await apiClient.post("/leads", newLead);
       toast.success("Lead created successfully!");
       setCreateDialogOpen(false);
       setNewLead({
@@ -177,7 +173,7 @@ function LeadManagement() {
     }
 
     try {
-      await axios.put(`/leads/${selectedLead.id}`, selectedLead);
+      await apiClient.put(`/leads/${selectedLead.id}`, selectedLead);
       toast.success("Lead updated successfully!");
       setEditDialogOpen(false);
       setSelectedLead(null);
@@ -189,7 +185,7 @@ function LeadManagement() {
 
   const handleDeleteLead = async () => {
     try {
-      await axios.delete(`/leads/${selectedLead.id}`);
+      await apiClient.delete(`/leads/${selectedLead.id}`);
       toast.success("Lead deleted successfully!");
       setDeleteDialogOpen(false);
       setSelectedLead(null);
@@ -216,7 +212,7 @@ function LeadManagement() {
         ? `/leads/upload-csv?campaign_id=${uploadCampaignId}`
         : "/leads/upload-csv";
 
-      const response = await axios.post(url, formData, {
+      const response = await apiClient.post(url, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
@@ -246,7 +242,7 @@ function LeadManagement() {
 
     try {
       const campaignId = selectedLead.campaign_id || null;
-      await axios.patch(
+      await apiClient.patch(
         `/leads/${selectedLead.id}/campaign?campaign_id=${campaignId || ""}`
       );
       toast.success("Campaign updated successfully!");
