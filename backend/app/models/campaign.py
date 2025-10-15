@@ -19,16 +19,16 @@ class Campaign(BaseModel):
     name: str
     description: Optional[str] = None
     created_by: str  # User ID
-    is_active: bool = True
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    total_leads: int = 0
-    completed_leads: int = 0
-
-   # Scheduling & Attempts
-    main_sequence_attempts: int = None
-    follow_up_delay_days_pc: int = None
-    follow_up_max_attempts_pc: int = None
+    
+    # Campaign identifiers
+    campaign_id: Optional[str] = None
+    client_id: Optional[str] = None
+    agent_id_vb: Optional[str] = None
+    
+    # Scheduling & Attempts
+    main_sequence_attempts: Optional[int] = None
+    follow_up_delay_days_pc: Optional[int] = None
+    follow_up_max_attempts_pc: Optional[int] = None
     
     # Config Parameters
     holiday_calendar_pc: Optional[str] = None
@@ -53,20 +53,24 @@ class CampaignCreate(BaseModel):
     description: Optional[str] = None
     lead_ids: List[str] = []
     
+    # Campaign identifiers
     campaign_id: Optional[str] = None
-    # name: str
-    # description: Optional[str] = None
     client_id: Optional[str] = None
     agent_id_vb: Optional[str] = None
-    main_sequence_attempts: int = None
-    follow_up_delay_days_pc: int =  None
-    follow_up_max_attempts_pc: int = None
+    
+    # Scheduling & Attempts
+    main_sequence_attempts: Optional[int] = None
+    follow_up_delay_days_pc: Optional[int] = None
+    follow_up_max_attempts_pc: Optional[int] = None
+    
+    # Config Parameters
     holiday_calendar_pc: Optional[str] = None
     weekend_adjustment_pc: bool = False
     timezone_shared: Optional[str] = None
+    
+    # Operational
     is_active: bool = True
     start_call: Optional[str] = None
-    # lead_ids: List[str] = []
 
 
 

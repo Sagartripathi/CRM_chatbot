@@ -109,10 +109,21 @@ class CampaignRepository:
         Returns:
             Optional[dict]: Updated campaign document if found, None otherwise
         """
-        # Update campaign basic info
+        # Update campaign basic info - include all fields
         update_data = {
             "name": campaign_data.name,
             "description": campaign_data.description,
+            "campaign_id": campaign_data.campaign_id,
+            "client_id": campaign_data.client_id,
+            "agent_id_vb": campaign_data.agent_id_vb,
+            "main_sequence_attempts": campaign_data.main_sequence_attempts,
+            "follow_up_delay_days_pc": campaign_data.follow_up_delay_days_pc,
+            "follow_up_max_attempts_pc": campaign_data.follow_up_max_attempts_pc,
+            "holiday_calendar_pc": campaign_data.holiday_calendar_pc,
+            "weekend_adjustment_pc": campaign_data.weekend_adjustment_pc,
+            "timezone_shared": campaign_data.timezone_shared,
+            "is_active": campaign_data.is_active,
+            "start_call": campaign_data.start_call,
             "updated_at": datetime.now(timezone.utc)
         }
         
