@@ -26,9 +26,9 @@ class Campaign(BaseModel):
     completed_leads: int = 0
 
    # Scheduling & Attempts
-    main_sequence_attempts: int = 3
-    follow_up_delay_days_pc: int = 7
-    follow_up_max_attempts_pc: int = 3
+    main_sequence_attempts: int = None
+    follow_up_delay_days_pc: int = None
+    follow_up_max_attempts_pc: int = None
     
     # Config Parameters
     holiday_calendar_pc: Optional[str] = None
@@ -58,9 +58,9 @@ class CampaignCreate(BaseModel):
     # description: Optional[str] = None
     client_id: Optional[str] = None
     agent_id_vb: Optional[str] = None
-    main_sequence_attempts: int = 3
-    follow_up_delay_days_pc: int = 7
-    follow_up_max_attempts_pc: int = 3
+    main_sequence_attempts: int = None
+    follow_up_delay_days_pc: int =  None
+    follow_up_max_attempts_pc: int = None
     holiday_calendar_pc: Optional[str] = None
     weekend_adjustment_pc: bool = False
     timezone_shared: Optional[str] = None
