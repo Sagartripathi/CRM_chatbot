@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth, apiClient } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import {
   Card,
   CardContent,
@@ -89,7 +88,7 @@ function SupportTickets() {
         return;
       }
 
-      const response = await axios.get("/tickets");
+      const response = await apiClient.get("/tickets");
       setTickets(response.data);
       setFilteredTickets(response.data);
     } catch (error: any) {
@@ -114,7 +113,7 @@ function SupportTickets() {
     }
 
     try {
-      await axios.post("/tickets", newTicket);
+      await apiClient.post("/tickets", newTicket);
       toast.success("Ticket created successfully!");
       setCreateDialogOpen(false);
       setNewTicket({
@@ -130,7 +129,7 @@ function SupportTickets() {
 
   const handleUpdateTicket = async (ticketId, updates) => {
     try {
-      await axios.put(`/tickets/${ticketId}`, updates);
+      await apiClient.put(`/tickets/${ticketId}`, updates);
       toast.success("Ticket updated successfully!");
       fetchTickets();
     } catch (error) {

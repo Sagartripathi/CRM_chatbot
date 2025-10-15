@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth, apiClient } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import {
   Card,
   CardContent,
@@ -75,8 +74,8 @@ function MeetingManagement() {
       }
 
       const [meetingsResponse, leadsResponse] = await Promise.all([
-        axios.get("/meetings"),
-        axios.get("/leads"),
+        apiClient.get("/meetings"),
+        apiClient.get("/leads"),
       ]);
 
       setMeetings(meetingsResponse.data);
@@ -103,7 +102,7 @@ function MeetingManagement() {
     }
 
     try {
-      await axios.post("/meetings", {
+      await apiClient.post("/meetings", {
         ...newMeeting,
         start_time: new Date(newMeeting.start_time).toISOString(),
       });
@@ -132,7 +131,7 @@ function MeetingManagement() {
     }
 
     try {
-      await axios.put(`/meetings/${selectedMeeting.id}`, {
+      await apiClient.put(`/meetings/${selectedMeeting.id}`, {
         ...newMeeting,
         start_time: new Date(newMeeting.start_time).toISOString(),
       });
@@ -157,7 +156,7 @@ function MeetingManagement() {
     if (!selectedMeeting) return;
 
     try {
-      await axios.delete(`/meetings/${selectedMeeting.id}`);
+      await apiClient.delete(`/meetings/${selectedMeeting.id}`);
       toast.success("Meeting deleted successfully!");
       setDeleteDialogOpen(false);
       setSelectedMeeting(null);
@@ -169,7 +168,9 @@ function MeetingManagement() {
 
   const handleUpdateStatus = async (meetingId, newStatus) => {
     try {
-      await axios.patch(`/meetings/${meetingId}/status?status=${newStatus}`);
+      await apiClient.patch(
+        `/meetings/${meetingId}/status?status=${newStatus}`
+      );
       toast.success(`Meeting ${newStatus}!`);
       fetchData();
     } catch (error) {

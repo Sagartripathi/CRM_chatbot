@@ -1,6 +1,5 @@
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import axios from "axios";
 import { Toaster } from "sonner";
 
 // Components
@@ -14,17 +13,17 @@ import SupportTickets from "./components/SupportTickets";
 import CampaignDetail from "./components/CampaignDetail";
 
 // Context
-import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { AuthProvider, useAuth, apiClient } from "./contexts/AuthContext";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 // If REACT_APP_BACKEND_URL is not set, use CRA proxy by targeting "/api"
 const API = BACKEND_URL ? `${BACKEND_URL}/api` : "/api";
 
-// Configure axios defaults
-axios.defaults.baseURL = API;
+// Configure apiClient base URL
+apiClient.defaults.baseURL = API;
 
-// Add global axios interceptor for authentication errors
-axios.interceptors.response.use(
+// Add global response interceptor for authentication errors
+apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
@@ -34,7 +33,6 @@ axios.interceptors.response.use(
       if (!isAuthEndpoint) {
         // Clear token and redirect to login
         localStorage.removeItem("token");
-        delete axios.defaults.headers.common["Authorization"];
 
         // Only redirect if not already on login page
         if (window.location.pathname !== "/login") {
