@@ -46,6 +46,7 @@ pymongo==4.5.0
 pytest==8.4.2
 python-dateutil==2.9.0.post0
 python-dotenv==1.1.1
+pydantic-settings==2.0.3
 python-jose==3.5.0
 python-multipart==0.0.20
 pytokens==0.1.10
