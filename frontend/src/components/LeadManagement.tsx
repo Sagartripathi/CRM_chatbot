@@ -73,6 +73,34 @@ function LeadManagement() {
     notes: "",
     status: "new",
     campaign_id: "",
+
+    // NEW: Add optional fields with empty defaults
+    business_name: "",
+    business_address: "",
+    business_phone: "",
+    business_summary_vb: "",
+    leads_notes: "",
+    decision_maker_identified_shared: false,
+    first_contact_name_vb: "",
+    referral_name_vb: "",
+    referral_phone_vb: "",
+    referral_email_vb: "",
+    referral_role_vb: "",
+    call_status_vb: "",
+    call_duration_vb: 0,
+    conversation_summary_vb: "",
+    follow_up_count_pc: false,
+    undetermined_flag_pc: false,
+    meeting_booked_shared: false,
+    demo_booking_shared: {
+      booking_name_shared: "",
+      booking_phone_shared: "",
+      booking_email_shared: "",
+      booking_date_shared: "",
+      booking_time_shared: "",
+      calendar_event_id_shared: "",
+    },
+    updated_by_shared: "",
   });
 
   useEffect(() => {
@@ -145,7 +173,96 @@ function LeadManagement() {
     }
 
     try {
-      await apiClient.post("/leads", newLead);
+      // Clean up the data before sending - only include non-empty fields
+      const leadData: any = {
+        first_name: newLead.first_name,
+        last_name: newLead.last_name,
+        status: newLead.status,
+      };
+
+      // Add optional fields only if they have values
+      if (newLead.phone) leadData.phone = newLead.phone;
+      if (newLead.email) leadData.email = newLead.email;
+      if (newLead.source) leadData.source = newLead.source;
+      if (newLead.notes) leadData.notes = newLead.notes;
+      if (newLead.campaign_id) leadData.campaign_id = newLead.campaign_id;
+
+      // Business fields
+      if (newLead.business_name) leadData.business_name = newLead.business_name;
+      if (newLead.business_address)
+        leadData.business_address = newLead.business_address;
+      if (newLead.business_phone)
+        leadData.business_phone = newLead.business_phone;
+      if (newLead.business_summary_vb)
+        leadData.business_summary_vb = newLead.business_summary_vb;
+      if (newLead.leads_notes) leadData.leads_notes = newLead.leads_notes;
+
+      // Contact fields
+      if (newLead.first_contact_name_vb)
+        leadData.first_contact_name_vb = newLead.first_contact_name_vb;
+      if (newLead.referral_name_vb)
+        leadData.referral_name_vb = newLead.referral_name_vb;
+      if (newLead.referral_phone_vb)
+        leadData.referral_phone_vb = newLead.referral_phone_vb;
+      if (newLead.referral_email_vb)
+        leadData.referral_email_vb = newLead.referral_email_vb;
+      if (newLead.referral_role_vb)
+        leadData.referral_role_vb = newLead.referral_role_vb;
+
+      // Call status fields
+      if (newLead.call_status_vb)
+        leadData.call_status_vb = newLead.call_status_vb;
+      if (newLead.call_duration_vb)
+        leadData.call_duration_vb = newLead.call_duration_vb;
+      if (newLead.conversation_summary_vb)
+        leadData.conversation_summary_vb = newLead.conversation_summary_vb;
+
+      // Boolean fields - include if true
+      if (newLead.decision_maker_identified_shared)
+        leadData.decision_maker_identified_shared =
+          newLead.decision_maker_identified_shared;
+      if (newLead.follow_up_count_pc)
+        leadData.follow_up_count_pc = newLead.follow_up_count_pc;
+      if (newLead.undetermined_flag_pc)
+        leadData.undetermined_flag_pc = newLead.undetermined_flag_pc;
+      if (newLead.meeting_booked_shared)
+        leadData.meeting_booked_shared = newLead.meeting_booked_shared;
+
+      // Demo booking - only if it has any data
+      if (
+        newLead.demo_booking_shared?.booking_name_shared ||
+        newLead.demo_booking_shared?.booking_phone_shared ||
+        newLead.demo_booking_shared?.booking_email_shared ||
+        newLead.demo_booking_shared?.booking_date_shared ||
+        newLead.demo_booking_shared?.booking_time_shared ||
+        newLead.demo_booking_shared?.calendar_event_id_shared
+      ) {
+        leadData.demo_booking_shared = {};
+        if (newLead.demo_booking_shared.booking_name_shared)
+          leadData.demo_booking_shared.booking_name_shared =
+            newLead.demo_booking_shared.booking_name_shared;
+        if (newLead.demo_booking_shared.booking_phone_shared)
+          leadData.demo_booking_shared.booking_phone_shared =
+            newLead.demo_booking_shared.booking_phone_shared;
+        if (newLead.demo_booking_shared.booking_email_shared)
+          leadData.demo_booking_shared.booking_email_shared =
+            newLead.demo_booking_shared.booking_email_shared;
+        if (newLead.demo_booking_shared.booking_date_shared)
+          leadData.demo_booking_shared.booking_date_shared =
+            newLead.demo_booking_shared.booking_date_shared;
+        if (newLead.demo_booking_shared.booking_time_shared)
+          leadData.demo_booking_shared.booking_time_shared =
+            newLead.demo_booking_shared.booking_time_shared;
+        if (newLead.demo_booking_shared.calendar_event_id_shared)
+          leadData.demo_booking_shared.calendar_event_id_shared =
+            newLead.demo_booking_shared.calendar_event_id_shared;
+      }
+
+      if (newLead.updated_by_shared)
+        leadData.updated_by_shared = newLead.updated_by_shared;
+
+      console.log("Sending lead data:", JSON.stringify(leadData, null, 2));
+      await apiClient.post("/leads", leadData);
       toast.success("Lead created successfully!");
       setCreateDialogOpen(false);
       setNewLead({
@@ -157,10 +274,54 @@ function LeadManagement() {
         notes: "",
         status: "new",
         campaign_id: "",
+        // NEW: Add optional fields with empty defaults
+        business_name: "",
+        business_address: "",
+        business_phone: "",
+        business_summary_vb: "",
+        leads_notes: "",
+        decision_maker_identified_shared: false,
+        first_contact_name_vb: "",
+        referral_name_vb: "",
+        referral_phone_vb: "",
+        referral_email_vb: "",
+        referral_role_vb: "",
+        call_status_vb: "",
+        call_duration_vb: 0,
+        conversation_summary_vb: "",
+        follow_up_count_pc: false,
+        undetermined_flag_pc: false,
+        meeting_booked_shared: false,
+        demo_booking_shared: {
+          booking_name_shared: "",
+          booking_phone_shared: "",
+          booking_email_shared: "",
+          booking_date_shared: "",
+          booking_time_shared: "",
+          calendar_event_id_shared: "",
+        },
+        updated_by_shared: "",
       });
       fetchLeads();
     } catch (error) {
-      toast.error(error.response?.data?.detail || "Failed to create lead");
+      console.error("Error creating lead:", error);
+      console.error("Error response:", error.response?.data);
+
+      // Handle validation errors (array of error objects)
+      if (
+        error.response?.data?.detail &&
+        Array.isArray(error.response.data.detail)
+      ) {
+        const errorMessages = error.response.data.detail
+          .map((err) => `${err.loc?.join(" > ") || "Field"}: ${err.msg}`)
+          .join(", ");
+        console.error("Validation errors:", error.response.data.detail);
+        toast.error(`Validation error: ${errorMessages}`);
+      } else if (typeof error.response?.data?.detail === "string") {
+        toast.error(error.response.data.detail);
+      } else {
+        toast.error("Failed to create lead. Please check your input.");
+      }
     }
   };
 
@@ -173,13 +334,77 @@ function LeadManagement() {
     }
 
     try {
-      await apiClient.put(`/leads/${selectedLead.id}`, selectedLead);
+      // Clean up the data before sending
+      const leadData = {
+        ...selectedLead,
+        // Convert empty strings to undefined for optional fields
+        business_name: selectedLead.business_name || undefined,
+        business_address: selectedLead.business_address || undefined,
+        business_phone: selectedLead.business_phone || undefined,
+        business_summary_vb: selectedLead.business_summary_vb || undefined,
+        leads_notes: selectedLead.leads_notes || undefined,
+        first_contact_name_vb: selectedLead.first_contact_name_vb || undefined,
+        referral_name_vb: selectedLead.referral_name_vb || undefined,
+        referral_phone_vb: selectedLead.referral_phone_vb || undefined,
+        referral_email_vb: selectedLead.referral_email_vb || undefined,
+        referral_role_vb: selectedLead.referral_role_vb || undefined,
+        call_status_vb: selectedLead.call_status_vb || undefined,
+        call_duration_vb: selectedLead.call_duration_vb || undefined,
+        conversation_summary_vb:
+          selectedLead.conversation_summary_vb || undefined,
+        updated_by_shared: selectedLead.updated_by_shared || undefined,
+        // Handle demo_booking_shared - only send if it has data
+        demo_booking_shared:
+          selectedLead.demo_booking_shared?.booking_name_shared ||
+          selectedLead.demo_booking_shared?.booking_phone_shared ||
+          selectedLead.demo_booking_shared?.booking_email_shared ||
+          selectedLead.demo_booking_shared?.booking_date_shared ||
+          selectedLead.demo_booking_shared?.booking_time_shared ||
+          selectedLead.demo_booking_shared?.calendar_event_id_shared
+            ? {
+                booking_name_shared:
+                  selectedLead.demo_booking_shared.booking_name_shared ||
+                  undefined,
+                booking_phone_shared:
+                  selectedLead.demo_booking_shared.booking_phone_shared ||
+                  undefined,
+                booking_email_shared:
+                  selectedLead.demo_booking_shared.booking_email_shared ||
+                  undefined,
+                booking_date_shared:
+                  selectedLead.demo_booking_shared.booking_date_shared ||
+                  undefined,
+                booking_time_shared:
+                  selectedLead.demo_booking_shared.booking_time_shared ||
+                  undefined,
+                calendar_event_id_shared:
+                  selectedLead.demo_booking_shared.calendar_event_id_shared ||
+                  undefined,
+              }
+            : undefined,
+      };
+
+      await apiClient.put(`/leads/${selectedLead.id}`, leadData);
       toast.success("Lead updated successfully!");
       setEditDialogOpen(false);
       setSelectedLead(null);
       fetchLeads();
     } catch (error) {
-      toast.error(error.response?.data?.detail || "Failed to update lead");
+      console.error("Error updating lead:", error);
+      // Handle validation errors (array of error objects)
+      if (
+        error.response?.data?.detail &&
+        Array.isArray(error.response.data.detail)
+      ) {
+        const errorMessages = error.response.data.detail
+          .map((err) => `${err.loc?.join(" > ") || "Field"}: ${err.msg}`)
+          .join(", ");
+        toast.error(`Validation error: ${errorMessages}`);
+      } else if (typeof error.response?.data?.detail === "string") {
+        toast.error(error.response.data.detail);
+      } else {
+        toast.error("Failed to update lead. Please check your input.");
+      }
     }
   };
 
@@ -191,7 +416,12 @@ function LeadManagement() {
       setSelectedLead(null);
       fetchLeads();
     } catch (error) {
-      toast.error(error.response?.data?.detail || "Failed to delete lead");
+      console.error("Error deleting lead:", error);
+      const errorMsg =
+        typeof error.response?.data?.detail === "string"
+          ? error.response.data.detail
+          : "Failed to delete lead";
+      toast.error(errorMsg);
     }
   };
 
@@ -334,7 +564,7 @@ function LeadManagement() {
             New Lead
           </Button>
         </DialogTrigger>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Create New Lead</DialogTitle>
             <DialogDescription>
@@ -450,6 +680,66 @@ function LeadManagement() {
               </Select>
             </div>
 
+            {/* Business Information Section - ADD HERE */}
+            <div className="space-y-4 border-t pt-4">
+              <h3 className="text-lg font-medium text-gray-900">
+                Business Information
+              </h3>
+
+              <div>
+                <Label htmlFor="business-name">Business Name</Label>
+                <Input
+                  id="business-name"
+                  value={newLead.business_name || ""}
+                  onChange={(e) =>
+                    setNewLead({ ...newLead, business_name: e.target.value })
+                  }
+                  placeholder="Company Name"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="business-address">Business Address</Label>
+                <Textarea
+                  id="business-address"
+                  value={newLead.business_address || ""}
+                  onChange={(e) =>
+                    setNewLead({ ...newLead, business_address: e.target.value })
+                  }
+                  placeholder="Full business address"
+                  rows={2}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="business-phone">Business Phone</Label>
+                <Input
+                  id="business-phone"
+                  value={newLead.business_phone || ""}
+                  onChange={(e) =>
+                    setNewLead({ ...newLead, business_phone: e.target.value })
+                  }
+                  placeholder="Business phone number"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="business-summary">Business Summary</Label>
+                <Textarea
+                  id="business-summary"
+                  value={newLead.business_summary_vb || ""}
+                  onChange={(e) =>
+                    setNewLead({
+                      ...newLead,
+                      business_summary_vb: e.target.value,
+                    })
+                  }
+                  placeholder="Brief description of the business"
+                  rows={3}
+                />
+              </div>
+            </div>
+
             <div className="flex justify-end space-x-3">
               <Button
                 type="button"
@@ -465,6 +755,33 @@ function LeadManagement() {
                     notes: "",
                     status: "new",
                     campaign_id: "",
+                    // Reset new fields
+                    business_name: "",
+                    business_address: "",
+                    business_phone: "",
+                    business_summary_vb: "",
+                    leads_notes: "",
+                    decision_maker_identified_shared: false,
+                    first_contact_name_vb: "",
+                    referral_name_vb: "",
+                    referral_phone_vb: "",
+                    referral_email_vb: "",
+                    referral_role_vb: "",
+                    call_status_vb: "",
+                    call_duration_vb: 0,
+                    conversation_summary_vb: "",
+                    follow_up_count_pc: false,
+                    undetermined_flag_pc: false,
+                    meeting_booked_shared: false,
+                    demo_booking_shared: {
+                      booking_name_shared: "",
+                      booking_phone_shared: "",
+                      booking_email_shared: "",
+                      booking_date_shared: "",
+                      booking_time_shared: "",
+                      calendar_event_id_shared: "",
+                    },
+                    updated_by_shared: "",
                   });
                 }}
               >
@@ -564,85 +881,173 @@ function LeadManagement() {
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Actions
                   </th>
+
+                  {/* this is the extraction for lead display */}
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {paginatedLeads.map((lead) => (
-                  <tr
-                    key={lead.id}
-                    className="hover:bg-gray-50"
-                    data-testid={`lead-row-${lead.id}`}
-                  >
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">
-                          {lead.first_name} {lead.last_name}
+                  <React.Fragment key={lead.id}>
+                    <tr
+                      className="hover:bg-gray-50"
+                      data-testid={`lead-row-${lead.id}`}
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">
+                            {lead.first_name} {lead.last_name}
+                          </div>
+                          {lead.notes && (
+                            <div className="text-xs text-gray-500 truncate max-w-xs">
+                              {lead.notes}
+                            </div>
+                          )}
                         </div>
-                        {lead.notes && (
-                          <div className="text-xs text-gray-500 truncate max-w-xs">
-                            {lead.notes}
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        {lead.email && (
-                          <div className="flex items-center space-x-1">
-                            <Mail className="h-3 w-3 text-gray-400" />
-                            <span className="truncate max-w-xs">
-                              {lead.email}
-                            </span>
-                          </div>
-                        )}
-                        {lead.phone && (
-                          <div className="flex items-center space-x-1 mt-1">
-                            <Phone className="h-3 w-3 text-gray-400" />
-                            <span>{lead.phone}</span>
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <button
-                        onClick={() => openCampaignDialog(lead)}
-                        className="text-sm text-indigo-600 hover:text-indigo-900 underline"
-                      >
-                        {getCampaignName(lead.campaign_id)}
-                      </button>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <Badge
-                        className={`${getStatusColor(lead.status)} capitalize`}
-                      >
-                        {lead.status.replace("_", " ")}
-                      </Badge>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {lead.source || "-"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex items-center justify-end space-x-2">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => openEditDialog(lead)}
-                          data-testid={`edit-lead-btn-${lead.id}`}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">
+                          {lead.email && (
+                            <div className="flex items-center space-x-1">
+                              <Mail className="h-3 w-3 text-gray-400" />
+                              <span className="truncate max-w-xs">
+                                {lead.email}
+                              </span>
+                            </div>
+                          )}
+                          {lead.phone && (
+                            <div className="flex items-center space-x-1 mt-1">
+                              <Phone className="h-3 w-3 text-gray-400" />
+                              <span>{lead.phone}</span>
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <button
+                          onClick={() => openCampaignDialog(lead)}
+                          className="text-sm text-indigo-600 hover:text-indigo-900 underline"
                         >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => openDeleteDialog(lead)}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                          data-testid={`delete-lead-btn-${lead.id}`}
+                          {getCampaignName(lead.campaign_id)}
+                        </button>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <Badge
+                          className={`${getStatusColor(
+                            lead.status
+                          )} capitalize`}
                         >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
+                          {lead.status.replace("_", " ")}
+                        </Badge>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {lead.source || "-"}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="flex items-center justify-end space-x-2">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => openEditDialog(lead)}
+                            data-testid={`edit-lead-btn-${lead.id}`}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => openDeleteDialog(lead)}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            data-testid={`delete-lead-btn-${lead.id}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+
+                    {/* Call Tracking Section */}
+                    {(lead.call_status_vb ||
+                      lead.business_name ||
+                      lead.conversation_summary_vb ||
+                      lead.first_contact_name_vb) && (
+                      <tr>
+                        <td colSpan={6} className="px-6 py-4 bg-gray-50">
+                          <div className="space-y-3">
+                            <h4 className="text-sm font-medium text-gray-900">
+                              Additional Information
+                            </h4>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {/* Business Info */}
+                              {lead.business_name && (
+                                <div className="text-sm">
+                                  <span className="font-medium text-gray-700">
+                                    Business:
+                                  </span>
+                                  <span className="ml-2 text-gray-600">
+                                    {lead.business_name}
+                                  </span>
+                                </div>
+                              )}
+
+                              {/* Call Status */}
+                              {lead.call_status_vb && (
+                                <div className="text-sm">
+                                  <span className="font-medium text-gray-700">
+                                    Call Status:
+                                  </span>
+                                  <Badge variant="outline" className="ml-2">
+                                    {lead.call_status_vb}
+                                  </Badge>
+                                  {lead.call_duration_vb && (
+                                    <span className="ml-2 text-gray-500">
+                                      ({lead.call_duration_vb}s)
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* Contact Name */}
+                              {lead.first_contact_name_vb && (
+                                <div className="text-sm">
+                                  <span className="font-medium text-gray-700">
+                                    Contact:
+                                  </span>
+                                  <span className="ml-2 text-gray-600">
+                                    {lead.first_contact_name_vb}
+                                  </span>
+                                </div>
+                              )}
+
+                              {/* Referral Info */}
+                              {lead.referral_name_vb && (
+                                <div className="text-sm">
+                                  <span className="font-medium text-gray-700">
+                                    Referral:
+                                  </span>
+                                  <span className="ml-2 text-gray-600">
+                                    {lead.referral_name_vb}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Conversation Summary */}
+                            {lead.conversation_summary_vb && (
+                              <div className="text-sm bg-white p-3 rounded border">
+                                <span className="font-medium text-gray-700">
+                                  Summary:
+                                </span>
+                                <p className="mt-1 text-gray-600">
+                                  {lead.conversation_summary_vb}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
                 ))}
               </tbody>
             </table>
@@ -794,7 +1199,7 @@ function LeadManagement() {
 
       {/* Edit Lead Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Lead</DialogTitle>
             <DialogDescription>Update lead information</DialogDescription>
@@ -915,6 +1320,80 @@ function LeadManagement() {
                 </Select>
               </div>
 
+              {/* Business Information Section - ADD HERE */}
+              <div className="space-y-4 border-t pt-4">
+                <h3 className="text-lg font-medium text-gray-900">
+                  Business Information
+                </h3>
+
+                <div>
+                  <Label htmlFor="edit-business-name">Business Name</Label>
+                  <Input
+                    id="edit-business-name"
+                    value={selectedLead.business_name || ""}
+                    onChange={(e) =>
+                      setSelectedLead({
+                        ...selectedLead,
+                        business_name: e.target.value,
+                      })
+                    }
+                    placeholder="Company Name"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="edit-business-address">
+                    Business Address
+                  </Label>
+                  <Textarea
+                    id="edit-business-address"
+                    value={selectedLead.business_address || ""}
+                    onChange={(e) =>
+                      setSelectedLead({
+                        ...selectedLead,
+                        business_address: e.target.value,
+                      })
+                    }
+                    placeholder="Full business address"
+                    rows={2}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="edit-business-phone">Business Phone</Label>
+                  <Input
+                    id="edit-business-phone"
+                    value={selectedLead.business_phone || ""}
+                    onChange={(e) =>
+                      setSelectedLead({
+                        ...selectedLead,
+                        business_phone: e.target.value,
+                      })
+                    }
+                    placeholder="Business phone number"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="edit-business-summary">
+                    Business Summary
+                  </Label>
+                  <Textarea
+                    id="edit-business-summary"
+                    value={selectedLead.business_summary_vb || ""}
+                    onChange={(e) =>
+                      setSelectedLead({
+                        ...selectedLead,
+                        business_summary_vb: e.target.value,
+                      })
+                    }
+                    placeholder="Brief description of the business"
+                    rows={3}
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-3"></div>
               <div className="flex justify-end space-x-3">
                 <Button
                   type="button"
