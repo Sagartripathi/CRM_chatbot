@@ -321,122 +321,222 @@ function CampaignManagement() {
         </DialogHeader>
 
         <form onSubmit={handleCreateCampaign} className="space-y-6">
-          <div>
-            <Label htmlFor="campaign-id">Campaign ID (Optional)</Label>
+          {/* Campaign Basic Info */}
+          <div className="space-y-4">
+            <Label htmlFor="campaign-id">Campaign ID</Label>
             <Input
               id="campaign-id"
-              value={newCampaign.campaign_id}
+              value={newCampaign.campaign_id || ""}
               onChange={(e) =>
                 setNewCampaign({
                   ...newCampaign,
                   campaign_id: e.target.value,
                 })
               }
-              placeholder="Enter unique campaign ID"
+              placeholder="Unique campaign ID"
+              className="bg-gray-100 cursor-not-allowed"
             />
           </div>
-          {/* Basic Info */}
-          <div className="space-y-4">
+
+          <div>
+            <Label htmlFor="campaign-name">Campaign Name</Label>
+            <Input
+              id="campaign-name"
+              value={newCampaign.name || ""}
+              onChange={(e) =>
+                setNewCampaign({ ...newCampaign, name: e.target.value })
+              }
+              placeholder="Enter campaign name"
+              required
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="campaign-description">Description</Label>
+            <Textarea
+              id="campaign-description"
+              value={newCampaign.description || ""}
+              onChange={(e) =>
+                setNewCampaign({
+                  ...newCampaign,
+                  description: e.target.value,
+                })
+              }
+              placeholder="Update campaign description"
+              rows={3}
+            />
+          </div>
+
+          {/* Client and Voice Bot IDs */}
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="campaign-name">Campaign Name</Label>
+              <Label htmlFor="client-id">Client ID</Label>
               <Input
-                id="campaign-name"
-                value={newCampaign.name}
+                id="client-id"
+                value={newCampaign.client_id || ""}
                 onChange={(e) =>
                   setNewCampaign({
                     ...newCampaign,
-                    name: e.target.value,
+                    client_id: e.target.value,
                   })
                 }
-                placeholder="Enter campaign name"
-                required
+                placeholder="Enter client ID"
               />
+            </div>
+            <div>
+              <Label htmlFor="voice-bot-id">Voice Bot ID</Label>
+              <Input
+                id="voice-bot-id"
+                value={newCampaign.agent_id_vb || ""}
+                onChange={(e) =>
+                  setNewCampaign({
+                    ...newCampaign,
+                    agent_id_vb: e.target.value,
+                  })
+                }
+                placeholder="Enter Voice Bot ID"
+              />
+            </div>
+          </div>
+
+          {/* Timezone & Status */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="timezone">Timezone</Label>
+              <Input
+                id="timezone"
+                value={newCampaign.timezone_shared || ""}
+                onChange={(e) =>
+                  setNewCampaign({
+                    ...newCampaign,
+                    timezone_shared: e.target.value,
+                  })
+                }
+                placeholder="e.g. America/New_York"
+              />
+            </div>
+            <div>
+              <Label htmlFor="status">Status</Label>
+              <select
+                id="status"
+                className="w-full border rounded-md px-3 py-2"
+                value={newCampaign.is_active ? "active" : "inactive"}
+                onChange={(e) =>
+                  setNewCampaign({
+                    ...newCampaign,
+                    is_active: e.target.value === "active",
+                  })
+                }
+              >
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Attempt Settings */}
+          <div className="pt-4 border-t space-y-3">
+            <Label className="text-base font-medium">Attempt Settings</Label>
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <Label htmlFor="main-attempts">Main Attempts</Label>
+
+                <Input
+                  id="main-attempts"
+                  type="number"
+                  value={newCampaign.main_sequence_attempts || 0}
+                  onChange={(e) =>
+                    setNewCampaign({
+                      ...newCampaign,
+                      main_sequence_attempts: e.target.value,
+                    })
+                  }
+                />
+              </div>
+              <div>
+                <Label htmlFor="followup-attempts">Follow-up Attempts</Label>
+                <Input
+                  id="followup-attempts"
+                  type="number"
+                  value={newCampaign.follow_up_max_attempts_pc || 0}
+                  onChange={(e) =>
+                    setNewCampaign({
+                      ...newCampaign,
+                      follow_up_max_attempts_pc: e.target.value,
+                    })
+                  }
+                />
+              </div>
+              <div>
+                <Label htmlFor="delay-days">Delay (Days)</Label>
+                <Input
+                  id="delay-days"
+                  type="number"
+                  value={newCampaign.follow_up_delay_days_pc || 0}
+                  onChange={(e) =>
+                    setNewCampaign({
+                      ...newCampaign,
+                      follow_up_delay_days_pc: e.target.value,
+                    })
+                  }
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Config Flags */}
+          <div className="pt-4 border-t space-y-2">
+            <Label className="text-base font-medium">Configuration</Label>
+            <div className="flex items-center space-x-3">
+              <Checkbox
+                id="weekend-adjustment"
+                checked={!!newCampaign.weekend_adjustment_pc}
+                onCheckedChange={(checked) =>
+                  setNewCampaign({
+                    ...newCampaign,
+                    weekend_adjustment_pc: checked ? true : false,
+                  })
+                }
+              />
+              <Label htmlFor="weekend-adjustment" className="text-sm">
+                Enable Weekend Adjustment
+              </Label>
             </div>
 
             <div>
-              <Label htmlFor="campaign-description">
-                Description (Optional)
-              </Label>
-              <Textarea
-                id="campaign-description"
-                value={newCampaign.description}
+              <Label htmlFor="holiday-calendar">Holiday Calendar</Label>
+              <Input
+                id="holiday-calendar"
+                value={newCampaign.holiday_calendar_pc || ""}
                 onChange={(e) =>
                   setNewCampaign({
                     ...newCampaign,
-                    description: e.target.value,
+                    holiday_calendar_pc: e.target.value,
                   })
                 }
-                placeholder="Describe this campaign"
-                rows={3}
+                placeholder="Enter holiday calendar name (optional)"
               />
             </div>
           </div>
 
-          {/* Lead Selection (Existing Section) */}
-          <div className="pt-4 border-t">
-            <Label className="text-base font-medium">
-              Select Leads (Optional)
-            </Label>
-            <p className="text-sm text-gray-500 mb-4">
-              Choose leads to include in this campaign or create an empty
-              campaign
-            </p>
-
-            {leads.length > 0 ? (
-              <div className="border rounded-lg max-h-60 overflow-y-auto">
-                {leads.map((lead) => (
-                  <div
-                    key={lead.id}
-                    className="flex items-center space-x-3 p-3 border-b last:border-b-0 hover:bg-gray-50"
-                  >
-                    <Checkbox
-                      id={`lead-${lead.id}`}
-                      checked={selectedLeads.includes(lead.id)}
-                      onCheckedChange={(checked) =>
-                        handleLeadSelection(lead.id, checked)
-                      }
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900">
-                        {lead.first_name} {lead.last_name}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        {lead.email} • {lead.phone}
-                      </p>
-                    </div>
-                    <Badge className={getStatusColor(lead.status)}>
-                      {lead.status.replace("_", " ")}
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-500 text-center py-4">
-                No leads available. Create some leads first.
-              </p>
-            )}
-
-            <p className="text-sm text-indigo-600 mt-2">
-              {selectedLeads.length > 0
-                ? `${selectedLeads.length} lead(s) selected`
-                : "No leads selected - campaign will be created empty"}
-            </p>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex justify-end space-x-3">
+          {/* Save / Cancel */}
+          <div className="flex justify-end space-x-3 pt-6 border-t">
             <Button
               type="button"
               variant="outline"
               onClick={() => {
-                setCreateDialogOpen(false);
-                setSelectedLeads([]);
-                setNewCampaign({ ...emptyCampaign });
+                setEditDialogOpen(false);
+                setNewCampaign(null);
               }}
             >
               Cancel
             </Button>
+
             <Button
+              // onClick={() => {
+              //   setCampaigns();
+              // }}
+              onClick={() => navigate("/campaigns")}
               type="submit"
               className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
             >
@@ -453,137 +553,6 @@ function CampaignManagement() {
       {campaigns.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {campaigns.map((campaign) => (
-            // <Card
-            //   key={campaign.id}
-            //   className="card-hover"
-            //   data-testid={`campaign-card-${campaign.id}`}
-            // >
-            //   <CardHeader>
-            //     <div className="flex items-start justify-between">
-            //       <div className="flex-1 min-w-0">
-            //         <CardTitle className="text-lg truncate">
-            //           {campaign.name}
-            //         </CardTitle>
-            //         <CardDescription className="mt-1">
-            //           {campaign.description || "No description"}
-            //         </CardDescription>
-            //       </div>
-            //       <Badge variant={campaign.is_active ? "default" : "secondary"}>
-            //         {campaign.is_active ? "Active" : "Inactive"}
-            //       </Badge>
-            //     </div>
-            //   </CardHeader>
-
-            //   <CardContent>
-            //     <div className="space-y-4">
-            //       {/* Stats */}
-            //       <div className="grid grid-cols-2 gap-4">
-            //         <div className="text-center">
-            //           <p className="text-2xl font-bold text-indigo-600">
-            //             {campaign.total_leads}
-            //           </p>
-            //           <p className="text-xs text-gray-500">Total Leads</p>
-            //         </div>
-            //         <div className="text-center">
-            //           <p className="text-2xl font-bold text-emerald-600">
-            //             {campaign.completed_leads}
-            //           </p>
-            //           <p className="text-xs text-gray-500">Completed</p>
-            //         </div>
-            //       </div>
-
-            //       {/* Progress Bar */}
-            //       <div>
-            //         <div className="flex justify-between text-sm text-gray-600 mb-1">
-            //           <span>Progress</span>
-            //           <span>
-            //             {campaign.total_leads > 0
-            //               ? Math.round(
-            //                   (campaign.completed_leads /
-            //                     campaign.total_leads) *
-            //                     100
-            //                 )
-            //               : 0}
-            //             %
-            //           </span>
-            //         </div>
-            //         <div className="w-full bg-gray-200 rounded-full h-2">
-            //           <div
-            //             className="progress-bar h-2 rounded-full"
-            //             style={{
-            //               width:
-            //                 campaign.total_leads > 0
-            //                   ? `${
-            //                       (campaign.completed_leads /
-            //                         campaign.total_leads) *
-            //                       100
-            //                     }%`
-            //                   : "0%",
-            //             }}
-            //           ></div>
-            //         </div>
-            //       </div>
-
-            //       {/* Action Buttons */}
-            //       <div className="flex space-x-2">
-            //         {user?.role === "agent" && campaign.is_active && (
-            //           <Button
-            //             size="sm"
-            //             data-testid={`start-campaign-btn-${campaign.id}`}
-            //             onClick={() => handleStartCampaign(campaign.id)}
-            //             className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700"
-            //           >
-            //             <Play className="mr-2 h-4 w-4" />
-            //             Start Agent
-            //           </Button>
-            //         )}
-
-            //         <Button
-            //           size="sm"
-            //           variant="outline"
-            //           data-testid={`view-stats-btn-${campaign.id}`}
-            //           onClick={() => handleViewStats(campaign)}
-            //           className={
-            //             user?.role === "agent" && campaign.is_active
-            //               ? "flex-1"
-            //               : "flex-1"
-            //           }
-            //         >
-            //           <Eye className="mr-2 h-4 w-4" />
-            //           View Stats
-            //         </Button>
-            //       </div>
-
-            //       {/* Edit/Delete Actions */}
-            //       <div className="flex space-x-2 mt-2">
-            //         <Button
-            //           size="sm"
-            //           variant="outline"
-            //           onClick={() => openEditDialog(campaign)}
-            //           className="flex-1"
-            //           data-testid={`edit-campaign-btn-${campaign.id}`}
-            //         >
-            //           <Edit className="mr-2 h-4 w-4" />
-            //           Edit
-            //         </Button>
-            //         <Button
-            //           size="sm"
-            //           variant="outline"
-            //           onClick={() => openDeleteDialog(campaign)}
-            //           className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50"
-            //           data-testid={`delete-campaign-btn-${campaign.id}`}
-            //         >
-            //           <Trash2 className="mr-2 h-4 w-4" />
-            //           Delete
-            //         </Button>
-            //       </div>
-
-            //       <div className="text-xs text-gray-500 text-center pt-2 border-t">
-            //         Created {new Date(campaign.created_at).toLocaleDateString()}
-            //       </div>
-            //     </div>
-            //   </CardContent>
-            // </Card>
             <Card
               key={campaign.id}
               className="card-hover"
