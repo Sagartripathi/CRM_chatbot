@@ -63,6 +63,21 @@ function CampaignManagement() {
     name: "",
     description: "",
     lead_ids: [],
+
+    campaign_id: "",
+    // name: "",
+    // description: "",
+    client_id: "",
+    agent_id_vb: "",
+    main_sequence_attempts: "",
+    follow_up_delay_days_pc: "",
+    follow_up_max_attempts_pc: "",
+    holiday_calendar_pc: "",
+    weekend_adjustment_pc: false,
+    timezone_shared: "",
+    is_active: true,
+    start_call: "",
+    // lead_ids: [],
   };
   const [newCampaign, setNewCampaign] = useState({ ...emptyCampaign });
 
@@ -114,6 +129,24 @@ function CampaignManagement() {
         name: newCampaign.name,
         description: newCampaign.description || undefined,
         lead_ids: selectedLeads,
+
+        campaign_id: newCampaign.campaign_id || undefined,
+        // name: newCampaign.name,
+        // description: newCampaign.description || undefined,
+        client_id: newCampaign.client_id || undefined,
+        agent_id_vb: newCampaign.agent_id_vb || undefined,
+        main_sequence_attempts:
+          Number(newCampaign.main_sequence_attempts) || undefined,
+        follow_up_delay_days_pc:
+          Number(newCampaign.follow_up_delay_days_pc) || undefined,
+        follow_up_max_attempts_pc:
+          Number(newCampaign.follow_up_max_attempts_pc) || undefined,
+        holiday_calendar_pc: newCampaign.holiday_calendar_pc || undefined,
+        weekend_adjustment_pc: !!newCampaign.weekend_adjustment_pc,
+        timezone_shared: newCampaign.timezone_shared || undefined,
+        is_active: !!newCampaign.is_active,
+        start_call: newCampaign.start_call || undefined,
+        // lead_ids: selectedLeads,
       };
 
       await apiClient.post("/campaigns", payload);
@@ -163,6 +196,24 @@ function CampaignManagement() {
         name: selectedCampaign.name,
         description: selectedCampaign.description || undefined,
         lead_ids: selectedLeads,
+
+        campaign_id: selectedCampaign.campaign_id || undefined,
+        // name: selectedCampaign.name,
+        // description: selectedCampaign.description || undefined,
+        client_id: selectedCampaign.client_id || undefined,
+        agent_id_vb: selectedCampaign.agent_id_vb || undefined,
+        main_sequence_attempts:
+          Number(selectedCampaign.main_sequence_attempts) || undefined,
+        follow_up_delay_days_pc:
+          Number(selectedCampaign.follow_up_delay_days_pc) || undefined,
+        follow_up_max_attempts_pc:
+          Number(selectedCampaign.follow_up_max_attempts_pc) || undefined,
+        holiday_calendar_pc: selectedCampaign.holiday_calendar_pc || undefined,
+        weekend_adjustment_pc: !!selectedCampaign.weekend_adjustment_pc,
+        timezone_shared: selectedCampaign.timezone_shared || undefined,
+        is_active: !!selectedCampaign.is_active,
+        start_call: selectedCampaign.start_call || undefined,
+        // lead_ids: selectedLeads,
       };
 
       await apiClient.put(`/campaigns/${selectedCampaign.id}`, payload);
@@ -180,8 +231,25 @@ function CampaignManagement() {
   const openEditDialog = (campaign) => {
     setSelectedCampaign({
       ...campaign,
+      // name: campaign.name ?? "",
+      // description: campaign.description ?? "",
+      // lead_ids:
+      //   campaign.lead_ids ??
+      //   (campaign.leads ? campaign.leads.map((l) => l.id) : []),
+
+      campaign_id: campaign.campaign_id ?? "",
       name: campaign.name ?? "",
       description: campaign.description ?? "",
+      client_id: campaign.client_id ?? "",
+      agent_id_vb: campaign.agent_id_vb ?? "",
+      main_sequence_attempts: campaign.main_sequence_attempts ?? "",
+      follow_up_delay_days_pc: campaign.follow_up_delay_days_pc ?? "",
+      follow_up_max_attempts_pc: campaign.follow_up_max_attempts_pc ?? "",
+      holiday_calendar_pc: campaign.holiday_calendar_pc ?? "",
+      weekend_adjustment_pc: !!campaign.weekend_adjustment_pc,
+      timezone_shared: campaign.timezone_shared ?? "",
+      is_active: !!campaign.is_active,
+      start_call: campaign.start_call ?? "",
       lead_ids:
         campaign.lead_ids ??
         (campaign.leads ? campaign.leads.map((l) => l.id) : []),
@@ -253,6 +321,20 @@ function CampaignManagement() {
         </DialogHeader>
 
         <form onSubmit={handleCreateCampaign} className="space-y-6">
+          <div>
+            <Label htmlFor="campaign-id">Campaign ID (Optional)</Label>
+            <Input
+              id="campaign-id"
+              value={newCampaign.campaign_id}
+              onChange={(e) =>
+                setNewCampaign({
+                  ...newCampaign,
+                  campaign_id: e.target.value,
+                })
+              }
+              placeholder="Enter unique campaign ID"
+            />
+          </div>
           {/* Basic Info */}
           <div className="space-y-4">
             <div>
@@ -371,6 +453,137 @@ function CampaignManagement() {
       {campaigns.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {campaigns.map((campaign) => (
+            // <Card
+            //   key={campaign.id}
+            //   className="card-hover"
+            //   data-testid={`campaign-card-${campaign.id}`}
+            // >
+            //   <CardHeader>
+            //     <div className="flex items-start justify-between">
+            //       <div className="flex-1 min-w-0">
+            //         <CardTitle className="text-lg truncate">
+            //           {campaign.name}
+            //         </CardTitle>
+            //         <CardDescription className="mt-1">
+            //           {campaign.description || "No description"}
+            //         </CardDescription>
+            //       </div>
+            //       <Badge variant={campaign.is_active ? "default" : "secondary"}>
+            //         {campaign.is_active ? "Active" : "Inactive"}
+            //       </Badge>
+            //     </div>
+            //   </CardHeader>
+
+            //   <CardContent>
+            //     <div className="space-y-4">
+            //       {/* Stats */}
+            //       <div className="grid grid-cols-2 gap-4">
+            //         <div className="text-center">
+            //           <p className="text-2xl font-bold text-indigo-600">
+            //             {campaign.total_leads}
+            //           </p>
+            //           <p className="text-xs text-gray-500">Total Leads</p>
+            //         </div>
+            //         <div className="text-center">
+            //           <p className="text-2xl font-bold text-emerald-600">
+            //             {campaign.completed_leads}
+            //           </p>
+            //           <p className="text-xs text-gray-500">Completed</p>
+            //         </div>
+            //       </div>
+
+            //       {/* Progress Bar */}
+            //       <div>
+            //         <div className="flex justify-between text-sm text-gray-600 mb-1">
+            //           <span>Progress</span>
+            //           <span>
+            //             {campaign.total_leads > 0
+            //               ? Math.round(
+            //                   (campaign.completed_leads /
+            //                     campaign.total_leads) *
+            //                     100
+            //                 )
+            //               : 0}
+            //             %
+            //           </span>
+            //         </div>
+            //         <div className="w-full bg-gray-200 rounded-full h-2">
+            //           <div
+            //             className="progress-bar h-2 rounded-full"
+            //             style={{
+            //               width:
+            //                 campaign.total_leads > 0
+            //                   ? `${
+            //                       (campaign.completed_leads /
+            //                         campaign.total_leads) *
+            //                       100
+            //                     }%`
+            //                   : "0%",
+            //             }}
+            //           ></div>
+            //         </div>
+            //       </div>
+
+            //       {/* Action Buttons */}
+            //       <div className="flex space-x-2">
+            //         {user?.role === "agent" && campaign.is_active && (
+            //           <Button
+            //             size="sm"
+            //             data-testid={`start-campaign-btn-${campaign.id}`}
+            //             onClick={() => handleStartCampaign(campaign.id)}
+            //             className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700"
+            //           >
+            //             <Play className="mr-2 h-4 w-4" />
+            //             Start Agent
+            //           </Button>
+            //         )}
+
+            //         <Button
+            //           size="sm"
+            //           variant="outline"
+            //           data-testid={`view-stats-btn-${campaign.id}`}
+            //           onClick={() => handleViewStats(campaign)}
+            //           className={
+            //             user?.role === "agent" && campaign.is_active
+            //               ? "flex-1"
+            //               : "flex-1"
+            //           }
+            //         >
+            //           <Eye className="mr-2 h-4 w-4" />
+            //           View Stats
+            //         </Button>
+            //       </div>
+
+            //       {/* Edit/Delete Actions */}
+            //       <div className="flex space-x-2 mt-2">
+            //         <Button
+            //           size="sm"
+            //           variant="outline"
+            //           onClick={() => openEditDialog(campaign)}
+            //           className="flex-1"
+            //           data-testid={`edit-campaign-btn-${campaign.id}`}
+            //         >
+            //           <Edit className="mr-2 h-4 w-4" />
+            //           Edit
+            //         </Button>
+            //         <Button
+            //           size="sm"
+            //           variant="outline"
+            //           onClick={() => openDeleteDialog(campaign)}
+            //           className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+            //           data-testid={`delete-campaign-btn-${campaign.id}`}
+            //         >
+            //           <Trash2 className="mr-2 h-4 w-4" />
+            //           Delete
+            //         </Button>
+            //       </div>
+
+            //       <div className="text-xs text-gray-500 text-center pt-2 border-t">
+            //         Created {new Date(campaign.created_at).toLocaleDateString()}
+            //       </div>
+            //     </div>
+            //   </CardContent>
+            // </Card>
             <Card
               key={campaign.id}
               className="card-hover"
@@ -385,6 +598,11 @@ function CampaignManagement() {
                     <CardDescription className="mt-1">
                       {campaign.description || "No description"}
                     </CardDescription>
+                    {campaign.campaign_id && (
+                      <div className="text-xs text-gray-500 mt-1">
+                        ID: {campaign.campaign_id}
+                      </div>
+                    )}
                   </div>
                   <Badge variant={campaign.is_active ? "default" : "secondary"}>
                     {campaign.is_active ? "Active" : "Inactive"}
@@ -393,111 +611,124 @@ function CampaignManagement() {
               </CardHeader>
 
               <CardContent>
-                <div className="space-y-4">
-                  {/* Stats */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-indigo-600">
-                        {campaign.total_leads}
-                      </p>
-                      <p className="text-xs text-gray-500">Total Leads</p>
+                <div className="space-y-3">
+                  {/* Stats Section */}
+                  <div className="grid grid-cols-2 gap-4 pb-3 border-b">
+                    <div>
+                      <div className="text-xs text-gray-500">Total Leads</div>
+                      <div className="text-lg font-semibold">
+                        {campaign.total_leads || 0}
+                      </div>
                     </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-emerald-600">
-                        {campaign.completed_leads}
-                      </p>
-                      <p className="text-xs text-gray-500">Completed</p>
+                    <div>
+                      <div className="text-xs text-gray-500">Completed</div>
+                      <div className="text-lg font-semibold">
+                        {campaign.completed_leads || 0}
+                      </div>
                     </div>
                   </div>
 
-                  {/* Progress Bar */}
-                  <div>
-                    <div className="flex justify-between text-sm text-gray-600 mb-1">
-                      <span>Progress</span>
-                      <span>
-                        {campaign.total_leads > 0
-                          ? Math.round(
-                              (campaign.completed_leads /
-                                campaign.total_leads) *
-                                100
-                            )
-                          : 0}
-                        %
-                      </span>
+                  {/* Campaign Details */}
+                  <div className="space-y-2 text-sm">
+                    {campaign.client_id && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-500">Client ID:</span>
+                        <span className="font-medium text-gray-700">
+                          {campaign.client_id}
+                        </span>
+                      </div>
+                    )}
+
+                    {campaign.agent_id_vb && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-500">Voice Bot:</span>
+                        <span className="font-medium text-gray-700">
+                          {campaign.agent_id_vb}
+                        </span>
+                      </div>
+                    )}
+
+                    {campaign.timezone_shared && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-500">Timezone:</span>
+                        <span className="font-medium text-gray-700">
+                          {campaign.timezone_shared}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Attempt Settings */}
+                    <div className="pt-2 border-t">
+                      <div className="text-xs font-semibold text-gray-600 mb-1">
+                        Attempt Settings
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 text-xs">
+                        <div>
+                          <div className="text-gray-500">Main</div>
+                          <div className="font-semibold">
+                            {campaign.main_sequence_attempts || 3}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-gray-500">Follow-up</div>
+                          <div className="font-semibold">
+                            {campaign.follow_up_max_attempts_pc || 3}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-gray-500">Delay</div>
+                          <div className="font-semibold">
+                            {campaign.follow_up_delay_days_pc || 7}d
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className="progress-bar h-2 rounded-full"
-                        style={{
-                          width:
-                            campaign.total_leads > 0
-                              ? `${
-                                  (campaign.completed_leads /
-                                    campaign.total_leads) *
-                                  100
-                                }%`
-                              : "0%",
-                        }}
-                      ></div>
-                    </div>
+
+                    {/* Config Badges */}
+                    {(campaign.weekend_adjustment_pc ||
+                      campaign.holiday_calendar_pc) && (
+                      <div className="flex flex-wrap gap-1 pt-2">
+                        {campaign.weekend_adjustment_pc && (
+                          <Badge variant="outline" className="text-xs">
+                            Weekend Adjust
+                          </Badge>
+                        )}
+                        {campaign.holiday_calendar_pc && (
+                          <Badge variant="outline" className="text-xs">
+                            {campaign.holiday_calendar_pc}
+                          </Badge>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex space-x-2">
-                    {user?.role === "agent" && campaign.is_active && (
-                      <Button
-                        size="sm"
-                        data-testid={`start-campaign-btn-${campaign.id}`}
-                        onClick={() => handleStartCampaign(campaign.id)}
-                        className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700"
-                      >
-                        <Play className="mr-2 h-4 w-4" />
-                        Start Agent
-                      </Button>
-                    )}
-
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      data-testid={`view-stats-btn-${campaign.id}`}
+                  <div className="flex gap-2 pt-3 border-t">
+                    <button
+                      onClick={() => handleStartCampaign(campaign.id)}
+                      className="flex-1 px-3 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 text-sm font-medium"
+                    >
+                      <Phone className="h-4 w-4 inline mr-1" />
+                      Start Calls
+                    </button>
+                    <button
                       onClick={() => handleViewStats(campaign)}
-                      className={
-                        user?.role === "agent" && campaign.is_active
-                          ? "flex-1"
-                          : "flex-1"
-                      }
+                      className="px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 text-sm"
                     >
-                      <Eye className="mr-2 h-4 w-4" />
-                      View Stats
-                    </Button>
-                  </div>
-
-                  {/* Edit/Delete Actions */}
-                  <div className="flex space-x-2 mt-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
+                      <Eye className="h-4 w-4" />
+                    </button>
+                    <button
                       onClick={() => openEditDialog(campaign)}
-                      className="flex-1"
-                      data-testid={`edit-campaign-btn-${campaign.id}`}
+                      className="px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 text-sm"
                     >
-                      <Edit className="mr-2 h-4 w-4" />
-                      Edit
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
+                      <Edit className="h-4 w-4" />
+                    </button>
+                    <button
                       onClick={() => openDeleteDialog(campaign)}
-                      className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50"
-                      data-testid={`delete-campaign-btn-${campaign.id}`}
+                      className="px-3 py-2 border border-red-300 text-red-600 rounded-md hover:bg-red-50 text-sm"
                     >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Delete
-                    </Button>
-                  </div>
-
-                  <div className="text-xs text-gray-500 text-center pt-2 border-t">
-                    Created {new Date(campaign.created_at).toLocaleDateString()}
+                      <Trash2 className="h-4 w-4" />
+                    </button>
                   </div>
                 </div>
               </CardContent>

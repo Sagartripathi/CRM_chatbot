@@ -25,6 +25,24 @@ class Campaign(BaseModel):
     total_leads: int = 0
     completed_leads: int = 0
 
+   # Scheduling & Attempts
+    main_sequence_attempts: int = None
+    follow_up_delay_days_pc: int = None
+    follow_up_max_attempts_pc: int = None
+    
+    # Config Parameters
+    holiday_calendar_pc: Optional[str] = None
+    weekend_adjustment_pc: bool = False
+    timezone_shared: Optional[str] = None
+    
+    # Operational
+    is_active: bool = True
+    start_call: Optional[str] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    total_leads: int = 0
+    completed_leads: int = 0
+
 
 class CampaignCreate(BaseModel):
     """
@@ -34,6 +52,24 @@ class CampaignCreate(BaseModel):
     name: str
     description: Optional[str] = None
     lead_ids: List[str] = []
+    
+    campaign_id: Optional[str] = None
+    # name: str
+    # description: Optional[str] = None
+    client_id: Optional[str] = None
+    agent_id_vb: Optional[str] = None
+    main_sequence_attempts: int = None
+    follow_up_delay_days_pc: int =  None
+    follow_up_max_attempts_pc: int = None
+    holiday_calendar_pc: Optional[str] = None
+    weekend_adjustment_pc: bool = False
+    timezone_shared: Optional[str] = None
+    is_active: bool = True
+    start_call: Optional[str] = None
+    # lead_ids: List[str] = []
+
+
+
 
 
 class CallLog(BaseModel):
