@@ -15,7 +15,9 @@ import CampaignDetail from "./components/CampaignDetail";
 // Context
 import { AuthProvider, useAuth, apiClient } from "./contexts/AuthContext";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const BACKEND_URL = (process.env.REACT_APP_BACKEND_URL =
+  "http://localhost:8000");
+
 // If REACT_APP_BACKEND_URL is not set, use CRA proxy by targeting "/api"
 const API = BACKEND_URL ? `${BACKEND_URL}/api` : "/api";
 
@@ -33,6 +35,8 @@ apiClient.interceptors.response.use(
       if (!isAuthEndpoint) {
         // Clear token and redirect to login
         localStorage.removeItem("token");
+
+        //
 
         // Only redirect if not already on login page
         if (window.location.pathname !== "/login") {
