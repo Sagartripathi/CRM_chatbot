@@ -97,3 +97,19 @@ android-sdk/ -e
 # Environment files
 *.env
 *.env.*
+
+# Server logs
+*.log
+server.log
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Temporary test files
+*_test.py
+*_debug.py
+check_*.py
+fix_*.py
+
