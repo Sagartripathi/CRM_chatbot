@@ -6,6 +6,12 @@ Handles environment variables and application settings.
 import os
 from pathlib import Path
 from pydantic_settings import BaseSettings
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+env_path = Path(__file__).parent.parent / ".env"
+if env_path.exists():
+    load_dotenv(dotenv_path=env_path)
 
 
 class Settings(BaseSettings):
@@ -15,8 +21,10 @@ class Settings(BaseSettings):
     """
     
     # Database Configuration
-    mongo_url: str = "mongodb://localhost:27017"
-    db_name: str = "crm_db"
+    # For local MongoDB: mongodb://localhost:27017
+    # For MongoDB Atlas: mongodb+srv://<username>:<password>@<cluster>.mongodb.net/?retryWrites=true&w=majority
+    mongo_url: str = os.getenv("MONGO_URL", "mongodb://localhost:27017")
+    db_name: str = os.getenv("DB_NAME", "crm_db")
     
     # Security Configuration
     jwt_secret_key: str = "your-secret-key-change-in-production"
