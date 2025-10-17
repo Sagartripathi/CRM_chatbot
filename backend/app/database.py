@@ -32,12 +32,14 @@ class Database:
             self.client = AsyncIOMotorClient(
                 settings.mongo_url,
                 tls=True,
+
                 tlsAllowInvalidCertificates=True,
                 connectTimeoutMS=settings.db_connect_timeout,
                 serverSelectionTimeoutMS=settings.db_server_selection_timeout,
                 socketTimeoutMS=settings.db_socket_timeout,
                 maxPoolSize=settings.db_max_pool_size,
                 retryWrites=True
+
             )
             self.database = self.client[settings.db_name]
             
