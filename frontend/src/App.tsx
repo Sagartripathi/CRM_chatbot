@@ -19,7 +19,7 @@ import { AuthProvider, useAuth, apiClient } from "./contexts/AuthContext";
 import { API_BASE_URL } from "./config";
 
 // Configure apiClient base URL using centralized config
-apiClient.defaults.baseURL = `${API_BASE_URL}/api`;
+apiClient.defaults.baseURL = `${API_BASE_URL.replace(/\/$/, '')}/api`;
 
 // Add global response interceptor for authentication errors
 apiClient.interceptors.response.use(
