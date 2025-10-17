@@ -32,7 +32,7 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 1440  # 24 hours
     
     # CORS Configuration
-    cors_origins: str = "*"
+    cors_origins: str = os.getenv("CORS_ORIGINS", "*")
     
     # Server Configuration
     host: str = "127.0.0.1"
