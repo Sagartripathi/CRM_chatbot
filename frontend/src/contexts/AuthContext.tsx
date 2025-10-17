@@ -16,7 +16,7 @@ import { API_BASE_URL } from "../config";
 
 // Create axios instance with base URL and request interceptor for automatic token injection
 const apiClient = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: `${API_BASE_URL.replace(/\/$/, '')}/api`,
 });
 
 // Request interceptor to add token to all requests and ensure trailing slashes
