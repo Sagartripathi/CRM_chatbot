@@ -89,6 +89,30 @@ async def health_check():
     }
 
 
+@app.get("/api/test-db")
+async def test_database():
+    """Test database connection endpoint"""
+    try:
+        # Test database connection
+        await db.client.admin.command("ping")
+        
+        # Test users collection
+        user_count = await db.database.users.count_documents({})
+        
+        return {
+            "status": "success",
+            "message": "Database connection working",
+            "user_count": user_count,
+            "database_name": db.database.name
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"Database connection failed: {str(e)}",
+            "error_type": type(e).__name__
+        }
+
+
 # ------------------ Lifecycle Events ------------------
 @app.on_event("startup")
 async def startup_event():
