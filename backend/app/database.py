@@ -40,9 +40,7 @@ class Database:
             self.client = AsyncIOMotorClient(
                 settings.mongo_url,
                 tls=True,
-                tlsAllowInvalidCertificates=True,
-                ssl=True,
-                ssl_cert_reqs=ssl.CERT_NONE
+                tlsAllowInvalidCertificates=True
             )
             self.database = self.client[settings.db_name]
             
