@@ -49,6 +49,7 @@ else:
     cors_origins = [origin.strip() for origin in cors_origins.split(",")]
 
 # Add explicit CORS middleware with debug logging
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
