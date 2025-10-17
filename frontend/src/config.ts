@@ -32,11 +32,10 @@ export const config = {
   isProduction: process.env.NODE_ENV === "production",
 };
 
-// Log configuration in development
-if (config.isDevelopment) {
-  console.log("🔧 Frontend Config:", config);
-  console.log("🌐 API Base URL:", API_BASE_URL);
-}
+// Log configuration in development and production for debugging
+console.log("🔧 Frontend Config:", config);
+console.log("🌐 API Base URL:", API_BASE_URL);
+console.log("🔍 REACT_APP_API_URL env:", process.env.REACT_APP_API_URL);
 
 // Warn if production without API URL
 if (config.isProduction && !process.env.REACT_APP_API_URL) {
