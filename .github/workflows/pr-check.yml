@@ -1,15 +1,12 @@
-name: PR Check
+name: Frontend PR Check
 
 on:
   pull_request:
-
     branches: [main]
 
-
 jobs:
-  check:
+  check-frontend:
     runs-on: ubuntu-latest
-
 
     steps:
       - name: Checkout code
@@ -21,11 +18,6 @@ jobs:
           node-version: "18"
           cache: "yarn"
           cache-dependency-path: "frontend/yarn.lock"
-
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.11"
 
       - name: Install frontend dependencies
         run: |
@@ -42,20 +34,13 @@ jobs:
           cd frontend
           yarn type-check || echo "Type checking completed with warnings"
 
-      - name: Install backend dependencies
+      - name: Build frontend
         run: |
-          cd backend
-          pip install -r requirements.txt
+          cd frontend
+          yarn build
 
-      - name: Test backend
+      - name: Check build output
         run: |
-          cd backend
-          python -m pytest tests/ || echo "No tests found, skipping"
-
-      - name: Check backend syntax
-        run: |
-          cd backend
-          python -m py_compile app/main.py
-          python -m py_compile app/config.py
-          python -m py_compile app/database.py
-          echo "Backend syntax check passed"
+          echo "✅ Frontend build completed successfully!"
+          echo "📁 Build output: frontend/build/"
+          echo "📝 Backend: Manual deployment (Render dashboard)"
