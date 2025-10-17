@@ -27,19 +27,19 @@ class Settings(BaseSettings):
     db_name: str = os.getenv("DB_NAME", "crm_db")
     
     # Security Configuration
-    jwt_secret_key: str = "your-secret-key-change-in-production"
-    algorithm: str = "HS256"
-    access_token_expire_minutes: int = 1440  # 24 hours
+    jwt_secret_key: str = os.getenv("JWT_SECRET_KEY", "your-secret-key-change-in-production")
+    algorithm: str = os.getenv("ALGORITHM", "HS256")
+    access_token_expire_minutes: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "1440"))
     
     # CORS Configuration
-    cors_origins: str = "*"
+    cors_origins: str = os.getenv("CORS_ORIGINS", "*")
     
     # Server Configuration
-    host: str = "127.0.0.1"
-    port: int = 8000
+    host: str = os.getenv("HOST", "127.0.0.1")
+    port: int = int(os.getenv("PORT", "8000"))
     
     # Development flags
-    skip_db_check: bool = False
+    skip_db_check: bool = os.getenv("SKIP_DB_CHECK", "false").lower() == "true"
     
     class Config:
         """Pydantic configuration."""
