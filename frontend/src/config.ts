@@ -36,6 +36,7 @@ export const config = {
 console.log("🔧 Frontend Config:", config);
 console.log("🌐 API Base URL:", API_BASE_URL);
 console.log("🔍 REACT_APP_API_URL env:", process.env.REACT_APP_API_URL);
+console.log("🚀 Force rebuild - timestamp:", new Date().toISOString());
 
 // Warn if production without API URL
 if (config.isProduction && !process.env.REACT_APP_API_URL) {
