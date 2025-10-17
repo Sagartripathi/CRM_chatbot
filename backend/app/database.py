@@ -28,19 +28,18 @@ class Database:
         Creates client and database references.
         """
         try:
-            # Add SSL configuration for MongoDB Atlas
-            import ssl
-            
-            # Configure SSL context for MongoDB Atlas
-            ssl_context = ssl.create_default_context()
-            ssl_context.check_hostname = False
-            ssl_context.verify_mode = ssl.CERT_NONE
-            
-            # Create client with SSL configuration
+            # Create client with working SSL configuration for MongoDB Atlas
             self.client = AsyncIOMotorClient(
                 settings.mongo_url,
                 tls=True,
-                tlsAllowInvalidCertificates=True
+
+                tlsAllowInvalidCertificates=True,
+                connectTimeoutMS=settings.db_connect_timeout,
+                serverSelectionTimeoutMS=settings.db_server_selection_timeout,
+                socketTimeoutMS=settings.db_socket_timeout,
+                maxPoolSize=settings.db_max_pool_size,
+                retryWrites=True
+
             )
             self.database = self.client[settings.db_name]
             

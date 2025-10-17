@@ -7,6 +7,7 @@ from typing import Optional, List
 from datetime import datetime, timezone, timedelta
 from app.models import Campaign, CampaignCreate, CampaignLead, CallLog, CallLogCreate, CampaignLeadStatus
 from app.utils import prepare_for_mongo
+from app.config import settings
 
 
 class CampaignRepository:
@@ -89,13 +90,13 @@ class CampaignRepository:
         
         if user_role == "agent":
             # Get campaigns where user is assigned as agent
-            campaign_leads = await self.campaign_leads.find({"assigned_agent": user_id}).to_list(1000)
+            campaign_leads = await self.campaign_leads.find({"assigned_agent": user_id}).to_list(settings.max_page_size)
             campaign_ids = [cl["campaign_id"] for cl in campaign_leads]
             query["id"] = {"$in": campaign_ids}
         elif user_role == "client":
             query["created_by"] = user_id
         
-        return await self.campaigns.find(query).to_list(1000)
+        return await self.campaigns.find(query).to_list(settings.max_page_size)
     
     async def update_campaign(self, campaign_id: str, campaign_data: CampaignCreate, user_id: str) -> Optional[dict]:
         """
@@ -130,7 +131,7 @@ class CampaignRepository:
         # Handle lead changes if provided
         if hasattr(campaign_data, 'lead_ids') and campaign_data.lead_ids is not None:
             # Get current campaign leads
-            current_leads = await self.campaign_leads.find({"campaign_id": campaign_id}).to_list(1000)
+            current_leads = await self.campaign_leads.find({"campaign_id": campaign_id}).to_list(settings.max_page_size)
             current_lead_ids = {cl["lead_id"] for cl in current_leads}
             new_lead_ids = set(campaign_data.lead_ids)
             
@@ -180,7 +181,7 @@ class CampaignRepository:
         await self.campaign_leads.delete_many({"campaign_id": campaign_id})
         
         # Delete call logs for this campaign
-        campaign_lead_ids = await self.campaign_leads.find({"campaign_id": campaign_id}).to_list(1000)
+        campaign_lead_ids = await self.campaign_leads.find({"campaign_id": campaign_id}).to_list(settings.max_page_size)
         if campaign_lead_ids:
             campaign_lead_id_list = [cl["id"] for cl in campaign_lead_ids]
             await self.call_logs.delete_many({"campaign_lead_id": {"$in": campaign_lead_id_list}})
@@ -204,7 +205,7 @@ class CampaignRepository:
             "campaign_id": campaign_id,
             "assigned_agent": agent_id,
             "status": CampaignLeadStatus.PENDING,
-            "attempts_made": {"$lt": 3}
+            "attempts_made": {"$lt": settings.max_campaign_attempts}
         })
     
     async def update_campaign_lead_status(self, campaign_lead_id: str, status: CampaignLeadStatus) -> bool:
@@ -257,11 +258,11 @@ class CampaignRepository:
             # Set status based on outcome and attempts
             if call_data.outcome.value == "answered":
                 update_data["status"] = CampaignLeadStatus.COMPLETED.value
-            elif new_attempts >= 3:
+            elif new_attempts >= settings.max_campaign_attempts:
                 update_data["status"] = CampaignLeadStatus.FAILED.value
             else:
                 # Schedule next attempt (example: 1 hour later)
-                next_attempt = datetime.now(timezone.utc) + timedelta(hours=1)
+                next_attempt = datetime.now(timezone.utc) + timedelta(hours=settings.campaign_retry_delay_hours)
                 update_data["next_attempt_at"] = next_attempt.isoformat()
                 update_data["status"] = CampaignLeadStatus.PENDING.value
             

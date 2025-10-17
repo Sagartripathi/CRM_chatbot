@@ -58,7 +58,7 @@ function LeadManagement() {
   const [uploadFile, setUploadFile] = useState(null);
   const [uploadCampaignId, setUploadCampaignId] = useState("");
   const [uploading, setUploading] = useState(false);
-  const leadsPerPage = 20;
+  const leadsPerPage = parseInt(process.env.REACT_APP_LEADS_PER_PAGE || "20");
 
   // Sidebar managed by Layout component
   const [searchTerm, setSearchTerm] = useState("");
