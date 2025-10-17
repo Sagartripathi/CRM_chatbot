@@ -40,7 +40,25 @@ async def debug_environment() -> Dict[str, Any]:
         "host": settings.host,
         "port": settings.port,
         "cors_origins": settings.cors_origins,
+        "cors_origins_list": settings.cors_origins.split(","),
         "jwt_secret_length": len(settings.jwt_secret_key),
         "mongo_url_from_env": os.getenv("MONGO_URL", "NOT_SET")[:20] + "..." if os.getenv("MONGO_URL") and len(os.getenv("MONGO_URL")) > 20 else os.getenv("MONGO_URL", "NOT_SET"),
-        "mongo_url_env_length": len(os.getenv("MONGO_URL", ""))
+        "mongo_url_env_length": len(os.getenv("MONGO_URL", "")),
+        "cors_origins_from_env": os.getenv("CORS_ORIGINS", "NOT_SET")
+    }
+
+
+@router.options("/cors-test")
+async def cors_test_options():
+    """Test CORS preflight request."""
+    return {"message": "CORS preflight successful"}
+
+
+@router.get("/cors-test")
+async def cors_test():
+    """Test CORS configuration."""
+    return {
+        "message": "CORS test successful",
+        "cors_origins": settings.cors_origins,
+        "cors_origins_list": settings.cors_origins.split(",")
     }
