@@ -12,7 +12,7 @@ services:
     rootDir: backend
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
-    # ⚠️ IMPORTANT: DO NOT use "python run.py" - it only binds to localhost!
+
     healthCheckPath: /api/health
 
     envVars:
