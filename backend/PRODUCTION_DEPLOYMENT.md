@@ -1,6 +1,7 @@
 # Production Deployment Guide
 
 ## Overview
+
 This guide covers deploying the CRM backend with HTTPS/SSL support for production environments.
 
 ## SSL/HTTPS Configuration
@@ -24,6 +25,7 @@ SSL_KEY_PATH=./certs/server.key
 For production, use certificates from a trusted Certificate Authority:
 
 #### Option A: Let's Encrypt (Free)
+
 ```bash
 # Install certbot
 sudo apt-get install certbot
@@ -38,6 +40,7 @@ SSL_KEY_PATH=/etc/letsencrypt/live/yourdomain.com/privkey.pem
 ```
 
 #### Option B: Commercial Certificate
+
 ```bash
 # Purchase certificate from CA (DigiCert, Comodo, etc.)
 # Update .env file with certificate paths
@@ -49,6 +52,7 @@ SSL_KEY_PATH=/path/to/your/private.key
 ## Environment Configuration
 
 ### Production .env File
+
 ```bash
 # Database Configuration
 MONGO_URL=mongodb+srv://username:password@cluster.mongodb.net/?retryWrites=true&w=majority&appName=app-name
@@ -160,6 +164,7 @@ server {
 ### Update Frontend Environment
 
 Create `.env` in frontend directory:
+
 ```bash
 REACT_APP_BACKEND_URL=https://yourdomain.com:8000
 REACT_APP_PROXY_URL=https://yourdomain.com:8000
@@ -179,24 +184,28 @@ serve -s build -l 3000 --ssl-cert /path/to/cert.crt --ssl-key /path/to/key.key
 ## Security Best Practices
 
 ### 1. SSL/TLS Configuration
+
 - Use TLS 1.2 or higher
 - Disable weak ciphers
 - Enable HSTS headers
 - Use strong certificate keys (2048+ bits)
 
 ### 2. Environment Security
+
 - Never commit `.env` files
 - Use strong, unique JWT secrets
 - Rotate secrets regularly
 - Use environment-specific configurations
 
 ### 3. Network Security
+
 - Configure firewall rules
 - Use VPN for database access
 - Enable MongoDB Atlas IP whitelisting
 - Use strong database passwords
 
 ### 4. Application Security
+
 - Enable CORS with specific origins
 - Use HTTPS for all communications
 - Implement rate limiting
@@ -205,6 +214,7 @@ serve -s build -l 3000 --ssl-cert /path/to/cert.crt --ssl-key /path/to/key.key
 ## Monitoring and Logging
 
 ### 1. Application Logs
+
 ```bash
 # View logs
 tail -f /var/log/crm-backend.log
@@ -214,6 +224,7 @@ logrotate /etc/logrotate.d/crm-backend
 ```
 
 ### 2. SSL Certificate Monitoring
+
 ```bash
 # Check certificate expiration
 openssl x509 -in /path/to/certificate.crt -text -noout | grep "Not After"
@@ -225,6 +236,7 @@ systemctl reload nginx
 ```
 
 ### 3. Health Checks
+
 ```bash
 # Backend health check
 curl -k https://yourdomain.com:8000/api/
@@ -238,11 +250,13 @@ curl -I https://yourdomain.com:8000/
 ### Common SSL Issues
 
 1. **Certificate Not Trusted**
+
    - Use trusted CA certificates
    - Check certificate chain
    - Verify domain name matches
 
 2. **SSL Handshake Failed**
+
    - Check certificate and key paths
    - Verify file permissions
    - Ensure certificate is not expired
@@ -255,6 +269,7 @@ curl -I https://yourdomain.com:8000/
 ### Performance Optimization
 
 1. **SSL Performance**
+
    - Use HTTP/2
    - Enable SSL session caching
    - Use strong but efficient ciphers
@@ -267,12 +282,14 @@ curl -I https://yourdomain.com:8000/
 ## Backup and Recovery
 
 ### 1. Certificate Backup
+
 ```bash
 # Backup certificates
 tar -czf ssl-backup-$(date +%Y%m%d).tar.gz /path/to/certificates/
 ```
 
 ### 2. Configuration Backup
+
 ```bash
 # Backup configuration
 cp .env .env.backup
@@ -280,6 +297,7 @@ cp -r certs/ certs-backup/
 ```
 
 ### 3. Disaster Recovery
+
 - Keep certificate backups secure
 - Document certificate renewal process
 - Test recovery procedures regularly
@@ -287,6 +305,7 @@ cp -r certs/ certs-backup/
 ## Support
 
 For issues with SSL/HTTPS configuration:
+
 1. Check certificate validity
 2. Verify file permissions
 3. Test with curl/openssl
