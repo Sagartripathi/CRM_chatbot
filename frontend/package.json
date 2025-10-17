@@ -69,7 +69,6 @@
     "lint": "eslint src --ext .ts,.tsx",
     "lint:fix": "eslint src --ext .ts,.tsx --fix"
   },
-  "proxy": "http://localhost:8000/",
   "browserslist": {
     "production": [
       ">0.2%",
