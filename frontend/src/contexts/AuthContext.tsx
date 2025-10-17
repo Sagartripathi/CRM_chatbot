@@ -27,10 +27,7 @@ apiClient.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    // Ensure URL has trailing slash to avoid redirects that lose auth headers
-    if (config.url && !config.url.includes("?") && !config.url.endsWith("/")) {
-      config.url = config.url + "/";
-    }
+    // Note: Removed trailing slash addition as it causes 307 redirects
 
     return config;
   },
