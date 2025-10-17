@@ -16,7 +16,9 @@ import { API_BASE_URL } from "../config";
 
 // Create axios instance with base URL and request interceptor for automatic token injection
 const apiClient = axios.create({
-  baseURL: `${API_BASE_URL.replace(/\/$/, '')}/api`,
+
+  baseURL: `${API_BASE_URL.replace(/\/$/, "")}/api`,
+
 });
 
 // Request interceptor to add token to all requests and ensure trailing slashes
@@ -27,10 +29,7 @@ apiClient.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    // Ensure URL has trailing slash to avoid redirects that lose auth headers
-    if (config.url && !config.url.includes("?") && !config.url.endsWith("/")) {
-      config.url = config.url + "/";
-    }
+    // Note: Removed trailing slash addition as it causes 307 redirects
 
     return config;
   },
