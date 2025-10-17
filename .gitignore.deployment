@@ -1,0 +1,59 @@
+# Deployment Security - Files to NEVER commit
+# Merge these into your existing .gitignore if not already present
+
+# Environment files with secrets
+.env
+.env.local
+.env.production.local
+.env.development.local
+
+# Local configuration
+backend/.env
+frontend/.env.local
+
+# Deployment notes with credentials
+deployment-notes.txt
+credentials.txt
+secrets.txt
+
+# Python cache and virtualenv
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+ENV/
+
+# Node modules
+node_modules/
+frontend/node_modules/
+
+# Build outputs
+frontend/build/
+frontend/dist/
+*.log
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Backup files
+*.bak
+*.backup
+*_backup
+
+# Note: These files SHOULD be committed:
+# ✅ requirements.txt
+# ✅ package.json
+# ✅ vercel.json
+# ✅ render.yaml (doesn't contain secrets)
+# ✅ env.template (example file)
+# ✅ All deployment guides
+

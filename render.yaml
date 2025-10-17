@@ -1,0 +1,57 @@
+# Render Blueprint for Backend Deployment
+# This file allows "Infrastructure as Code" deployment on Render
+# Optional: You can use this OR deploy via Render dashboard
+
+services:
+  # Backend API Service
+  - type: web
+    name: crm-chatbot-backend
+    runtime: python
+    region: oregon # Change to your preferred region
+    plan: free # Change to 'starter' or higher for production
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    # ⚠️ IMPORTANT: DO NOT use "python run.py" - it only binds to localhost!
+    healthCheckPath: /api/health
+
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+
+      - key: HOST
+        value: 0.0.0.0
+
+      - key: PORT
+        value: 8000
+
+      - key: ALGORITHM
+        value: HS256
+
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: 1440
+
+      - key: SKIP_DB_CHECK
+        value: false
+
+      # Sensitive environment variables (set via Render dashboard)
+      # These should NOT be committed to Git
+      - key: MONGO_URL
+        sync: false # Set manually in Render dashboard
+
+      - key: DB_NAME
+        sync: false # Set manually in Render dashboard
+
+      - key: JWT_SECRET_KEY
+        sync: false # Set manually in Render dashboard
+
+      - key: CORS_ORIGINS
+        sync: false # Set manually in Render dashboard
+
+# Instructions:
+# 1. Commit this file to your repository
+# 2. In Render dashboard, choose "New" → "Blueprint"
+# 3. Connect your repository and select this render.yaml file
+# 4. Add the sensitive environment variables manually in the dashboard
+# 5. Deploy!
+
