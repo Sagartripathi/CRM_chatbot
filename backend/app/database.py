@@ -40,7 +40,9 @@ class Database:
                 connection_options.update({
                     "tls": True,
                     "tlsAllowInvalidCertificates": True,  # Required for Render SSL compatibility
+                    "tlsInsecure": True,  # Additional SSL flexibility for Render
                     "retryWrites": True,
+                    "ssl": True,  # Explicit SSL enable
                 })
             
             self.client = AsyncIOMotorClient(settings.mongo_url, **connection_options)

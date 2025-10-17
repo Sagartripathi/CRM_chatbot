@@ -15,14 +15,11 @@ import CampaignDetail from "./components/CampaignDetail";
 // Context
 import { AuthProvider, useAuth, apiClient } from "./contexts/AuthContext";
 
-const BACKEND_URL = (process.env.REACT_APP_BACKEND_URL =
-  "http://localhost:8000");
+// Import API configuration from config.ts
+import { API_BASE_URL } from "./config";
 
-// If REACT_APP_BACKEND_URL is not set, use CRA proxy by targeting "/api"
-const API = BACKEND_URL ? `${BACKEND_URL}/api` : "/api";
-
-// Configure apiClient base URL
-apiClient.defaults.baseURL = API;
+// Configure apiClient base URL using centralized config
+apiClient.defaults.baseURL = `${API_BASE_URL}/api`;
 
 // Add global response interceptor for authentication errors
 apiClient.interceptors.response.use(
