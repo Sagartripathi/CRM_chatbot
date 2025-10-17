@@ -322,6 +322,7 @@ Deploy your CRM Chatbot to production in **~1 hour**:
 - **[VERCEL_ENV_TEMPLATE.txt](VERCEL_ENV_TEMPLATE.txt)** - Frontend environment variables
 - **[backend/prepare_deployment.py](backend/prepare_deployment.py)** - Pre-deployment validation script
 
+
 ### ⚡ Quick Deploy Commands
 
 ```bash
@@ -352,7 +353,48 @@ After deployment:
 
 ```
 Internet → Vercel (Frontend) → Render (Backend) → MongoDB Atlas (Database)
+=======
+
+### ⚡ Quick Deploy Commands
+
+```bash
+# 1. Run preparation script
+cd backend
+python3 prepare_deployment.py
+
+# 2. Follow the guide
+open START_DEPLOYMENT_HERE.md
+
+# 3. Deploy!
+# - Backend to Render (30 min)
+# - Frontend to Vercel (20 min)
+# - Connect them (10 min)
 ```
+
+### 🎯 What You'll Get
+
+After deployment:
+
+- ✅ Production-ready app on the internet
+- ✅ Auto-deployments when you push to Git
+- ✅ HTTPS & SSL automatically configured
+- ✅ Global CDN for fast loading
+- ✅ Health monitoring built-in
+
+### 📦 Deployment Architecture
+
+
+```
+Internet → Vercel (Frontend) → Render (Backend) → MongoDB Atlas (Database)
+```
+
+**Ready to deploy?** Start with **[START_DEPLOYMENT_HERE.md](START_DEPLOYMENT_HERE.md)**!
+
+### 🔧 Troubleshooting
+
+- **[RENDER_DEPLOYMENT_FIX.md](RENDER_DEPLOYMENT_FIX.md)** - Quick fixes for Render issues
+- **[COMMON_DEPLOYMENT_ERRORS.md](COMMON_DEPLOYMENT_ERRORS.md)** - Top 10 errors & solutions
+- **[DEPLOYMENT_TROUBLESHOOTING.md](DEPLOYMENT_TROUBLESHOOTING.md)** - Comprehensive troubleshooting
 
 **Ready to deploy?** Start with **[START_DEPLOYMENT_HERE.md](START_DEPLOYMENT_HERE.md)**!
 

@@ -1,9 +1,11 @@
 {
-  "buildCommand": "yarn build",
-  "outputDirectory": "build",
+
+  "buildCommand": "cd frontend && yarn install && yarn build",
+  "outputDirectory": "frontend/build",
   "framework": "create-react-app",
-  "installCommand": "yarn install --frozen-lockfile",
-  "devCommand": "yarn start",
+  "installCommand": "cd frontend && yarn install",
+  "devCommand": "cd frontend && yarn start",
+
   "rewrites": [
     {
       "source": "/(.*)",
