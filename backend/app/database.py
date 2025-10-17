@@ -39,7 +39,8 @@ class Database:
             if "mongodb+srv://" in settings.mongo_url or "mongodb.net" in settings.mongo_url:
                 connection_options.update({
                     "tls": True,
-                    "tlsAllowInvalidCertificates": False,  # Set to True if certificate issues persist
+                    "tlsAllowInvalidCertificates": True,  # Required for Render SSL compatibility
+                    "retryWrites": True,
                 })
             
             self.client = AsyncIOMotorClient(settings.mongo_url, **connection_options)

@@ -7,7 +7,7 @@
 export const API_BASE_URL =
   process.env.REACT_APP_API_URL ||
   (process.env.NODE_ENV === "production"
-    ? "" // In production, must set REACT_APP_API_URL
+    ? "https://crm-chatbot-ei2d.onrender.com" // Production backend URL
     : "http://localhost:8000"); // Local development
 
 // API endpoints configuration
