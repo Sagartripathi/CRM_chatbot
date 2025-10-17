@@ -61,16 +61,32 @@ app.add_middleware(
 @app.middleware("http")
 async def add_cors_headers(request, call_next):
     """Add CORS headers manually as backup."""
+    # Handle preflight OPTIONS requests
+    if request.method == "OPTIONS":
+        response = await call_next(request)
+        origin = request.headers.get("origin")
+        
+        # Set CORS headers for OPTIONS
+        response.headers["Access-Control-Allow-Origin"] = origin or "*"
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With"
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+        response.headers["Access-Control-Max-Age"] = "86400"
+        
+        return response
+    
+    # Handle regular requests
     response = await call_next(request)
     
     # Get origin from request
     origin = request.headers.get("origin")
     
-    # Allow all origins if CORS_ORIGINS is "*" or if origin is in allowed list
-    if settings.cors_origins == "*" or (origin and origin in cors_origins):
-        response.headers["Access-Control-Allow-Origin"] = origin or "*"
+    # Always set CORS headers for all responses
+    if origin:
+        response.headers["Access-Control-Allow-Origin"] = origin
+    else:
+        response.headers["Access-Control-Allow-Origin"] = "*"
     
-    # Add other CORS headers
     response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH"
     response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With"
     response.headers["Access-Control-Allow-Credentials"] = "true"
@@ -115,6 +131,13 @@ async def health_check():
         "status": "healthy",
         "timestamp": datetime.now(timezone.utc).isoformat()
     }
+
+
+# ------------------ CORS Preflight Handler ------------------
+@app.options("/api/{path:path}")
+async def options_handler(path: str):
+    """Handle CORS preflight requests for all API endpoints."""
+    return {"message": "CORS preflight handled"}
 
 
 # ------------------ Lifecycle Events ------------------
