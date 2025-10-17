@@ -356,12 +356,6 @@ Internet → Vercel (Frontend) → Render (Backend) → MongoDB Atlas (Database)
 
 **Ready to deploy?** Start with **[START_DEPLOYMENT_HERE.md](START_DEPLOYMENT_HERE.md)**!
 
-### 🔧 Troubleshooting
-
-- **[RENDER_DEPLOYMENT_FIX.md](RENDER_DEPLOYMENT_FIX.md)** - Quick fixes for Render issues
-- **[COMMON_DEPLOYMENT_ERRORS.md](COMMON_DEPLOYMENT_ERRORS.md)** - Top 10 errors & solutions
-- **[DEPLOYMENT_TROUBLESHOOTING.md](DEPLOYMENT_TROUBLESHOOTING.md)** - Comprehensive troubleshooting
-
 ---
 
 ## 🐛 Troubleshooting
@@ -407,22 +401,43 @@ If you see CORS errors in the browser:
 
 ---
 
-## 📖 Additional Documentation
+## 📖 Documentation
 
-### Setup Guides
+All documentation is organized in the `docs/` folder:
 
-- **[START_HERE.md](docs/START_HERE.md)** - Quick start guide for MongoDB Atlas setup
-- **[SETUP_CHECKLIST.md](docs/SETUP_CHECKLIST.md)** - Complete setup checklist
-- **[SETUP_COMPLETE.md](docs/SETUP_COMPLETE.md)** - Configuration summary
+### 📚 Main Documentation Hub
 
-### Reference
+**[docs/README.md](docs/README.md)** - Complete documentation index and navigation
 
-- **[MONGODB_ATLAS_QUICKSTART.md](docs/MONGODB_ATLAS_QUICKSTART.md)** - Detailed MongoDB Atlas guide
-- **[MONGODB_ATLAS_QUICK_REFERENCE.md](docs/MONGODB_ATLAS_QUICK_REFERENCE.md)** - Quick reference card
+### 🚀 Quick Links
 
-### Backend Reference
+| Category       | Link                                 | Description                           |
+| -------------- | ------------------------------------ | ------------------------------------- |
+| **Setup**      | [docs/setup/](docs/setup/)           | Initial configuration & MongoDB setup |
+| **Deployment** | [docs/deployment/](docs/deployment/) | Production deployment guides          |
+| **Frontend**   | [docs/frontend/](docs/frontend/)     | React/TypeScript documentation        |
+| **Backend**    | [docs/backend/](docs/backend/)       | FastAPI architecture & API docs       |
 
-- **[README_REFACTORED.md](backend/README_REFACTORED.md)** - Backend architecture details
+### 🎯 Quick Start Paths
+
+**New Developer?**
+
+```
+docs/setup/START_HERE.md → Setup your local environment
+```
+
+**Ready to Deploy?**
+
+```
+docs/deployment/START_DEPLOYMENT_HERE.md → Deploy to production
+```
+
+**Understanding the Code?**
+
+```
+docs/backend/ARCHITECTURE.md → Backend architecture
+docs/frontend/README.md → Frontend structure
+```
 
 ---
 

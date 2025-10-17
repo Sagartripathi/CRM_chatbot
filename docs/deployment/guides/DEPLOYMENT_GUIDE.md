@@ -82,15 +82,9 @@ Fill in the following settings:
 | **Runtime**        | `Python 3`                                         |
 | **Build Command**  | `pip install -r requirements.txt`                  |
 | **Start Command**  | `uvicorn app.main:app --host 0.0.0.0 --port $PORT` |
+| **Instance Type**  | `Free` (or paid for better performance)            |
 
-⚠️ **DO NOT use** `python run.py` - it binds to localhost only and Render can't detect ports!
-| **Instance Type** | `Free` (or paid for better performance) |
-
-⚠️ **CRITICAL**:
-
-- Use `$PORT` variable - Render assigns port dynamically!
-- Use `--host 0.0.0.0` - Allows Render to access the service
-- Don't use `python run.py` - It only binds to localhost
+⚠️ **CRITICAL**: Use `$PORT` variable in start command - Render assigns port dynamically!
 
 ### 1.2.3 Add Environment Variables
 

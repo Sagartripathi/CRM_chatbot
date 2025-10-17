@@ -45,8 +45,6 @@ Start Command: uvicorn app.main:app --host 0.0.0.0 --port $PORT
 Instance Type: Free
 ```
 
-⚠️ **CRITICAL**: Use the exact start command above, NOT `python run.py`!
-
 **Add Environment Variables:**
 
 ```
