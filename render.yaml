@@ -1,0 +1,105 @@
+services:
+  # Backend API Service
+  - type: web
+    name: crm-backend
+    env: python
+    plan: free
+    buildCommand: |
+      cd backend &&
+      pip install -r requirements.txt
+    startCommand: |
+      cd backend &&
+      python run_render.py
+    envVars:
+      # Environment
+      - key: ENVIRONMENT
+        value: production
+      - key: FORCE_HTTPS
+        value: true
+
+      # Database (replace with your actual values)
+      - key: MONGO_URL
+        sync: false # Set this manually in Render dashboard
+      - key: DB_NAME
+        value: crm_db
+
+      # Security
+      - key: JWT_SECRET_KEY
+        sync: false # Set this manually in Render dashboard
+      - key: ALGORITHM
+        value: HS256
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: 1440
+
+      # Server Configuration
+      - key: HOST
+        value: 0.0.0.0
+      - key: PORT
+        value: 8000
+
+      # CORS (replace with your frontend URL)
+      - key: CORS_ORIGINS
+        value: https://your-frontend-app.onrender.com
+
+      # Database Configuration
+      - key: DB_CONNECT_TIMEOUT
+        value: 30000
+      - key: DB_SERVER_SELECTION_TIMEOUT
+        value: 30000
+      - key: DB_SOCKET_TIMEOUT
+        value: 30000
+      - key: DB_MAX_POOL_SIZE
+        value: 10
+
+      # API Configuration
+      - key: API_VERSION
+        value: 1.0.0
+      - key: API_TITLE
+        value: CRM API
+      - key: API_DESCRIPTION
+        value: Customer Relationship Management API with lead tracking, campaigns, meetings, and support tickets
+
+      # Pagination Configuration
+      - key: DEFAULT_PAGE_SIZE
+        value: 20
+      - key: MAX_PAGE_SIZE
+        value: 1000
+
+      # Campaign Configuration
+      - key: MAX_CAMPAIGN_ATTEMPTS
+        value: 3
+      - key: CAMPAIGN_RETRY_DELAY_HOURS
+        value: 1
+
+      # Production Configuration
+      - key: WORKERS
+        value: 1
+
+      # Development flags
+      - key: SKIP_DB_CHECK
+        value: false
+
+  # Frontend Service
+  - type: web
+    name: crm-frontend
+    env: static
+    plan: free
+    buildCommand: |
+      cd frontend &&
+      npm install &&
+      npm run build
+    staticPublishPath: ./frontend/build
+    envVars:
+      # Backend Configuration (replace with your backend URL)
+      - key: REACT_APP_BACKEND_URL
+        value: https://crm-backend.onrender.com
+      - key: REACT_APP_PROXY_URL
+        value: https://crm-backend.onrender.com
+
+      # UI Configuration
+      - key: REACT_APP_LEADS_PER_PAGE
+        value: 20
+
+      # Development Configuration
+      - key: DISABLE_HOT_RELOAD
+        value: true

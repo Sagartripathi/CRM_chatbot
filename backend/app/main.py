@@ -12,8 +12,9 @@ Initializes routes, middleware, logging, and database connections.
 
 import logging
 from datetime import datetime, timezone
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from app.config import settings
 from app.database import db
 from app.routers import (
@@ -34,11 +35,33 @@ logger = logging.getLogger(__name__)
 
 # ------------------ FastAPI App Initialization ------------------
 app = FastAPI(
-    title="CRM API",
-    version="1.0.0",
-    description="Customer Relationship Management API with lead tracking, campaigns, meetings, and support tickets"
+    title=settings.api_title,
+    version=settings.api_version,
+    description=settings.api_description
 )
 
+
+# ------------------ HTTPS/Proxy Configuration ------------------
+# Handle HTTPS headers from Render/proxy
+@app.middleware("http")
+async def force_https_redirect(request: Request, call_next):
+    """Force HTTPS redirect for production environments."""
+    if settings.force_https and request.url.scheme == "http":
+        # Redirect HTTP to HTTPS
+        https_url = request.url.replace(scheme="https")
+        from fastapi.responses import RedirectResponse
+        return RedirectResponse(url=str(https_url), status_code=301)
+    
+    # Add security headers for HTTPS
+    response = await call_next(request)
+    
+    if settings.environment == "production":
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+    
+    return response
 
 # ------------------ CORS Configuration ------------------
 app.add_middleware(
@@ -74,8 +97,8 @@ async def home():
 async def root():
     """API root endpoint for quick health info"""
     return {
-        "message": "CRM API is running",
-        "version": "1.0.0",
+        "message": f"{settings.api_title} is running",
+        "version": settings.api_version,
         "status": "healthy"
     }
 

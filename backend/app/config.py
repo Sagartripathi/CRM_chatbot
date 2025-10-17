@@ -38,6 +38,37 @@ class Settings(BaseSettings):
     host: str = os.getenv("HOST", "127.0.0.1")
     port: int = int(os.getenv("PORT", "8000"))
     
+    # SSL/HTTPS Configuration
+    ssl_enabled: bool = os.getenv("SSL_ENABLED", "false").lower() == "true"
+    ssl_cert_path: str = os.getenv("SSL_CERT_PATH", "")
+    ssl_key_path: str = os.getenv("SSL_KEY_PATH", "")
+    
+    # Render/Production HTTPS Configuration
+    environment: str = os.getenv("ENVIRONMENT", "development")
+    force_https: bool = os.getenv("FORCE_HTTPS", "false").lower() == "true"
+    
+    # Database Connection Configuration
+    db_connect_timeout: int = int(os.getenv("DB_CONNECT_TIMEOUT", "30000"))
+    db_server_selection_timeout: int = int(os.getenv("DB_SERVER_SELECTION_TIMEOUT", "30000"))
+    db_socket_timeout: int = int(os.getenv("DB_SOCKET_TIMEOUT", "30000"))
+    db_max_pool_size: int = int(os.getenv("DB_MAX_POOL_SIZE", "10"))
+    
+    # API Configuration
+    api_version: str = os.getenv("API_VERSION", "1.0.0")
+    api_title: str = os.getenv("API_TITLE", "CRM API")
+    api_description: str = os.getenv("API_DESCRIPTION", "Customer Relationship Management API with lead tracking, campaigns, meetings, and support tickets")
+    
+    # Pagination Configuration
+    default_page_size: int = int(os.getenv("DEFAULT_PAGE_SIZE", "20"))
+    max_page_size: int = int(os.getenv("MAX_PAGE_SIZE", "1000"))
+    
+    # Campaign Configuration
+    max_campaign_attempts: int = int(os.getenv("MAX_CAMPAIGN_ATTEMPTS", "3"))
+    campaign_retry_delay_hours: int = int(os.getenv("CAMPAIGN_RETRY_DELAY_HOURS", "1"))
+    
+    # Production Configuration
+    workers: int = int(os.getenv("WORKERS", "4"))
+    
     # Development flags
     skip_db_check: bool = os.getenv("SKIP_DB_CHECK", "false").lower() == "true"
     
