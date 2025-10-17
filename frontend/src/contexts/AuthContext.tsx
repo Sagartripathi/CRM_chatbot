@@ -12,9 +12,12 @@ import React, {
 import axios, { AxiosResponse } from "axios";
 import { User, LoginRequest, LoginResponse, UserCreate } from "../../types/api";
 import { AuthContextType, LoginResult, RegisterResult } from "../../types/auth";
+import { API_BASE_URL } from "../config";
 
-// Create axios instance with request interceptor for automatic token injection
-const apiClient = axios.create();
+// Create axios instance with base URL and request interceptor for automatic token injection
+const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+});
 
 // Request interceptor to add token to all requests and ensure trailing slashes
 apiClient.interceptors.request.use(

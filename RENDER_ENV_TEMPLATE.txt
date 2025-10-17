@@ -1,0 +1,126 @@
+##############################################################################
+# Render Environment Variables Template
+# Copy these to your Render dashboard when deploying backend
+##############################################################################
+
+# HOW TO USE:
+# 1. Go to Render Dashboard → Your Web Service → Environment
+# 2. Click "Add Environment Variable"
+# 3. Copy each key-value pair below
+# 4. Replace placeholder values with your actual values
+# 5. Click "Save Changes"
+
+##############################################################################
+# DATABASE CONFIGURATION
+##############################################################################
+
+MONGO_URL=mongodb+srv://username:password@cluster.mongodb.net/?retryWrites=true&w=majority
+# ⚠️ REPLACE with your actual MongoDB Atlas connection string
+# Get from: MongoDB Atlas → Connect → Connect your application
+# IMPORTANT: URL-encode special characters in password! (@ = %40, ! = %21, etc.)
+
+DB_NAME=crm_db
+# Database name (usually keep as crm_db)
+
+##############################################################################
+# SECURITY CONFIGURATION
+##############################################################################
+
+JWT_SECRET_KEY=GENERATE_THIS_WITH_SCRIPT
+# ⚠️ CRITICAL: Generate a secure key with this command:
+# python3 -c "import secrets; print(secrets.token_hex(32))"
+# Or run: python3 backend/prepare_deployment.py
+# This is your app's main security key - KEEP IT SECRET!
+
+ALGORITHM=HS256
+# JWT algorithm (keep as HS256)
+
+ACCESS_TOKEN_EXPIRE_MINUTES=1440
+# Token expiration: 1440 = 24 hours
+
+##############################################################################
+# SERVER CONFIGURATION
+##############################################################################
+
+HOST=0.0.0.0
+# MUST be 0.0.0.0 to accept external connections on Render
+
+PORT=8000
+# Default port (Render overrides with $PORT at runtime)
+
+##############################################################################
+# CORS CONFIGURATION
+##############################################################################
+
+CORS_ORIGINS=*
+# ⚠️ IMPORTANT: After frontend deployment, update to:
+# CORS_ORIGINS=https://your-app.vercel.app
+# Never use * in production! (Security risk)
+# For multiple domains: https://app1.vercel.app,https://app2.vercel.app
+
+##############################################################################
+# DEVELOPMENT & DEPLOYMENT FLAGS
+##############################################################################
+
+SKIP_DB_CHECK=false
+# Keep as false to ensure MongoDB is connected
+
+PYTHON_VERSION=3.11.0
+# Python version to use (3.11 recommended)
+
+##############################################################################
+# DEPLOYMENT CHECKLIST
+##############################################################################
+#
+# Before deploying, verify:
+# ☐ MongoDB Atlas cluster is running (not paused)
+# ☐ MongoDB Network Access allows all IPs (0.0.0.0/0) or Render IPs
+# ☐ MongoDB user has readWrite permissions
+# ☐ JWT_SECRET_KEY is newly generated (don't reuse old keys!)
+# ☐ MONGO_URL password is URL-encoded
+# ☐ All placeholder values are replaced
+#
+##############################################################################
+# AFTER FRONTEND DEPLOYMENT
+##############################################################################
+#
+# ☐ Update CORS_ORIGINS with your Vercel URL
+# ☐ Remove trailing slash from URL
+# ☐ Save changes (triggers automatic redeploy)
+# ☐ Test health endpoint: https://your-backend.onrender.com/api/health
+# ☐ Test API docs: https://your-backend.onrender.com/docs
+#
+##############################################################################
+
+# QUICK COPY (Replace values first!)
+# -----------------------------------
+# Key: MONGO_URL
+# Value: mongodb+srv://your-actual-connection-string
+#
+# Key: DB_NAME
+# Value: crm_db
+#
+# Key: JWT_SECRET_KEY
+# Value: your-generated-secret-key
+#
+# Key: ALGORITHM
+# Value: HS256
+#
+# Key: ACCESS_TOKEN_EXPIRE_MINUTES
+# Value: 1440
+#
+# Key: HOST
+# Value: 0.0.0.0
+#
+# Key: PORT
+# Value: 8000
+#
+# Key: CORS_ORIGINS
+# Value: *
+#
+# Key: SKIP_DB_CHECK
+# Value: false
+#
+# Key: PYTHON_VERSION
+# Value: 3.11.0
+

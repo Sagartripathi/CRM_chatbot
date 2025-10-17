@@ -28,7 +28,21 @@ class Database:
         Creates client and database references.
         """
         try:
-            self.client = AsyncIOMotorClient(settings.mongo_url)
+            # MongoDB connection options for better compatibility with Render/cloud environments
+            connection_options = {
+                "serverSelectionTimeoutMS": 5000,
+                "connectTimeoutMS": 10000,
+                "socketTimeoutMS": 10000,
+            }
+            
+            # Add TLS/SSL options for MongoDB Atlas
+            if "mongodb+srv://" in settings.mongo_url or "mongodb.net" in settings.mongo_url:
+                connection_options.update({
+                    "tls": True,
+                    "tlsAllowInvalidCertificates": False,  # Set to True if certificate issues persist
+                })
+            
+            self.client = AsyncIOMotorClient(settings.mongo_url, **connection_options)
             self.database = self.client[settings.db_name]
             
             # Test connection
