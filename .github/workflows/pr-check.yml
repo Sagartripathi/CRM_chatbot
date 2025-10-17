@@ -2,57 +2,57 @@ name: PR Check
 
 on:
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   check:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'yarn'
-        cache-dependency-path: 'frontend/yarn.lock'
-        
-    - name: Setup Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-        
-    - name: Install frontend dependencies
-      run: |
-        cd frontend
-        yarn install --frozen-lockfile
-        
-    - name: Lint frontend
-      run: |
-        cd frontend
-        yarn lint || echo "Linting completed with warnings"
-        
-    - name: Type check frontend
-      run: |
-        cd frontend
-        yarn type-check || echo "Type checking completed with warnings"
-        
-    - name: Install backend dependencies
-      run: |
-        cd backend
-        pip install -r requirements.txt
-        
-    - name: Test backend
-      run: |
-        cd backend
-        python -m pytest tests/ || echo "No tests found, skipping"
-        
-    - name: Check backend syntax
-      run: |
-        cd backend
-        python -m py_compile app/main.py
-        python -m py_compile app/config.py
-        python -m py_compile app/database.py
-        echo "Backend syntax check passed"
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "yarn"
+          cache-dependency-path: "frontend/yarn.lock"
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          yarn install --frozen-lockfile
+
+      - name: Lint frontend
+        run: |
+          cd frontend
+          yarn lint || echo "Linting completed with warnings"
+
+      - name: Type check frontend
+        run: |
+          cd frontend
+          yarn type-check || echo "Type checking completed with warnings"
+
+      - name: Install backend dependencies
+        run: |
+          cd backend
+          pip install -r requirements.txt
+
+      - name: Test backend
+        run: |
+          cd backend
+          python -m pytest tests/ || echo "No tests found, skipping"
+
+      - name: Check backend syntax
+        run: |
+          cd backend
+          python -m py_compile app/main.py
+          python -m py_compile app/config.py
+          python -m py_compile app/database.py
+          echo "Backend syntax check passed"
