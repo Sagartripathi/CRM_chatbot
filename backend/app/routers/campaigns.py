@@ -6,7 +6,7 @@ Handles campaign CRUD operations and call logging.
 from typing import List
 from fastapi import APIRouter, Depends
 from app.models import (
-    Campaign, CampaignCreate, CallLog, CallLogCreate, User,
+    Campaign, CampaignCreate, CampaignUpdate, CallLog, CallLogCreate, User,
     NextLeadResponse
 )
 from app.services import CampaignService
@@ -143,7 +143,7 @@ async def get_campaign_stats(
 @router.put("/{campaign_id}", response_model=Campaign)
 async def update_campaign(
     campaign_id: str,
-    campaign_data: CampaignCreate,
+    campaign_data: CampaignUpdate,
     current_user: User = Depends(get_current_user),
     campaign_service: CampaignService = Depends(get_campaign_service)
 ):
@@ -152,7 +152,7 @@ async def update_campaign(
     
     Args:
         campaign_id: Campaign's unique identifier
-        campaign_data: Updated campaign data
+        campaign_data: Updated campaign data (partial update supported)
         current_user: Current authenticated user
         campaign_service: Campaign service dependency
         

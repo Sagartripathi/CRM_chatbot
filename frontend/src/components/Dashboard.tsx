@@ -195,11 +195,14 @@ function Dashboard(): React.ReactElement {
                     className="flex items-center justify-between p-4 border rounded-lg"
                   >
                     <div>
-                      <h3 className="font-semibold">{campaign.name}</h3>
+                      <h3 className="font-semibold">{campaign.campaign_name || campaign.name}</h3>
                       <p className="text-sm text-gray-600">
-                        {campaign.description || "No description"}
+                        {campaign.campaign_description || campaign.description || "No description"}
                       </p>
                       <div className="flex items-center space-x-2 mt-2">
+                        <Badge variant="outline" className="text-xs">
+                          ID: {campaign.campaign_id}
+                        </Badge>
                         <Badge variant="outline">
                           {campaign.total_leads} leads
                         </Badge>

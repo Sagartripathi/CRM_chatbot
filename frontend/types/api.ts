@@ -127,20 +127,48 @@ export interface CampaignHistory {
 // Campaign types
 export interface Campaign {
   id: string;
-  name: string;
+  // New mandatory fields
+  campaign_id: string;
+  campaign_name: string;
+  campaign_description: string;
+  client_id: string;
+  agent_id: string;
+  // Legacy fields (for backward compatibility)
+  name?: string;
   description?: string;
+  agent_id_vb?: string;
+  // Common fields
   created_by: string;
   is_active: boolean;
   created_at: string;
   updated_at: string;
   total_leads: number;
   completed_leads: number;
+  // Optional configuration fields
+  main_sequence_attempts?: number;
+  follow_up_delay_days_pc?: number;
+  follow_up_max_attempts_pc?: number;
+  holiday_calendar_pc?: string;
+  weekend_adjustment_pc?: boolean;
+  timezone_shared?: string;
+  start_call?: string;
 }
 
 export interface CampaignCreate {
-  name: string;
-  description?: string;
+  campaign_name: string;
+  campaign_description: string;
   lead_ids: string[];
+  campaign_id?: string;
+  client_id?: string;
+  agent_id?: string;
+  main_sequence_attempts?: number;
+  follow_up_delay_days_pc?: number;
+  follow_up_max_attempts_pc?: number;
+  holiday_calendar_pc?: string;
+  weekend_adjustment_pc?: boolean;
+  timezone_shared?: string;
+  is_active?: boolean;
+  start_call?: string;
 }
 
 export interface CampaignLead {

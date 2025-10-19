@@ -5,7 +5,7 @@ Handles all campaign-related database interactions.
 
 from typing import Optional, List
 from datetime import datetime, timezone, timedelta
-from app.models import Campaign, CampaignCreate, CampaignLead, CallLog, CallLogCreate, CampaignLeadStatus
+from app.models import Campaign, CampaignCreate, CampaignUpdate, CampaignLead, CallLog, CallLogCreate, CampaignLeadStatus
 from app.utils import prepare_for_mongo
 from app.config import settings
 
@@ -98,35 +98,27 @@ class CampaignRepository:
         
         return await self.campaigns.find(query).to_list(settings.max_page_size)
     
-    async def update_campaign(self, campaign_id: str, campaign_data: CampaignCreate, user_id: str) -> Optional[dict]:
+    async def update_campaign(self, campaign_id: str, campaign_data: CampaignUpdate, user_id: str) -> Optional[dict]:
         """
         Update campaign information and handle lead changes.
+        Supports partial updates - only provided fields will be updated.
         
         Args:
             campaign_id: Campaign's unique identifier
-            campaign_data: Updated campaign data
+            campaign_data: Updated campaign data (partial update supported)
             user_id: ID of user making the update
             
         Returns:
             Optional[dict]: Updated campaign document if found, None otherwise
         """
-        # Update campaign basic info - include all fields
-        update_data = {
-            "name": campaign_data.name,
-            "description": campaign_data.description,
-            "campaign_id": campaign_data.campaign_id,
-            "client_id": campaign_data.client_id,
-            "agent_id_vb": campaign_data.agent_id_vb,
-            "main_sequence_attempts": campaign_data.main_sequence_attempts,
-            "follow_up_delay_days_pc": campaign_data.follow_up_delay_days_pc,
-            "follow_up_max_attempts_pc": campaign_data.follow_up_max_attempts_pc,
-            "holiday_calendar_pc": campaign_data.holiday_calendar_pc,
-            "weekend_adjustment_pc": campaign_data.weekend_adjustment_pc,
-            "timezone_shared": campaign_data.timezone_shared,
-            "is_active": campaign_data.is_active,
-            "start_call": campaign_data.start_call,
-            "updated_at": datetime.now(timezone.utc)
-        }
+        # Build update data with only provided fields (partial update)
+        update_data = {"updated_at": datetime.now(timezone.utc)}
+        
+        # Only include fields that are not None
+        data_dict = campaign_data.dict(exclude_unset=True)
+        for key, value in data_dict.items():
+            if value is not None:
+                update_data[key] = value
         
         # Handle lead changes if provided
         if hasattr(campaign_data, 'lead_ids') and campaign_data.lead_ids is not None:

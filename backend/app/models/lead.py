@@ -94,8 +94,9 @@ Contains lead data structures and campaign lead schemas.
 import uuid
 from datetime import datetime, timezone, date, time
 from typing import List, Optional
-from pydantic import BaseModel, Field, EmailStr
+from pydantic import BaseModel, Field, EmailStr, validator
 from .enums import LeadStatus, CampaignLeadStatus, CallOutcome
+from app.utils.validators import validate_us_phone
 
 
 class DemoBooking(BaseModel):
@@ -165,6 +166,11 @@ class Lead(BaseModel):
     
     # System Audit (CRM/System-managed)
     updated_by_shared: Optional[str] = None
+    
+    @validator('phone', 'business_phone', 'referral_phone_vb')
+    def validate_phone_format(cls, v):
+        """Validate US phone number format with optional extension."""
+        return validate_us_phone(v)
 
     class Config:
         """Pydantic configuration."""
@@ -206,6 +212,11 @@ class LeadCreate(BaseModel):
     meeting_booked_shared: Optional[bool] = None
     demo_booking_shared: Optional[DemoBooking] = None
     updated_by_shared: Optional[str] = None
+    
+    @validator('phone', 'business_phone', 'referral_phone_vb')
+    def validate_phone_format(cls, v):
+        """Validate US phone number format with optional extension."""
+        return validate_us_phone(v)
 
     class Config:
         """Pydantic configuration."""

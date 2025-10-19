@@ -6,7 +6,7 @@ Handles business logic for campaign operations.
 from typing import List, Optional
 from fastapi import HTTPException, status
 from app.models import (
-    Campaign, CampaignCreate, CampaignLead, CallLog, CallLogCreate,
+    Campaign, CampaignCreate, CampaignUpdate, CampaignLead, CallLog, CallLogCreate,
     User, UserRole, NextLeadResponse, Lead
 )
 from app.repositories import CampaignRepository, LeadRepository
@@ -197,13 +197,13 @@ class CampaignService:
         
         return await self.campaign_repo.get_campaign_stats(campaign_id)
     
-    async def update_campaign(self, campaign_id: str, campaign_data: CampaignCreate, current_user: User) -> Campaign:
+    async def update_campaign(self, campaign_id: str, campaign_data: CampaignUpdate, current_user: User) -> Campaign:
         """
         Update campaign information.
         
         Args:
             campaign_id: Campaign's unique identifier
-            campaign_data: Updated campaign data
+            campaign_data: Updated campaign data (partial update supported)
             current_user: Current authenticated user
             
         Returns:

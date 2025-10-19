@@ -5,7 +5,7 @@ Contains all data models and schemas.
 
 from .user import User, UserCreate, UserLogin, Token
 from .lead import Lead, LeadCreate, NextLeadResponse, CampaignLead
-from .campaign import Campaign, CampaignCreate, CallLog, CallLogCreate
+from .campaign import Campaign, CampaignCreate, CampaignUpdate, CallLog, CallLogCreate
 from .meeting import Meeting, MeetingCreate, MeetingProposal
 from .ticket import SupportTicket, TicketCreate, TicketUpdate
 from .enums import (
@@ -19,7 +19,7 @@ __all__ = [
     # Lead models
     "Lead", "LeadCreate", "NextLeadResponse", "CampaignLead",
     # Campaign models
-    "Campaign", "CampaignCreate", "CallLog", "CallLogCreate",
+    "Campaign", "CampaignCreate", "CampaignUpdate", "CallLog", "CallLogCreate",
     # Meeting models
     "Meeting", "MeetingCreate", "MeetingProposal",
     # Ticket models

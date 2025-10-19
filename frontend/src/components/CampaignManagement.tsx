@@ -60,15 +60,12 @@ function CampaignManagement() {
 
   // Campaign form state matching backend Campaign model
   const emptyCampaign = {
-    name: "",
-    description: "",
+    campaign_name: "",
+    campaign_description: "",
     lead_ids: [],
-
     campaign_id: "",
-    // name: "",
-    // description: "",
     client_id: "",
-    agent_id_vb: "",
+    agent_id: "",
     main_sequence_attempts: "",
     follow_up_delay_days_pc: "",
     follow_up_max_attempts_pc: "",
@@ -77,7 +74,6 @@ function CampaignManagement() {
     timezone_shared: "",
     is_active: true,
     start_call: "",
-    // lead_ids: [],
   };
   const [newCampaign, setNewCampaign] = useState({ ...emptyCampaign });
 
@@ -119,22 +115,24 @@ function CampaignManagement() {
   const handleCreateCampaign = async (e) => {
     e.preventDefault();
 
-    if (!newCampaign.name || !newCampaign.name.trim()) {
+    if (!newCampaign.campaign_name || !newCampaign.campaign_name.trim()) {
       toast.error("Campaign name is required");
+      return;
+    }
+
+    if (!newCampaign.campaign_description || !newCampaign.campaign_description.trim()) {
+      toast.error("Campaign description is required");
       return;
     }
 
     try {
       const payload = {
-        name: newCampaign.name,
-        description: newCampaign.description || undefined,
+        campaign_name: newCampaign.campaign_name,
+        campaign_description: newCampaign.campaign_description,
         lead_ids: selectedLeads,
-
         campaign_id: newCampaign.campaign_id || undefined,
-        // name: newCampaign.name,
-        // description: newCampaign.description || undefined,
         client_id: newCampaign.client_id || undefined,
-        agent_id_vb: newCampaign.agent_id_vb || undefined,
+        agent_id: newCampaign.agent_id || undefined,
         main_sequence_attempts:
           Number(newCampaign.main_sequence_attempts) || undefined,
         follow_up_delay_days_pc:
@@ -146,7 +144,6 @@ function CampaignManagement() {
         timezone_shared: newCampaign.timezone_shared || undefined,
         is_active: !!newCampaign.is_active,
         start_call: newCampaign.start_call || undefined,
-        // lead_ids: selectedLeads,
       };
 
       await apiClient.post("/campaigns", payload);
@@ -339,12 +336,12 @@ function CampaignManagement() {
           </div>
 
           <div>
-            <Label htmlFor="campaign-name">Campaign Name</Label>
+            <Label htmlFor="campaign-name">Campaign Name *</Label>
             <Input
               id="campaign-name"
-              value={newCampaign.name || ""}
+              value={newCampaign.campaign_name || ""}
               onChange={(e) =>
-                setNewCampaign({ ...newCampaign, name: e.target.value })
+                setNewCampaign({ ...newCampaign, campaign_name: e.target.value })
               }
               placeholder="Enter campaign name"
               required
@@ -352,18 +349,19 @@ function CampaignManagement() {
           </div>
 
           <div>
-            <Label htmlFor="campaign-description">Description</Label>
+            <Label htmlFor="campaign-description">Description *</Label>
             <Textarea
               id="campaign-description"
-              value={newCampaign.description || ""}
+              value={newCampaign.campaign_description || ""}
               onChange={(e) =>
                 setNewCampaign({
                   ...newCampaign,
-                  description: e.target.value,
+                  campaign_description: e.target.value,
                 })
               }
-              placeholder="Update campaign description"
+              placeholder="Enter campaign description"
               rows={3}
+              required
             />
           </div>
 
@@ -562,13 +560,13 @@ function CampaignManagement() {
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">
                     <CardTitle className="text-lg truncate">
-                      {campaign.name}
+                      {campaign.campaign_name || campaign.name}
                     </CardTitle>
                     <CardDescription className="mt-1">
-                      {campaign.description || "No description"}
+                      {campaign.campaign_description || campaign.description || "No description"}
                     </CardDescription>
                     {campaign.campaign_id && (
-                      <div className="text-xs text-gray-500 mt-1">
+                      <div className="text-xs text-gray-500 mt-1 font-mono">
                         ID: {campaign.campaign_id}
                       </div>
                     )}
@@ -608,11 +606,11 @@ function CampaignManagement() {
                       </div>
                     )}
 
-                    {campaign.agent_id_vb && (
+                    {(campaign.agent_id || campaign.agent_id_vb) && (
                       <div className="flex items-center justify-between">
-                        <span className="text-gray-500">Voice Bot:</span>
-                        <span className="font-medium text-gray-700">
-                          {campaign.agent_id_vb}
+                        <span className="text-gray-500">Agent ID:</span>
+                        <span className="font-medium text-gray-700 font-mono text-xs">
+                          {campaign.agent_id || campaign.agent_id_vb}
                         </span>
                       </div>
                     )}
