@@ -183,22 +183,19 @@ function CampaignManagement() {
   const handleEditCampaign = async (e) => {
     e.preventDefault();
 
-    if (!selectedCampaign?.name || !selectedCampaign.name.trim()) {
+    const campaignName = selectedCampaign?.campaign_name || selectedCampaign?.name;
+    if (!campaignName || !campaignName.trim()) {
       toast.error("Campaign name is required");
       return;
     }
 
     try {
       const payload = {
-        name: selectedCampaign.name,
-        description: selectedCampaign.description || undefined,
-        lead_ids: selectedLeads,
-
+        campaign_name: selectedCampaign.campaign_name || selectedCampaign.name,
+        campaign_description: selectedCampaign.campaign_description || selectedCampaign.description || undefined,
         campaign_id: selectedCampaign.campaign_id || undefined,
-        // name: selectedCampaign.name,
-        // description: selectedCampaign.description || undefined,
         client_id: selectedCampaign.client_id || undefined,
-        agent_id_vb: selectedCampaign.agent_id_vb || undefined,
+        agent_id: selectedCampaign.agent_id || undefined,
         main_sequence_attempts:
           Number(selectedCampaign.main_sequence_attempts) || undefined,
         follow_up_delay_days_pc:
@@ -210,7 +207,6 @@ function CampaignManagement() {
         timezone_shared: selectedCampaign.timezone_shared || undefined,
         is_active: !!selectedCampaign.is_active,
         start_call: selectedCampaign.start_call || undefined,
-        // lead_ids: selectedLeads,
       };
 
       await apiClient.put(`/campaigns/${selectedCampaign.id}`, payload);
@@ -228,17 +224,11 @@ function CampaignManagement() {
   const openEditDialog = (campaign) => {
     setSelectedCampaign({
       ...campaign,
-      // name: campaign.name ?? "",
-      // description: campaign.description ?? "",
-      // lead_ids:
-      //   campaign.lead_ids ??
-      //   (campaign.leads ? campaign.leads.map((l) => l.id) : []),
-
       campaign_id: campaign.campaign_id ?? "",
-      name: campaign.name ?? "",
-      description: campaign.description ?? "",
+      campaign_name: campaign.campaign_name || campaign.name ?? "",
+      campaign_description: campaign.campaign_description || campaign.description ?? "",
       client_id: campaign.client_id ?? "",
-      agent_id_vb: campaign.agent_id_vb ?? "",
+      agent_id: campaign.agent_id || campaign.agent_id_vb ?? "",
       main_sequence_attempts: campaign.main_sequence_attempts ?? "",
       follow_up_delay_days_pc: campaign.follow_up_delay_days_pc ?? "",
       follow_up_max_attempts_pc: campaign.follow_up_max_attempts_pc ?? "",
@@ -382,17 +372,17 @@ function CampaignManagement() {
               />
             </div>
             <div>
-              <Label htmlFor="voice-bot-id">Voice Bot ID</Label>
+              <Label htmlFor="agent-id">Agent ID</Label>
               <Input
-                id="voice-bot-id"
-                value={newCampaign.agent_id_vb || ""}
+                id="agent-id"
+                value={newCampaign.agent_id || ""}
                 onChange={(e) =>
                   setNewCampaign({
                     ...newCampaign,
-                    agent_id_vb: e.target.value,
+                    agent_id: e.target.value,
                   })
                 }
-                placeholder="Enter Voice Bot ID"
+                placeholder="Enter Agent ID"
               />
             </div>
           </div>
@@ -856,20 +846,27 @@ function CampaignManagement() {
                 </div>
                 <div>
                   <Label htmlFor="edit-campaign-description">
-                    Description (Optional)
+                    Description *
                   </Label>
                   <Textarea
                     id="edit-campaign-description"
                     data-testid="edit-campaign-description-input"
-                    value={selectedCampaign.description || ""}
+                    value={
+                      selectedCampaign.campaign_description ??
+                      selectedCampaign.description ??
+                      ""
+                    }
                     onChange={(e) =>
                       setSelectedCampaign({
                         ...selectedCampaign,
+                        campaign_description: e.target.value,
+                        // keep legacy description in sync for backwards compatibility
                         description: e.target.value,
                       })
                     }
                     placeholder="Describe this campaign"
                     rows={3}
+                    required
                   />
                 </div>
 
@@ -889,14 +886,18 @@ function CampaignManagement() {
                 </div>
 
                 <div>
-                  <Label htmlFor="edit-agent-id-vb">Agent ID (VB)</Label>
+                  <Label htmlFor="edit-agent-id">Agent ID</Label>
                   <Input
-                    id="edit-agent-id-vb"
-                    value={selectedCampaign.agent_id_vb || ""}
+                    id="edit-agent-id"
+                    value={
+                      selectedCampaign.agent_id ??
+                      selectedCampaign.agent_id_vb ??
+                      ""
+                    }
                     onChange={(e) =>
                       setSelectedCampaign({
                         ...selectedCampaign,
-                        agent_id_vb: e.target.value,
+                        agent_id: e.target.value,
                       })
                     }
                     placeholder="Enter agent ID"
