@@ -64,15 +64,15 @@ function CampaignManagement() {
     campaign_description: "",
     lead_ids: [],
     campaign_id: "",
-    client_id: "",
-    agent_id: "",
+    client_id: "", // Will be selected from dropdown
+    agent_id: "", // Will be selected from dropdown
     main_sequence_attempts: "",
     follow_up_delay_days_pc: "",
     follow_up_max_attempts_pc: "",
     holiday_calendar_pc: "",
     weekend_adjustment_pc: false,
-    timezone_shared: "",
-    is_active: true,
+    timezone_shared: "", // Will be selected from dropdown
+    is_active: false, // Default to Inactive as per requirements
     start_call: "",
   };
   const [newCampaign, setNewCampaign] = useState({ ...emptyCampaign });
@@ -120,8 +120,21 @@ function CampaignManagement() {
       return;
     }
 
-    if (!newCampaign.campaign_description || !newCampaign.campaign_description.trim()) {
+    if (
+      !newCampaign.campaign_description ||
+      !newCampaign.campaign_description.trim()
+    ) {
       toast.error("Campaign description is required");
+      return;
+    }
+
+    if (!newCampaign.client_id) {
+      toast.error("Client ID is required");
+      return;
+    }
+
+    if (!newCampaign.agent_id) {
+      toast.error("Agent ID is required");
       return;
     }
 
@@ -131,8 +144,8 @@ function CampaignManagement() {
         campaign_description: newCampaign.campaign_description,
         lead_ids: selectedLeads,
         campaign_id: newCampaign.campaign_id || undefined,
-        client_id: newCampaign.client_id || undefined,
-        agent_id: newCampaign.agent_id || undefined,
+        client_id: newCampaign.client_id, // Now mandatory
+        agent_id: newCampaign.agent_id, // Now mandatory
         main_sequence_attempts:
           Number(newCampaign.main_sequence_attempts) || undefined,
         follow_up_delay_days_pc:
@@ -183,7 +196,8 @@ function CampaignManagement() {
   const handleEditCampaign = async (e) => {
     e.preventDefault();
 
-    const campaignName = selectedCampaign?.campaign_name || selectedCampaign?.name;
+    const campaignName =
+      selectedCampaign?.campaign_name || selectedCampaign?.name;
     if (!campaignName || !campaignName.trim()) {
       toast.error("Campaign name is required");
       return;
@@ -192,7 +206,10 @@ function CampaignManagement() {
     try {
       const payload = {
         campaign_name: selectedCampaign.campaign_name || selectedCampaign.name,
-        campaign_description: selectedCampaign.campaign_description || selectedCampaign.description || undefined,
+        campaign_description:
+          selectedCampaign.campaign_description ||
+          selectedCampaign.description ||
+          undefined,
         campaign_id: selectedCampaign.campaign_id || undefined,
         client_id: selectedCampaign.client_id || undefined,
         agent_id: selectedCampaign.agent_id || undefined,
@@ -226,7 +243,8 @@ function CampaignManagement() {
       ...campaign,
       campaign_id: campaign.campaign_id ?? "",
       campaign_name: (campaign.campaign_name || campaign.name) ?? "",
-      campaign_description: (campaign.campaign_description || campaign.description) ?? "",
+      campaign_description:
+        (campaign.campaign_description || campaign.description) ?? "",
       client_id: campaign.client_id ?? "",
       agent_id: (campaign.agent_id || campaign.agent_id_vb) ?? "",
       main_sequence_attempts: campaign.main_sequence_attempts ?? "",
@@ -314,15 +332,15 @@ function CampaignManagement() {
             <Input
               id="campaign-id"
               value={newCampaign.campaign_id || ""}
-              onChange={(e) =>
-                setNewCampaign({
-                  ...newCampaign,
-                  campaign_id: e.target.value,
-                })
-              }
-              placeholder="Unique campaign ID"
+              placeholder="Auto-generated campaign ID"
               className="bg-gray-100 cursor-not-allowed"
+              readOnly
+              disabled
             />
+            <p className="text-xs text-gray-500">
+              Campaign ID is automatically generated when you create the
+              campaign
+            </p>
           </div>
 
           <div>
@@ -331,7 +349,10 @@ function CampaignManagement() {
               id="campaign-name"
               value={newCampaign.campaign_name || ""}
               onChange={(e) =>
-                setNewCampaign({ ...newCampaign, campaign_name: e.target.value })
+                setNewCampaign({
+                  ...newCampaign,
+                  campaign_name: e.target.value,
+                })
               }
               placeholder="Enter campaign name"
               required
@@ -355,35 +376,49 @@ function CampaignManagement() {
             />
           </div>
 
-          {/* Client and Voice Bot IDs */}
+          {/* Client and Agent IDs */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="client-id">Client ID</Label>
-              <Input
-                id="client-id"
+              <Label htmlFor="client-id">Client ID *</Label>
+              <Select
                 value={newCampaign.client_id || ""}
-                onChange={(e) =>
+                onValueChange={(value) =>
                   setNewCampaign({
                     ...newCampaign,
-                    client_id: e.target.value,
+                    client_id: value,
                   })
                 }
-                placeholder="Enter client ID"
-              />
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select client ID" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="CLI-00001">CLI-00001</SelectItem>
+                  <SelectItem value="CLI-00002">CLI-00002</SelectItem>
+                  <SelectItem value="CLI-00003">CLI-00003</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div>
-              <Label htmlFor="agent-id">Agent ID</Label>
-              <Input
-                id="agent-id"
+              <Label htmlFor="agent-id">Agent ID *</Label>
+              <Select
                 value={newCampaign.agent_id || ""}
-                onChange={(e) =>
+                onValueChange={(value) =>
                   setNewCampaign({
                     ...newCampaign,
-                    agent_id: e.target.value,
+                    agent_id: value,
                   })
                 }
-                placeholder="Enter Agent ID"
-              />
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select agent ID" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="AGE-00001">AGE-00001</SelectItem>
+                  <SelectItem value="AGE-00002">AGE-00002</SelectItem>
+                  <SelectItem value="AGE-00003">AGE-00003</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
@@ -391,34 +426,71 @@ function CampaignManagement() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="timezone">Timezone</Label>
-              <Input
-                id="timezone"
+              <Select
                 value={newCampaign.timezone_shared || ""}
-                onChange={(e) =>
+                onValueChange={(value) =>
                   setNewCampaign({
                     ...newCampaign,
-                    timezone_shared: e.target.value,
-                  })
-                }
-                placeholder="e.g. America/New_York"
-              />
-            </div>
-            <div>
-              <Label htmlFor="status">Status</Label>
-              <select
-                id="status"
-                className="w-full border rounded-md px-3 py-2"
-                value={newCampaign.is_active ? "active" : "inactive"}
-                onChange={(e) =>
-                  setNewCampaign({
-                    ...newCampaign,
-                    is_active: e.target.value === "active",
+                    timezone_shared: value,
                   })
                 }
               >
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select timezone" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="America/New_York">
+                    America/New_York (Eastern)
+                  </SelectItem>
+                  <SelectItem value="America/Chicago">
+                    America/Chicago (Central)
+                  </SelectItem>
+                  <SelectItem value="America/Denver">
+                    America/Denver (Mountain)
+                  </SelectItem>
+                  <SelectItem value="America/Los_Angeles">
+                    America/Los_Angeles (Pacific)
+                  </SelectItem>
+                  <SelectItem value="America/Anchorage">
+                    America/Anchorage (Alaska)
+                  </SelectItem>
+                  <SelectItem value="Pacific/Honolulu">
+                    Pacific/Honolulu (Hawaii)
+                  </SelectItem>
+                  <SelectItem value="America/Toronto">
+                    America/Toronto (Eastern Canada)
+                  </SelectItem>
+                  <SelectItem value="America/Winnipeg">
+                    America/Winnipeg (Central Canada)
+                  </SelectItem>
+                  <SelectItem value="America/Edmonton">
+                    America/Edmonton (Mountain Canada)
+                  </SelectItem>
+                  <SelectItem value="America/Vancouver">
+                    America/Vancouver (Pacific Canada)
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="status">Status</Label>
+              <Select
+                value={newCampaign.is_active ? "active" : "inactive"}
+                onValueChange={(value) =>
+                  setNewCampaign({
+                    ...newCampaign,
+                    is_active: value === "active",
+                  })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
@@ -553,7 +625,9 @@ function CampaignManagement() {
                       {campaign.campaign_name || campaign.name}
                     </CardTitle>
                     <CardDescription className="mt-1">
-                      {campaign.campaign_description || campaign.description || "No description"}
+                      {campaign.campaign_description ||
+                        campaign.description ||
+                        "No description"}
                     </CardDescription>
                     {campaign.campaign_id && (
                       <div className="text-xs text-gray-500 mt-1 font-mono">
