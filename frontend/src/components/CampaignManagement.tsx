@@ -225,10 +225,10 @@ function CampaignManagement() {
     setSelectedCampaign({
       ...campaign,
       campaign_id: campaign.campaign_id ?? "",
-      campaign_name: campaign.campaign_name || campaign.name ?? "",
-      campaign_description: campaign.campaign_description || campaign.description ?? "",
+      campaign_name: (campaign.campaign_name || campaign.name) ?? "",
+      campaign_description: (campaign.campaign_description || campaign.description) ?? "",
       client_id: campaign.client_id ?? "",
-      agent_id: campaign.agent_id || campaign.agent_id_vb ?? "",
+      agent_id: (campaign.agent_id || campaign.agent_id_vb) ?? "",
       main_sequence_attempts: campaign.main_sequence_attempts ?? "",
       follow_up_delay_days_pc: campaign.follow_up_delay_days_pc ?? "",
       follow_up_max_attempts_pc: campaign.follow_up_max_attempts_pc ?? "",
