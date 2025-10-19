@@ -6,7 +6,7 @@ Contains campaign data structures and call logging schemas.
 import uuid
 from datetime import datetime, timezone
 from typing import List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
 from .enums import CallOutcome
 from app.utils.validators import (
     generate_campaign_id, 
@@ -28,8 +28,8 @@ class Campaign(BaseModel):
     campaign_id: str = Field(default_factory=generate_campaign_id)
     campaign_name: str
     campaign_description: str  # Mandatory
-    client_id: str = Field(default_factory=generate_client_id)
-    agent_id: str = Field(default_factory=generate_agent_id)
+    client_id: str = Field(..., description="Client ID - must be one of: CLI-00001, CLI-00002, CLI-00003")
+    agent_id: str = Field(..., description="Agent ID - must be one of: AGE-00001, AGE-00002, AGE-00003")
     
     # Legacy field for backward compatibility
     created_by: str  # User ID
@@ -50,7 +50,7 @@ class Campaign(BaseModel):
     timezone_shared: Optional[str] = None
     
     # Operational (Mandatory)
-    is_active: bool = True
+    is_active: bool = False  # Default to Inactive as per requirements
     start_call: Optional[str] = None  # API trigger - will be implemented later
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
@@ -69,10 +69,12 @@ class CampaignCreate(BaseModel):
     campaign_name: str = Field(..., min_length=1, description="Campaign name (mandatory)")
     campaign_description: str = Field(..., min_length=1, description="Campaign description (mandatory)")
     
-    # Auto-generated fields (optional override for testing)
+    # Auto-generated fields
     campaign_id: Optional[str] = Field(default_factory=generate_campaign_id)
-    client_id: Optional[str] = Field(default_factory=generate_client_id)
-    agent_id: Optional[str] = Field(default_factory=generate_agent_id)
+    
+    # Mandatory fields with validation
+    client_id: str = Field(..., description="Client ID - must be one of: CLI-00001, CLI-00002, CLI-00003")
+    agent_id: str = Field(..., description="Agent ID - must be one of: AGE-00001, AGE-00002, AGE-00003")
     
     # Leads to add to campaign
     lead_ids: List[str] = []
@@ -93,8 +95,48 @@ class CampaignCreate(BaseModel):
     timezone_shared: Optional[str] = None
     
     # Operational
-    is_active: bool = True
+    is_active: bool = False  # Default to Inactive as per requirements
     start_call: Optional[str] = None  # Will be implemented later
+    
+    @validator('client_id')
+    def validate_client_id(cls, v):
+        """Validate client_id is one of the allowed values."""
+        allowed_clients = ['CLI-00001', 'CLI-00002', 'CLI-00003']
+        if v not in allowed_clients:
+            raise ValueError(f'client_id must be one of: {", ".join(allowed_clients)}')
+        return v
+    
+    @validator('agent_id')
+    def validate_agent_id(cls, v):
+        """Validate agent_id is one of the allowed values."""
+        allowed_agents = ['AGE-00001', 'AGE-00002', 'AGE-00003']
+        if v not in allowed_agents:
+            raise ValueError(f'agent_id must be one of: {", ".join(allowed_agents)}')
+        return v
+    
+    @validator('timezone_shared')
+    def validate_timezone(cls, v):
+        """Validate timezone is a valid US/Canada timezone."""
+        if v is None:
+            return v
+        
+        # Common US and Canada timezones
+        valid_timezones = [
+            'America/New_York',      # Eastern
+            'America/Chicago',       # Central
+            'America/Denver',        # Mountain
+            'America/Los_Angeles',   # Pacific
+            'America/Anchorage',     # Alaska
+            'Pacific/Honolulu',      # Hawaii
+            'America/Toronto',       # Eastern Canada
+            'America/Winnipeg',      # Central Canada
+            'America/Edmonton',      # Mountain Canada
+            'America/Vancouver'      # Pacific Canada
+        ]
+        
+        if v not in valid_timezones:
+            raise ValueError(f'timezone_shared must be one of: {", ".join(valid_timezones)}')
+        return v
 
 
 class CampaignUpdate(BaseModel):
