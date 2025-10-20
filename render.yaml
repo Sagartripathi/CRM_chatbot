@@ -37,9 +37,9 @@ services:
       - key: PORT
         value: 8000
 
-      # CORS (replace with your frontend URL)
+      # CORS (Vercel production frontend)
       - key: CORS_ORIGINS
-        value: https://your-frontend-app.onrender.com
+        value: https://production-crm-chatbot-three.vercel.app
 
       # Database Configuration
       - key: DB_CONNECT_TIMEOUT
