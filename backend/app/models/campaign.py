@@ -39,11 +39,6 @@ class Campaign(BaseModel):
     description: Optional[str] = None  # Use campaign_description instead
     agent_id_vb: Optional[str] = None  # Use agent_id instead
     
-    # Scheduling & Attempts
-    main_sequence_attempts: Optional[int] = None
-    follow_up_delay_days_pc: Optional[int] = None
-    follow_up_max_attempts_pc: Optional[int] = None
-    
     # Config Parameters
     timezone_shared: Optional[str] = None
     
@@ -85,11 +80,6 @@ class CampaignCreate(BaseModel):
     name: Optional[str] = None  # Use campaign_name instead
     description: Optional[str] = None  # Use campaign_description instead
     agent_id_vb: Optional[str] = None  # Use agent_id instead
-    
-    # Scheduling & Attempts
-    main_sequence_attempts: Optional[int] = None
-    follow_up_delay_days_pc: Optional[int] = None
-    follow_up_max_attempts_pc: Optional[int] = None
     
     # Config Parameters
     timezone_shared: Optional[str] = None

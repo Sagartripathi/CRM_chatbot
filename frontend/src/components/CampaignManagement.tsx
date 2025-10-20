@@ -66,9 +66,6 @@ function CampaignManagement() {
     campaign_id: "",
     client_id: "", // Will be selected from dropdown
     agent_id: "", // Will be selected from dropdown
-    main_sequence_attempts: "",
-    follow_up_delay_days_pc: "",
-    follow_up_max_attempts_pc: "",
     timezone_shared: "", // Will be selected from dropdown
     is_active: false, // Default to Inactive as per requirements
     start_call: "",
@@ -146,12 +143,6 @@ function CampaignManagement() {
         campaign_id: newCampaign.campaign_id || undefined,
         client_id: newCampaign.client_id, // Now mandatory
         agent_id: newCampaign.agent_id, // Now mandatory
-        main_sequence_attempts:
-          Number(newCampaign.main_sequence_attempts) || undefined,
-        follow_up_delay_days_pc:
-          Number(newCampaign.follow_up_delay_days_pc) || undefined,
-        follow_up_max_attempts_pc:
-          Number(newCampaign.follow_up_max_attempts_pc) || undefined,
         timezone_shared: newCampaign.timezone_shared || undefined,
         is_active: !!newCampaign.is_active,
         start_call: newCampaign.start_call || undefined,
@@ -494,58 +485,10 @@ function CampaignManagement() {
             </div>
           </div>
 
-          {/* Scheduling & Attempts */}
+          {/* Call Scheduling */}
           <div className="pt-4 border-t space-y-3">
-            <Label className="text-base font-medium">
-              Scheduling & Attempts
-            </Label>
+            <Label className="text-base font-medium">Call Scheduling</Label>
             <div className="grid grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="main-attempts">Main Attempts</Label>
-                <Input
-                  id="main-attempts"
-                  type="number"
-                  value={newCampaign.main_sequence_attempts || 0}
-                  onChange={(e) =>
-                    setNewCampaign({
-                      ...newCampaign,
-                      main_sequence_attempts: e.target.value,
-                    })
-                  }
-                />
-              </div>
-              <div>
-                <Label htmlFor="followup-attempts">Follow-up Attempts</Label>
-                <Input
-                  id="followup-attempts"
-                  type="number"
-                  value={newCampaign.follow_up_max_attempts_pc || 0}
-                  onChange={(e) =>
-                    setNewCampaign({
-                      ...newCampaign,
-                      follow_up_max_attempts_pc: e.target.value,
-                    })
-                  }
-                />
-              </div>
-              <div>
-                <Label htmlFor="delay-days">Delay (Days)</Label>
-                <Input
-                  id="delay-days"
-                  type="number"
-                  value={newCampaign.follow_up_delay_days_pc || 0}
-                  onChange={(e) =>
-                    setNewCampaign({
-                      ...newCampaign,
-                      follow_up_delay_days_pc: e.target.value,
-                    })
-                  }
-                />
-              </div>
-            </div>
-            
-            {/* New Call Scheduling Fields */}
-            <div className="grid grid-cols-3 gap-4 pt-4">
               <div>
                 <Label htmlFor="start-call">Start Call (API Trigger)</Label>
                 <Input
@@ -590,7 +533,6 @@ function CampaignManagement() {
               </div>
             </div>
           </div>
-
 
           {/* Save / Cancel */}
           <div className="flex justify-end space-x-3 pt-6 border-t">
@@ -701,35 +643,10 @@ function CampaignManagement() {
                       </div>
                     )}
 
-                    {/* Attempt Settings */}
-                    <div className="pt-2 border-t">
-                      <div className="text-xs font-semibold text-gray-600 mb-1">
-                        Attempt Settings
-                      </div>
-                      <div className="grid grid-cols-3 gap-2 text-xs">
-                        <div>
-                          <div className="text-gray-500">Main</div>
-                          <div className="font-semibold">
-                            {campaign.main_sequence_attempts || 3}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-gray-500">Follow-up</div>
-                          <div className="font-semibold">
-                            {campaign.follow_up_max_attempts_pc || 3}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-gray-500">Delay</div>
-                          <div className="font-semibold">
-                            {campaign.follow_up_delay_days_pc || 7}d
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
                     {/* Call Scheduling Info */}
-                    {(campaign.start_call || campaign.call_created_at || campaign.call_updated_at) && (
+                    {(campaign.start_call ||
+                      campaign.call_created_at ||
+                      campaign.call_updated_at) && (
                       <div className="pt-2 border-t">
                         <div className="text-xs font-semibold text-gray-600 mb-1">
                           Call Scheduling
@@ -737,7 +654,9 @@ function CampaignManagement() {
                         <div className="space-y-1 text-xs">
                           {campaign.start_call && (
                             <div className="flex justify-between">
-                              <span className="text-gray-500">API Trigger:</span>
+                              <span className="text-gray-500">
+                                API Trigger:
+                              </span>
                               <span className="font-medium text-gray-700">
                                 {campaign.start_call}
                               </span>
@@ -745,17 +664,25 @@ function CampaignManagement() {
                           )}
                           {campaign.call_created_at && (
                             <div className="flex justify-between">
-                              <span className="text-gray-500">Call Created:</span>
+                              <span className="text-gray-500">
+                                Call Created:
+                              </span>
                               <span className="font-medium text-gray-700">
-                                {new Date(campaign.call_created_at).toLocaleDateString()}
+                                {new Date(
+                                  campaign.call_created_at
+                                ).toLocaleDateString()}
                               </span>
                             </div>
                           )}
                           {campaign.call_updated_at && (
                             <div className="flex justify-between">
-                              <span className="text-gray-500">Call Updated:</span>
+                              <span className="text-gray-500">
+                                Call Updated:
+                              </span>
                               <span className="font-medium text-gray-700">
-                                {new Date(campaign.call_updated_at).toLocaleDateString()}
+                                {new Date(
+                                  campaign.call_updated_at
+                                ).toLocaleDateString()}
                               </span>
                             </div>
                           )}
@@ -1010,75 +937,17 @@ function CampaignManagement() {
                 </div>
               </div>
 
-              {/* Scheduling & Attempts */}
+              {/* Call Scheduling */}
               <div className="pt-4 border-t">
                 <h3 className="text-base font-semibold mb-2">
-                  Scheduling & Attempts
+                  Call Scheduling
                 </h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <Label htmlFor="edit-main-sequence-attempts">
-                      Main Sequence Attempts
+                    <Label htmlFor="edit-start-call">
+                      Start Call (API Trigger)
                     </Label>
-                    <Input
-                      id="edit-main-sequence-attempts"
-                      type="number"
-                      min="0"
-                      value={selectedCampaign.main_sequence_attempts}
-                      onChange={(e) =>
-                        setSelectedCampaign({
-                          ...selectedCampaign,
-                          main_sequence_attempts: Number(e.target.value),
-                        })
-                      }
-                      placeholder="e.g. 3"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="edit-follow-up-delay-days">
-                      Follow-up Delay (Days)
-                    </Label>
-                    <Input
-                      id="edit-follow-up-delay-days"
-                      type="number"
-                      min="0"
-                      value={selectedCampaign.follow_up_delay_days_pc}
-                      onChange={(e) =>
-                        setSelectedCampaign({
-                          ...selectedCampaign,
-                          follow_up_delay_days_pc: Number(e.target.value),
-                        })
-                      }
-                      placeholder="e.g. 2"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="edit-follow-up-max-attempts">
-                      Follow-up Max Attempts
-                    </Label>
-                    <Input
-                      id="edit-follow-up-max-attempts"
-                      type="number"
-                      min="0"
-                      value={selectedCampaign.follow_up_max_attempts_pc}
-                      onChange={(e) =>
-                        setSelectedCampaign({
-                          ...selectedCampaign,
-                          follow_up_max_attempts_pc: Number(e.target.value),
-                        })
-                      }
-                      placeholder="e.g. 5"
-                    />
-                  </div>
-                </div>
-                
-                {/* New Call Scheduling Fields */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                  <div>
-                    <Label htmlFor="edit-start-call">Start Call (API Trigger)</Label>
                     <Input
                       id="edit-start-call"
                       value={selectedCampaign.start_call || ""}
@@ -1092,7 +961,9 @@ function CampaignManagement() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="edit-call-created-at">Call Created At</Label>
+                    <Label htmlFor="edit-call-created-at">
+                      Call Created At
+                    </Label>
                     <Input
                       id="edit-call-created-at"
                       type="datetime-local"
@@ -1106,7 +977,9 @@ function CampaignManagement() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="edit-call-updated-at">Call Updated At</Label>
+                    <Label htmlFor="edit-call-updated-at">
+                      Call Updated At
+                    </Label>
                     <Input
                       id="edit-call-updated-at"
                       type="datetime-local"
@@ -1121,7 +994,6 @@ function CampaignManagement() {
                   </div>
                 </div>
               </div>
-
 
               {/* Operational */}
               <div className="pt-4 border-t">
@@ -1143,7 +1015,6 @@ function CampaignManagement() {
                       Is Active
                     </Label>
                   </div>
-
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
