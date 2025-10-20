@@ -162,8 +162,8 @@ function LeadManagement() {
       }
 
       const [leadsResponse, campaignsResponse] = await Promise.all([
-        apiClient.get("/leads"),
-        apiClient.get("/campaigns"),
+        apiClient.get("/api/leads/"),
+        apiClient.get("/api/campaigns/"),
       ]);
       setLeads(leadsResponse.data);
       setFilteredLeads(leadsResponse.data);
@@ -331,7 +331,7 @@ function LeadManagement() {
         leadData.updated_by_shared = newLead.updated_by_shared;
 
       console.log("Sending lead data:", JSON.stringify(leadData, null, 2));
-      await apiClient.post("/leads", leadData);
+      await apiClient.post("/api/leads/", leadData);
       toast.success("Lead created successfully!");
       setCreateDialogOpen(false);
       setNewLead(emptyLeadState);
@@ -443,7 +443,7 @@ function LeadManagement() {
             : undefined,
       };
 
-      await apiClient.put(`/leads/${selectedLead.id}`, leadData);
+      await apiClient.put(`/api/leads/${selectedLead.id}`, leadData);
       toast.success("Lead updated successfully!");
       setEditDialogOpen(false);
       setSelectedLead(null);
@@ -469,7 +469,7 @@ function LeadManagement() {
 
   const handleDeleteLead = async () => {
     try {
-      await apiClient.delete(`/leads/${selectedLead.id}`);
+      await apiClient.delete(`/api/leads/${selectedLead.id}`);
       toast.success("Lead deleted successfully!");
       setDeleteDialogOpen(false);
       setSelectedLead(null);
@@ -498,8 +498,8 @@ function LeadManagement() {
       formData.append("file", uploadFile);
 
       const url = uploadCampaignId
-        ? `/leads/upload-csv?campaign_id=${uploadCampaignId}`
-        : "/leads/upload-csv";
+        ? `/api/leads/upload-csv?campaign_id=${uploadCampaignId}`
+        : "/api/leads/upload-csv";
 
       const response = await apiClient.post(url, formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -532,7 +532,7 @@ function LeadManagement() {
     try {
       const campaignId = selectedLead.campaign_id || null;
       await apiClient.patch(
-        `/leads/${selectedLead.id}/campaign?campaign_id=${campaignId || ""}`
+        `/api/leads/${selectedLead.id}/campaign?campaign_id=${campaignId || ""}`
       );
       toast.success("Campaign updated successfully!");
       setCampaignDialogOpen(false);
