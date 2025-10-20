@@ -96,15 +96,13 @@ const DateTimePicker = ({ value, onChange }) => {
   };
 
   const handleDateSelect = (day) => {
+    // Only update the selected date; don't close or emit yet
     const newDate = new Date(
       selectedDate.getFullYear(),
       selectedDate.getMonth(),
       day
     );
     setSelectedDate(newDate);
-    const formattedDateTime = formatDateTime(newDate, selectedTime);
-    onChange(formattedDateTime);
-    setIsOpen(false);
   };
 
   const handleTimeChange = (field, value) => {
@@ -113,6 +111,31 @@ const DateTimePicker = ({ value, onChange }) => {
     const formattedDateTime = formatDateTime(selectedDate, newTime);
     onChange(formattedDateTime);
   };
+
+  const handleDone = () => {
+    const formattedDateTime = formatDateTime(selectedDate, selectedTime);
+    onChange(formattedDateTime);
+    setIsOpen(false);
+  };
+
+  // Initialize picker state from external value when opening or when value changes
+  useEffect(() => {
+    if (!isOpen) return;
+    if (!value) return;
+    try {
+      const parsed = new Date(value);
+      if (!isNaN(parsed.getTime())) {
+        setSelectedDate(parsed);
+        const hours24 = parsed.getHours();
+        const period = hours24 >= 12 ? "PM" : "AM";
+        const hours12 = hours24 % 12 === 0 ? 12 : hours24 % 12;
+        const minutes = parsed.getMinutes();
+        setSelectedTime({ hours: hours12, minutes, period });
+      }
+    } catch (_) {
+      // ignore parse errors and keep defaults
+    }
+  }, [isOpen, value]);
 
   const navigateMonth = (direction) => {
     const newDate = new Date(selectedDate);
@@ -163,7 +186,10 @@ const DateTimePicker = ({ value, onChange }) => {
     const remainingDays = 42 - days.length; // 6 rows × 7 days
     for (let day = 1; day <= remainingDays; day++) {
       days.push(
-        <div key={`next-${day}`} className="text-center py-2 text-gray-400 text-sm">
+        <div
+          key={`next-${day}`}
+          className="text-center py-2 text-gray-400 text-sm"
+        >
           {day}
         </div>
       );
@@ -255,7 +281,7 @@ const DateTimePicker = ({ value, onChange }) => {
 
       {isOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+          <div className="bg-white rounded-lg shadow-xl p-4 max-w-sm w-full mx-4">
             <div className="space-y-4">
               {/* Calendar */}
               <div>
@@ -302,12 +328,12 @@ const DateTimePicker = ({ value, onChange }) => {
               </div>
             </div>
 
-            <div className="mt-6 pt-4 border-t flex justify-end space-x-2">
+            <div className="mt-4 pt-3 border-t flex justify-end space-x-2">
               <Button variant="outline" onClick={() => setIsOpen(false)}>
                 Cancel
               </Button>
               <Button
-                onClick={() => setIsOpen(false)}
+                onClick={handleDone}
                 className="bg-blue-600 hover:bg-blue-700"
               >
                 Done
@@ -348,6 +374,7 @@ function CampaignManagement() {
     start_call: "",
     call_created_at: "",
     call_created_at_custom: "",
+
     call_updated_at: "",
     call_updated_at_custom: "",
   };
