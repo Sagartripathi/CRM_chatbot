@@ -94,7 +94,7 @@ Contains lead data structures and campaign lead schemas.
 import uuid
 from datetime import datetime, timezone, date, time
 from typing import List, Optional
-from pydantic import BaseModel, Field, EmailStr, validator
+from pydantic import BaseModel, Field, EmailStr, field_validator
 from .enums import LeadStatus, CampaignLeadStatus, CallOutcome
 from app.utils.validators import validate_us_phone
 
@@ -180,18 +180,6 @@ class Lead(BaseModel):
     # System Audit (CRM/System-managed)
     updated_by_shared: Optional[str] = None
     
-    @validator('lead_phone', 'business_phone', 'referral_phone_vb')
-    def validate_phone_format(cls, v):
-        """Validate US phone number format with optional extension."""
-        return validate_us_phone(v)
-    
-    @validator('lead_type')
-    def validate_lead_type(cls, v):
-        """Validate lead type is either individual or organization."""
-        if v not in ['individual', 'organization']:
-            raise ValueError('lead_type must be either "individual" or "organization"')
-        return v
-
     class Config:
         """Pydantic configuration."""
         use_enum_values = True
@@ -246,34 +234,6 @@ class LeadCreate(BaseModel):
     demo_booking_shared: Optional[DemoBooking] = None
     updated_by_shared: Optional[str] = None
     
-    @validator('lead_phone', 'business_phone', 'referral_phone_vb')
-    def validate_phone_format(cls, v):
-        """Validate US phone number format with optional extension."""
-        return validate_us_phone(v)
-    
-    @validator('lead_type')
-    def validate_lead_type(cls, v):
-        """Validate lead type is either individual or organization."""
-        if v not in ['individual', 'organization']:
-            raise ValueError('lead_type must be either "individual" or "organization"')
-        return v
-    
-    @validator('lead_first_name', 'lead_last_name', 'lead_phone', 'leads_notes', always=True)
-    def validate_individual_fields(cls, v, values, field):
-        """Validate that required individual fields are present when lead_type is individual."""
-        if 'lead_type' in values and values['lead_type'] == 'individual':
-            if field.name in ['lead_first_name', 'lead_last_name', 'lead_phone', 'leads_notes'] and not v:
-                raise ValueError(f'{field.name} is required when lead_type is individual')
-        return v
-    
-    @validator('business_name', 'business_phone', 'business_address', always=True)
-    def validate_organization_fields(cls, v, values, field):
-        """Validate that required organization fields are present when lead_type is organization."""
-        if 'lead_type' in values and values['lead_type'] == 'organization':
-            if field.name in ['business_name', 'business_phone', 'business_address'] and not v:
-                raise ValueError(f'{field.name} is required when lead_type is organization')
-        return v
-
     class Config:
         """Pydantic configuration."""
         use_enum_values = True
