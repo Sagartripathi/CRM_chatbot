@@ -39,15 +39,12 @@ class Campaign(BaseModel):
     description: Optional[str] = None  # Use campaign_description instead
     agent_id_vb: Optional[str] = None  # Use agent_id instead
     
-    # Scheduling & Attempts
-    main_sequence_attempts: Optional[int] = None
-    follow_up_delay_days_pc: Optional[int] = None
-    follow_up_max_attempts_pc: Optional[int] = None
-    
     # Config Parameters
-    holiday_calendar_pc: Optional[str] = None
-    weekend_adjustment_pc: bool = False
     timezone_shared: Optional[str] = None
+    
+    # Call Scheduling Fields
+    call_created_at: Optional[datetime] = None
+    call_updated_at: Optional[datetime] = None
     
     # Operational (Mandatory)
     is_active: bool = False  # Default to Inactive as per requirements
@@ -84,15 +81,12 @@ class CampaignCreate(BaseModel):
     description: Optional[str] = None  # Use campaign_description instead
     agent_id_vb: Optional[str] = None  # Use agent_id instead
     
-    # Scheduling & Attempts
-    main_sequence_attempts: Optional[int] = None
-    follow_up_delay_days_pc: Optional[int] = None
-    follow_up_max_attempts_pc: Optional[int] = None
-    
     # Config Parameters
-    holiday_calendar_pc: Optional[str] = None
-    weekend_adjustment_pc: bool = False
     timezone_shared: Optional[str] = None
+    
+    # Call Scheduling Fields
+    call_created_at: Optional[datetime] = None
+    call_updated_at: Optional[datetime] = None
     
     # Operational
     is_active: bool = False  # Default to Inactive as per requirements
