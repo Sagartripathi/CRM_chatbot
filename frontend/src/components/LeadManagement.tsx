@@ -30,6 +30,7 @@ import {
 } from "./ui/select";
 import { toast } from "sonner";
 import Layout from "./Layout";
+import { CampaignSelector } from "./CampaignSelector";
 import {
   Users,
   Plus,
@@ -64,27 +65,27 @@ function LeadManagement() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sourceFilter, setSourceFilter] = useState("all");
-  
+
   // Empty lead state constant
   const emptyLeadState = {
     // Mandatory fields
     lead_type: "individual", // Default to individual
     campaign_name: "",
     campaign_id: "",
-    
+
     // Individual fields
     lead_first_name: "",
     lead_last_name: "",
     lead_phone: "",
     leads_notes: "",
     lead_email: "",
-    
+
     // Organization fields
     business_name: "",
     business_phone: "",
     business_address: "",
     business_summary: "",
-    
+
     // Legacy fields (for backward compatibility)
     first_name: "",
     last_name: "",
@@ -93,7 +94,7 @@ function LeadManagement() {
     source: "",
     notes: "",
     status: "new",
-    
+
     // Voice Bot fields
     decision_maker_identified_shared: false,
     first_contact_name_vb: "",
@@ -117,7 +118,7 @@ function LeadManagement() {
     },
     updated_by_shared: "",
   };
-  
+
   const [newLead, setNewLead] = useState(emptyLeadState);
 
   useEffect(() => {
@@ -162,12 +163,13 @@ function LeadManagement() {
       }
 
       const [leadsResponse, campaignsResponse] = await Promise.all([
-        apiClient.get("/api/leads/"),
-        apiClient.get("/api/campaigns/"),
+        apiClient.get("/leads/"),
+        apiClient.get("/campaigns/"),
       ]);
       setLeads(leadsResponse.data);
       setFilteredLeads(leadsResponse.data);
       setCampaigns(campaignsResponse.data);
+      console.log("Campaigns loaded:", campaignsResponse.data);
     } catch (error: any) {
       if (error.response?.status === 401 || error.response?.status === 403) {
         console.log("Authentication error - user may need to log in");
@@ -244,7 +246,7 @@ function LeadManagement() {
         leadData.lead_phone = newLead.lead_phone;
         leadData.leads_notes = newLead.leads_notes;
         if (newLead.lead_email) leadData.lead_email = newLead.lead_email;
-        
+
         // Populate legacy fields for backward compatibility
         leadData.first_name = newLead.lead_first_name;
         leadData.last_name = newLead.lead_last_name;
@@ -254,8 +256,9 @@ function LeadManagement() {
         leadData.business_name = newLead.business_name;
         leadData.business_phone = newLead.business_phone;
         leadData.business_address = newLead.business_address;
-        if (newLead.business_summary) leadData.business_summary = newLead.business_summary;
-        
+        if (newLead.business_summary)
+          leadData.business_summary = newLead.business_summary;
+
         // Populate legacy fields with organization info
         leadData.first_name = newLead.business_name;
         leadData.last_name = "";
@@ -331,7 +334,7 @@ function LeadManagement() {
         leadData.updated_by_shared = newLead.updated_by_shared;
 
       console.log("Sending lead data:", JSON.stringify(leadData, null, 2));
-      await apiClient.post("/api/leads/", leadData);
+      await apiClient.post("/leads/", leadData);
       toast.success("Lead created successfully!");
       setCreateDialogOpen(false);
       setNewLead(emptyLeadState);
@@ -443,7 +446,7 @@ function LeadManagement() {
             : undefined,
       };
 
-      await apiClient.put(`/api/leads/${selectedLead.id}`, leadData);
+      await apiClient.put(`/leads/${selectedLead.id}`, leadData);
       toast.success("Lead updated successfully!");
       setEditDialogOpen(false);
       setSelectedLead(null);
@@ -469,7 +472,7 @@ function LeadManagement() {
 
   const handleDeleteLead = async () => {
     try {
-      await apiClient.delete(`/api/leads/${selectedLead.id}`);
+      await apiClient.delete(`/leads/${selectedLead.id}`);
       toast.success("Lead deleted successfully!");
       setDeleteDialogOpen(false);
       setSelectedLead(null);
@@ -498,8 +501,8 @@ function LeadManagement() {
       formData.append("file", uploadFile);
 
       const url = uploadCampaignId
-        ? `/api/leads/upload-csv?campaign_id=${uploadCampaignId}`
-        : "/api/leads/upload-csv";
+        ? `/leads/upload-csv?campaign_id=${uploadCampaignId}`
+        : "/leads/upload-csv";
 
       const response = await apiClient.post(url, formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -532,7 +535,7 @@ function LeadManagement() {
     try {
       const campaignId = selectedLead.campaign_id || null;
       await apiClient.patch(
-        `/api/leads/${selectedLead.id}/campaign?campaign_id=${campaignId || ""}`
+        `/leads/${selectedLead.id}/campaign?campaign_id=${campaignId || ""}`
       );
       toast.success("Campaign updated successfully!");
       setCampaignDialogOpen(false);
@@ -636,48 +639,19 @@ function LeadManagement() {
               <h3 className="text-lg font-medium text-gray-900">
                 Campaign Information
               </h3>
-              
-              <div>
-                <Label htmlFor="campaign">
-                  Campaign * 
-                  {newLead.campaign_id && (
-                    <span className="ml-2 text-xs text-gray-500">
-                      ({newLead.campaign_id})
-                    </span>
-                  )}
-                </Label>
-                <Select
-                  value={newLead.campaign_id || "none"}
-                  onValueChange={(value) => {
-                    if (value === "none") {
-                      setNewLead({
-                        ...newLead,
-                        campaign_id: "",
-                        campaign_name: "",
-                      });
-                    } else {
-                      const selectedCampaign = campaigns.find((c) => c.id === value);
-                      setNewLead({
-                        ...newLead,
-                        campaign_id: value,
-                        campaign_name: selectedCampaign?.name || "",
-                      });
-                    }
-                  }}
-                >
-                  <SelectTrigger data-testid="lead-campaign-select">
-                    <SelectValue placeholder="Search and select campaign" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">No Campaign</SelectItem>
-                    {campaigns.map((campaign) => (
-                      <SelectItem key={campaign.id} value={campaign.id}>
-                        {campaign.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+
+              <CampaignSelector
+                campaigns={campaigns}
+                value={newLead.campaign_id}
+                onValueChange={(campaignId, campaignName) => {
+                  setNewLead({
+                    ...newLead,
+                    campaign_id: campaignId,
+                    campaign_name: campaignName,
+                  });
+                }}
+                placeholder="Search and select campaign"
+              />
             </div>
 
             {/* Lead Information Section */}
@@ -685,7 +659,7 @@ function LeadManagement() {
               <h3 className="text-lg font-medium text-gray-900">
                 Lead Information
               </h3>
-              
+
               <div>
                 <Label htmlFor="lead-type">Lead Type *</Label>
                 <Select
@@ -711,7 +685,7 @@ function LeadManagement() {
                 <h3 className="text-lg font-medium text-gray-900">
                   Individual Details
                 </h3>
-                
+
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <Label htmlFor="lead-first-name">First Name *</Label>
@@ -719,7 +693,10 @@ function LeadManagement() {
                       id="lead-first-name"
                       value={newLead.lead_first_name}
                       onChange={(e) =>
-                        setNewLead({ ...newLead, lead_first_name: e.target.value })
+                        setNewLead({
+                          ...newLead,
+                          lead_first_name: e.target.value,
+                        })
                       }
                       placeholder="John"
                     />
@@ -730,7 +707,10 @@ function LeadManagement() {
                       id="lead-last-name"
                       value={newLead.lead_last_name}
                       onChange={(e) =>
-                        setNewLead({ ...newLead, lead_last_name: e.target.value })
+                        setNewLead({
+                          ...newLead,
+                          lead_last_name: e.target.value,
+                        })
                       }
                       placeholder="Doe"
                     />
@@ -782,7 +762,7 @@ function LeadManagement() {
                 <h3 className="text-lg font-medium text-gray-900">
                   Organization Details
                 </h3>
-                
+
                 <div>
                   <Label htmlFor="business-name">Business Name *</Label>
                   <Input
@@ -813,7 +793,10 @@ function LeadManagement() {
                     id="business-address"
                     value={newLead.business_address}
                     onChange={(e) =>
-                      setNewLead({ ...newLead, business_address: e.target.value })
+                      setNewLead({
+                        ...newLead,
+                        business_address: e.target.value,
+                      })
                     }
                     placeholder="Full business address"
                     rows={2}
@@ -821,12 +804,17 @@ function LeadManagement() {
                 </div>
 
                 <div>
-                  <Label htmlFor="business-summary">Lead's Business Insight (Optional, max 240 chars)</Label>
+                  <Label htmlFor="business-summary">
+                    Lead's Business Insight (Optional, max 240 chars)
+                  </Label>
                   <Textarea
                     id="business-summary"
                     value={newLead.business_summary}
                     onChange={(e) =>
-                      setNewLead({ ...newLead, business_summary: e.target.value })
+                      setNewLead({
+                        ...newLead,
+                        business_summary: e.target.value,
+                      })
                     }
                     placeholder="Brief description of the business"
                     maxLength={240}
@@ -958,12 +946,19 @@ function LeadManagement() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <div className="text-sm font-medium text-gray-900">
-                            {lead.lead_type === "individual" 
-                              ? `${lead.lead_first_name || lead.first_name || ""} ${lead.lead_last_name || lead.last_name || ""}`
+                            {lead.lead_type === "individual"
+                              ? `${
+                                  lead.lead_first_name || lead.first_name || ""
+                                } ${
+                                  lead.lead_last_name || lead.last_name || ""
+                                }`
                               : lead.business_name || lead.first_name || "N/A"}
                           </div>
                           <div className="text-xs text-gray-500">
-                            <Badge variant="outline" className="mr-1 capitalize text-xs">
+                            <Badge
+                              variant="outline"
+                              className="mr-1 capitalize text-xs"
+                            >
                               {lead.lead_type || "N/A"}
                             </Badge>
                             {lead.lead_id && (
@@ -995,7 +990,8 @@ function LeadManagement() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <div className="text-sm font-medium text-gray-900">
-                            {lead.campaign_name || getCampaignName(lead.campaign_id)}
+                            {lead.campaign_name ||
+                              getCampaignName(lead.campaign_id)}
                           </div>
                           {lead.campaign_id && (
                             <div className="text-xs text-gray-500 font-mono">
@@ -1288,7 +1284,9 @@ function LeadManagement() {
                 <div>
                   <Label>Campaign</Label>
                   <div className="text-sm mt-1">
-                    <span className="font-medium">{selectedLead.campaign_name || "No Campaign"}</span>
+                    <span className="font-medium">
+                      {selectedLead.campaign_name || "No Campaign"}
+                    </span>
                     {selectedLead.campaign_id && (
                       <span className="ml-2 text-xs text-gray-500">
                         ({selectedLead.campaign_id})
@@ -1323,7 +1321,7 @@ function LeadManagement() {
                   <h3 className="text-lg font-medium text-gray-900">
                     Individual Details
                   </h3>
-                  
+
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <Label htmlFor="edit-lead-first-name">First Name *</Label>
@@ -1409,7 +1407,7 @@ function LeadManagement() {
                   <h3 className="text-lg font-medium text-gray-900">
                     Organization Details
                   </h3>
-                  
+
                   <div>
                     <Label htmlFor="edit-business-name">Business Name *</Label>
                     <Input
@@ -1426,7 +1424,9 @@ function LeadManagement() {
                   </div>
 
                   <div>
-                    <Label htmlFor="edit-business-phone">Business Phone *</Label>
+                    <Label htmlFor="edit-business-phone">
+                      Business Phone *
+                    </Label>
                     <Input
                       id="edit-business-phone"
                       value={selectedLead.business_phone || ""}
@@ -1441,7 +1441,9 @@ function LeadManagement() {
                   </div>
 
                   <div>
-                    <Label htmlFor="edit-business-address">Business Address *</Label>
+                    <Label htmlFor="edit-business-address">
+                      Business Address *
+                    </Label>
                     <Textarea
                       id="edit-business-address"
                       value={selectedLead.business_address || ""}
@@ -1457,7 +1459,9 @@ function LeadManagement() {
                   </div>
 
                   <div>
-                    <Label htmlFor="edit-business-summary">Lead's Business Insight (Optional, max 240 chars)</Label>
+                    <Label htmlFor="edit-business-summary">
+                      Lead's Business Insight (Optional, max 240 chars)
+                    </Label>
                     <Textarea
                       id="edit-business-summary"
                       value={selectedLead.business_summary || ""}
@@ -1472,7 +1476,8 @@ function LeadManagement() {
                       rows={3}
                     />
                     <p className="text-xs text-gray-500 mt-1">
-                      {selectedLead.business_summary?.length || 0}/240 characters
+                      {selectedLead.business_summary?.length || 0}/240
+                      characters
                     </p>
                   </div>
                 </div>
