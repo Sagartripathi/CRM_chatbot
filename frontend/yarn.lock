@@ -1336,12 +1336,21 @@
     "@floating-ui/core" "^1.7.3"
     "@floating-ui/utils" "^0.2.10"
 
-"@floating-ui/react-dom@^2.0.0":
+"@floating-ui/react-dom@^2.0.0", "@floating-ui/react-dom@^2.1.6":
   version "2.1.6"
   resolved "https://registry.npmjs.org/@floating-ui/react-dom/-/react-dom-2.1.6.tgz"
   integrity sha512-4JX6rEatQEvlmgU80wZyq9RT96HZJa88q8hp0pBd+LrczeDI4o6uA2M+uvxngVHo4Ihr8uibXxH6+70zhAFrVw==
   dependencies:
     "@floating-ui/dom" "^1.7.4"
+
+"@floating-ui/react@^0.27.15":
+  version "0.27.16"
+  resolved "https://registry.npmjs.org/@floating-ui/react/-/react-0.27.16.tgz"
+  integrity sha512-9O8N4SeG2z++TSM8QA/KTeKFBVCNEz/AGS7gWPJf6KFRzmRWixFRnCnkPHRDwSVZW6QPDO6uT0P2SpWNKCc9/g==
+  dependencies:
+    "@floating-ui/react-dom" "^2.1.6"
+    "@floating-ui/utils" "^0.2.10"
+    tabbable "^6.0.0"
 
 "@floating-ui/utils@^0.2.10":
   version "0.2.10"
@@ -2699,7 +2708,7 @@
   resolved "https://registry.npmjs.org/@types/http-errors/-/http-errors-2.0.5.tgz"
   integrity sha512-r8Tayk8HJnX0FztbZN7oVqGccWgw98T/0neJphO91KkmOzug1KkofZURD4UaD5uH8AqcFLfdPErnBod0u71/qg==
 
-"@types/http-proxy@^1.17.15", "@types/http-proxy@^1.17.8":
+"@types/http-proxy@^1.17.8":
   version "1.17.16"
   resolved "https://registry.npmjs.org/@types/http-proxy/-/http-proxy-1.17.16.tgz"
   integrity sha512-sdWoUajOB1cd0A8cRRQ1cfyWNbmFKLAqBB89Y8x5iYyG/mkJHc0YUH8pdWBy2omi9qtCpiIgGjuwO0dQST2l5w==
@@ -3203,6 +3212,11 @@
   dependencies:
     "@webassemblyjs/ast" "1.14.1"
     "@xtuc/long" "4.2.2"
+
+"@wojtekmaj/date-utils@^2.0.2":
+  version "2.0.2"
+  resolved "https://registry.npmjs.org/@wojtekmaj/date-utils/-/date-utils-2.0.2.tgz"
+  integrity sha512-Do66mSlSNifFFuo3l9gNKfRMSFi26CRuQMsDJuuKO/ekrDWuTTtE4ZQxoFCUOG+NgxnpSeBq/k5TY8ZseEzLpA==
 
 "@xtuc/ieee754@^1.2.0":
   version "1.2.0"
@@ -4066,7 +4080,7 @@ clone-deep@^4.0.1:
     kind-of "^6.0.2"
     shallow-clone "^3.0.0"
 
-clsx@^2.1.1:
+clsx@^2.0.0, clsx@^2.1.1:
   version "2.1.1"
   resolved "https://registry.npmjs.org/clsx/-/clsx-2.1.1.tgz"
   integrity sha512-eYm0QWBtUrBWZWG0d386OGAw16Z995PiOVo2B7bjWSbHedGl5e0ZWaq65kOGgUSNesEIDkB9ISbTg/JK9dhCZA==
@@ -4591,7 +4605,7 @@ debug@^3.2.7:
   dependencies:
     ms "^2.1.1"
 
-debug@^4.1.0, debug@^4.1.1, debug@^4.3.1, debug@^4.3.2, debug@^4.3.4, debug@^4.3.6, debug@^4.4.1, debug@4:
+debug@^4.1.0, debug@^4.1.1, debug@^4.3.1, debug@^4.3.2, debug@^4.3.4, debug@^4.4.1, debug@4:
   version "4.4.3"
   resolved "https://registry.npmjs.org/debug/-/debug-4.4.3.tgz"
   integrity sha512-RGwwWnwQvkVfavKVt22FGLw+xYSdzARwm0ru6DhTVA3umU5hZc28V3kO4stgYryrTlLpuvgI9GiijltAjNbcqA==
@@ -4674,6 +4688,11 @@ destroy@1.2.0:
   version "1.2.0"
   resolved "https://registry.npmjs.org/destroy/-/destroy-1.2.0.tgz"
   integrity sha512-2sJGJTaXIIaR1w4iJSNoN0hnMY7Gpc/n8D4qSCJw8QqFWXf7cuAgnEHxBpweaVcPevC2l3KpjYCx3NypQQgaJg==
+
+detect-element-overflow@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.npmjs.org/detect-element-overflow/-/detect-element-overflow-2.0.0.tgz"
+  integrity sha512-DETEHRGdIdQowMR1Fb5hG4WXUJhlLId/IRQgAi5GVqCnHwnb0SKf9V/teyEVDX0+iClPeOPiNvlE6fSiECz65w==
 
 detect-newline@^3.0.0:
   version "3.1.0"
@@ -5983,6 +6002,13 @@ get-symbol-description@^1.1.0:
     es-errors "^1.3.0"
     get-intrinsic "^1.2.6"
 
+get-user-locale@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.npmjs.org/get-user-locale/-/get-user-locale-3.0.0.tgz"
+  integrity sha512-iJfHSmdYV39UUBw7Jq6GJzeJxUr4U+S03qdhVuDsR9gCEnfbqLy9gYDJFBJQL1riqolFUKQvx36mEkp2iGgJ3g==
+  dependencies:
+    memoize "^10.0.0"
+
 glob-parent@^5.1.2:
   version "5.1.2"
   resolved "https://registry.npmjs.org/glob-parent/-/glob-parent-5.1.2.tgz"
@@ -6300,18 +6326,6 @@ http-proxy-middleware@^2.0.3:
     is-plain-obj "^3.0.0"
     micromatch "^4.0.2"
 
-http-proxy-middleware@^3.0.5:
-  version "3.0.5"
-  resolved "https://registry.npmjs.org/http-proxy-middleware/-/http-proxy-middleware-3.0.5.tgz"
-  integrity sha512-GLZZm1X38BPY4lkXA01jhwxvDoOkkXqjgVyUzVxiEK4iuRu03PZoYHhHRwxnfhQMDuaxi3vVri0YgSro/1oWqg==
-  dependencies:
-    "@types/http-proxy" "^1.17.15"
-    debug "^4.3.6"
-    http-proxy "^1.18.1"
-    is-glob "^4.0.3"
-    is-plain-object "^5.0.0"
-    micromatch "^4.0.8"
-
 http-proxy@^1.18.1:
   version "1.18.1"
   resolved "https://registry.npmjs.org/http-proxy/-/http-proxy-1.18.1.tgz"
@@ -6618,11 +6632,6 @@ is-plain-object@^2.0.4:
   integrity sha512-h5PpgXkWitc38BBMYawTYMWJHFZJVnBquFE57xFpjB8pJFiF6gZ+bU+WyI/yqXiFR5mdLsgYNaPe8uao6Uv9Og==
   dependencies:
     isobject "^3.0.1"
-
-is-plain-object@^5.0.0:
-  version "5.0.0"
-  resolved "https://registry.npmjs.org/is-plain-object/-/is-plain-object-5.0.0.tgz"
-  integrity sha512-VRSzKkbMm5jMDoKLbltAkFQ5Qr7VDiTFGXxYFXXowVj387GeGNOCsOH6Msy00SGZ3Fp84b1Naa1psqgcCIEP5Q==
 
 is-potential-custom-element-name@^1.0.1:
   version "1.0.1"
@@ -7583,7 +7592,7 @@ lodash@^4.17.20, lodash@^4.17.21, lodash@^4.7.0:
   resolved "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz"
   integrity sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==
 
-loose-envify@^1.4.0:
+loose-envify@^1.0.0, loose-envify@^1.4.0:
   version "1.4.0"
   resolved "https://registry.npmjs.org/loose-envify/-/loose-envify-1.4.0.tgz"
   integrity sha512-lyuxPGr/Wfhrlem2CL/UcnUc1zcqKAImBDzukY7Y5F/yQiNdko6+fRLevlw1HgMySw7f611UIY408EtxRSoK3Q==
@@ -7640,6 +7649,11 @@ make-error@^1.1.1:
   resolved "https://registry.npmjs.org/make-error/-/make-error-1.3.6.tgz"
   integrity sha512-s8UhlNe7vPKomQhC1qFelMokr/Sc3AgNbso3n74mVPA5LTZwkB9NlXf4XPamLxJE8h0gh73rM94xvwRT2CVInw==
 
+make-event-props@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.npmjs.org/make-event-props/-/make-event-props-2.0.0.tgz"
+  integrity sha512-G/hncXrl4Qt7mauJEXSg3AcdYzmpkIITTNl5I+rH9sog5Yw0kK6vseJjCaPfOXqOqQuPUP89Rkhfz5kPS8ijtw==
+
 makeerror@1.0.12:
   version "1.0.12"
   resolved "https://registry.npmjs.org/makeerror/-/makeerror-1.0.12.tgz"
@@ -7673,6 +7687,13 @@ memfs@^3.1.2, memfs@^3.4.3:
   integrity sha512-EGowvkkgbMcIChjMTMkESFDbZeSh8xZ7kNSF0hAiAN4Jh6jgHCRS0Ga/+C8y6Au+oqpezRHCfPsmJ2+DwAgiwQ==
   dependencies:
     fs-monkey "^1.0.4"
+
+memoize@^10.0.0:
+  version "10.1.0"
+  resolved "https://registry.npmjs.org/memoize/-/memoize-10.1.0.tgz"
+  integrity sha512-MMbFhJzh4Jlg/poq1si90XRlTZRDHVqdlz2mPyGJ6kqMpyHUyVpDd5gpFAvVehW64+RA1eKE9Yt8aSLY7w2Kgg==
+  dependencies:
+    mimic-function "^5.0.1"
 
 merge-descriptors@1.0.3:
   version "1.0.3"
@@ -7728,6 +7749,11 @@ mimic-fn@^2.1.0:
   version "2.1.0"
   resolved "https://registry.npmjs.org/mimic-fn/-/mimic-fn-2.1.0.tgz"
   integrity sha512-OqbOk5oEQeAZ8WXWydlu9HJjz9WVdEIvamMCcXmuqUYjTknH/sqsWvhQ3vgwKFRR1HpjvNBKQ37nbJgYzGqGcg==
+
+mimic-function@^5.0.1:
+  version "5.0.1"
+  resolved "https://registry.npmjs.org/mimic-function/-/mimic-function-5.0.1.tgz"
+  integrity sha512-VP79XUPxV2CigYP3jWwAUFSku2aKqBH7uTAapFWCBqutsbmDo96KY5o8uh6U+/YSIn5OxJnXp73beVkpqMIGhA==
 
 mini-css-extract-plugin@^2.4.5:
   version "2.9.4"
@@ -8969,6 +8995,62 @@ react-app-polyfill@^3.0.0:
     regenerator-runtime "^0.13.9"
     whatwg-fetch "^3.6.2"
 
+react-calendar@^6.0.0:
+  version "6.0.0"
+  resolved "https://registry.npmjs.org/react-calendar/-/react-calendar-6.0.0.tgz"
+  integrity sha512-6wqaki3Us0DNDjZDr0DYIzhSFprNoy4FdPT9Pjy5aD2hJJVjtJwmdMT9VmrTUo949nlk35BOxehThxX62RkuRQ==
+  dependencies:
+    "@wojtekmaj/date-utils" "^2.0.2"
+    clsx "^2.0.0"
+    get-user-locale "^3.0.0"
+    warning "^4.0.0"
+
+react-clock@^6.0.0:
+  version "6.0.0"
+  resolved "https://registry.npmjs.org/react-clock/-/react-clock-6.0.0.tgz"
+  integrity sha512-qYYrCT9HwDmj5Y2jFGPLc0ktQAZnm+1h2e429/8KBic69PuP1Cp2u0U8k5m3G8A09cOmikQFQitnX6STeGmTpA==
+  dependencies:
+    "@wojtekmaj/date-utils" "^2.0.2"
+    clsx "^2.0.0"
+    get-user-locale "^3.0.0"
+
+react-date-picker@^12.0.1:
+  version "12.0.1"
+  resolved "https://registry.npmjs.org/react-date-picker/-/react-date-picker-12.0.1.tgz"
+  integrity sha512-VHXOIBt5/Bxa+ICMENjfWjGvllvXxd+lzGB2iH9fOc7+BfcetI/aI8MZuiIKofmNWq2oAdD+fg4MsZkKmOBjig==
+  dependencies:
+    "@wojtekmaj/date-utils" "^2.0.2"
+    clsx "^2.0.0"
+    get-user-locale "^3.0.0"
+    make-event-props "^2.0.0"
+    react-calendar "^6.0.0"
+    react-fit "^3.0.0"
+    update-input-width "^1.4.0"
+
+react-datepicker@^8.8.0:
+  version "8.8.0"
+  resolved "https://registry.npmjs.org/react-datepicker/-/react-datepicker-8.8.0.tgz"
+  integrity sha512-rIJLhww1B5cQY7GYEfSEXvldlGp+GIVU5oE7lxqeK4fmdv5F9bVndplDmblMCvfSMazXmeJ6OHBvRs/PkEhwUQ==
+  dependencies:
+    "@floating-ui/react" "^0.27.15"
+    clsx "^2.1.1"
+    date-fns "^4.1.0"
+
+react-datetime-picker@^7.0.1:
+  version "7.0.1"
+  resolved "https://registry.npmjs.org/react-datetime-picker/-/react-datetime-picker-7.0.1.tgz"
+  integrity sha512-GhpNuAm4bm6/fOI196Ttr/YbUMqeR5feSHQNkyeEIoVp9qb5DqXsoE+TgJfkPZ/+VcNIHlr9o/qZc75Nx/7wDA==
+  dependencies:
+    "@wojtekmaj/date-utils" "^2.0.2"
+    clsx "^2.0.0"
+    get-user-locale "^3.0.0"
+    make-event-props "^2.0.0"
+    react-calendar "^6.0.0"
+    react-clock "^6.0.0"
+    react-date-picker "^12.0.1"
+    react-fit "^3.0.0"
+    react-time-picker "^8.0.2"
+
 react-day-picker@8.10.1:
   version "8.10.1"
   resolved "https://registry.npmjs.org/react-day-picker/-/react-day-picker-8.10.1.tgz"
@@ -9015,6 +9097,14 @@ react-error-overlay@^6.0.11:
   version "6.1.0"
   resolved "https://registry.npmjs.org/react-error-overlay/-/react-error-overlay-6.1.0.tgz"
   integrity sha512-SN/U6Ytxf1QGkw/9ve5Y+NxBbZM6Ht95tuXNMKs8EJyFa/Vy/+Co3stop3KBHARfn/giv+Lj1uUnTfOJ3moFEQ==
+
+react-fit@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.npmjs.org/react-fit/-/react-fit-3.0.0.tgz"
+  integrity sha512-3jrm0k4TZS7n6fZXgCu5k8ARx5w+YbrzpcFMop/iScOjnA22xQVjrVOOJD8YyqRM1j0focbRBrBEJXyydzF/Iw==
+  dependencies:
+    detect-element-overflow "^2.0.0"
+    warning "^4.0.0"
 
 react-hook-form@^7.56.2:
   version "7.64.0"
@@ -9142,6 +9232,19 @@ react-style-singleton@^2.2.2, react-style-singleton@^2.2.3:
   dependencies:
     get-nonce "^1.0.0"
     tslib "^2.0.0"
+
+react-time-picker@^8.0.2:
+  version "8.0.2"
+  resolved "https://registry.npmjs.org/react-time-picker/-/react-time-picker-8.0.2.tgz"
+  integrity sha512-qT0MDiPy9rFM60QrNNfZ5F9nwDBW1E9DrBtslpM46UPP/RReaWDJrGlvHVH6CjtWHUeJi5sLk1vB+dzLS8ZvnA==
+  dependencies:
+    "@wojtekmaj/date-utils" "^2.0.2"
+    clsx "^2.0.0"
+    get-user-locale "^3.0.0"
+    make-event-props "^2.0.0"
+    react-clock "^6.0.0"
+    react-fit "^3.0.0"
+    update-input-width "^1.4.0"
 
 react@^19.0.0:
   version "19.2.0"
@@ -10169,6 +10272,11 @@ symbol-tree@^3.2.4:
   resolved "https://registry.npmjs.org/symbol-tree/-/symbol-tree-3.2.4.tgz"
   integrity sha512-9QNk5KwDF+Bvz+PyObkmSYjI5ksVUYtjW7AU22r2NKcfLJcXp96hkDWU3+XndOsUb+AQ9QhfzfCT2O+CNWT5Tw==
 
+tabbable@^6.0.0:
+  version "6.2.0"
+  resolved "https://registry.npmjs.org/tabbable/-/tabbable-6.2.0.tgz"
+  integrity sha512-Cat63mxsVJlzYvN51JmVXIgNoUokrIaT2zLclCXjRd8boZ0004U4KCs/sToJ75C6sdlByWxpYnb5Boif1VSFew==
+
 tailwind-merge@^3.2.0:
   version "3.3.1"
   resolved "https://registry.npmjs.org/tailwind-merge/-/tailwind-merge-3.3.1.tgz"
@@ -10595,6 +10703,11 @@ update-browserslist-db@^1.1.3:
     escalade "^3.2.0"
     picocolors "^1.1.1"
 
+update-input-width@^1.4.0:
+  version "1.4.2"
+  resolved "https://registry.npmjs.org/update-input-width/-/update-input-width-1.4.2.tgz"
+  integrity sha512-/p0XLhrQQQ4bMWD7bL9duYObwYCO1qGr8R19xcMmoMSmXuQ7/1//veUnCObQ7/iW6E2pGS6rFkS4TfH4ur7e/g==
+
 uri-js@^4.2.2:
   version "4.4.1"
   resolved "https://registry.npmjs.org/uri-js/-/uri-js-4.4.1.tgz"
@@ -10706,6 +10819,13 @@ walker@^1.0.7:
   integrity sha512-ts/8E8l5b7kY0vlWLewOkDXMmPdLcVV4GmOQLyxuSswIJsweeFZtAsMF7k1Nszz+TYBQrlYRmzOnr398y1JemQ==
   dependencies:
     makeerror "1.0.12"
+
+warning@^4.0.0:
+  version "4.0.3"
+  resolved "https://registry.npmjs.org/warning/-/warning-4.0.3.tgz"
+  integrity sha512-rpJyN222KWIvHJ/F53XSZv0Zl/accqHR8et1kpaMTD/fLCRxtV8iX8czMzY7sVZupTI3zcUTg8eycS2kNF9l6w==
+  dependencies:
+    loose-envify "^1.0.0"
 
 watchpack@^2.4.4:
   version "2.4.4"
