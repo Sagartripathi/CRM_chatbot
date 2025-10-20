@@ -37,7 +37,7 @@ export function CampaignSelector({
 
   // Find the selected campaign
   const selectedCampaign = campaigns.find(
-    (campaign) => campaign.id === value || campaign.campaign_id === value
+    (campaign) => campaign.campaign_id === value
   );
 
   // Filter campaigns based on search
@@ -48,7 +48,7 @@ export function CampaignSelector({
 
   const handleSelect = (campaignId: string) => {
     const campaign = campaigns.find(
-      (c) => c.id === campaignId || c.campaign_id === campaignId
+      (c) => c.campaign_id === campaignId
     );
     if (campaign) {
       const campaignName = campaign.campaign_name || campaign.name || "";
@@ -82,7 +82,7 @@ export function CampaignSelector({
                     {selectedCampaign.campaign_name || selectedCampaign.name}
                   </span>
                   <span className="text-xs text-gray-500">
-                    ({selectedCampaign.id || selectedCampaign.campaign_id})
+                    ({selectedCampaign.campaign_id})
                   </span>
                 </div>
               ) : (
@@ -98,7 +98,7 @@ export function CampaignSelector({
             ) : (
               filteredCampaigns.map((campaign) => {
                 const campaignName = campaign.campaign_name || campaign.name || "";
-                const campaignId = campaign.id || campaign.campaign_id || "";
+                const campaignId = campaign.campaign_id || "";
                 
                 return (
                   <SelectItem key={campaignId} value={campaignId}>
