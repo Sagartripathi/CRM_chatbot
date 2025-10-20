@@ -634,12 +634,8 @@ function LeadManagement() {
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleCreateLead} className="space-y-4">
-            {/* Campaign Information Section - At the top */}
+            {/* Campaign selector only */}
             <div className="space-y-3 border-b pb-4">
-              <h3 className="text-lg font-medium text-gray-900">
-                Campaign Information
-              </h3>
-
               <CampaignSelector
                 campaigns={campaigns}
                 value={newLead.campaign_id}
