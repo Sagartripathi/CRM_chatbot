@@ -43,6 +43,283 @@ import {
   Trash2,
 } from "lucide-react";
 
+// DateTimePicker Component
+const DateTimePicker = ({ value, onChange }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedTime, setSelectedTime] = useState({
+    hours: 12,
+    minutes: 0,
+    period: "AM",
+  });
+
+  const months = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+
+  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+  const getDaysInMonth = (date) => {
+    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+  };
+
+  const getFirstDayOfMonth = (date) => {
+    return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+  };
+
+  const formatDateTime = (date, time) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const hours =
+      time.period === "PM" && time.hours !== 12
+        ? time.hours + 12
+        : time.period === "AM" && time.hours === 12
+        ? 0
+        : time.hours;
+    const minutes = String(time.minutes).padStart(2, "0");
+    return `${year}-${month}-${day}T${String(hours).padStart(
+      2,
+      "0"
+    )}:${minutes}`;
+  };
+
+  const handleDateSelect = (day) => {
+    const newDate = new Date(
+      selectedDate.getFullYear(),
+      selectedDate.getMonth(),
+      day
+    );
+    setSelectedDate(newDate);
+    const formattedDateTime = formatDateTime(newDate, selectedTime);
+    onChange(formattedDateTime);
+    setIsOpen(false);
+  };
+
+  const handleTimeChange = (field, value) => {
+    const newTime = { ...selectedTime, [field]: value };
+    setSelectedTime(newTime);
+    const formattedDateTime = formatDateTime(selectedDate, newTime);
+    onChange(formattedDateTime);
+  };
+
+  const navigateMonth = (direction) => {
+    const newDate = new Date(selectedDate);
+    newDate.setMonth(selectedDate.getMonth() + direction);
+    setSelectedDate(newDate);
+  };
+
+  const renderCalendar = () => {
+    const daysInMonth = getDaysInMonth(selectedDate);
+    const firstDay = getFirstDayOfMonth(selectedDate);
+    const days = [];
+
+    // Previous month days
+    const prevMonth = new Date(
+      selectedDate.getFullYear(),
+      selectedDate.getMonth() - 1,
+      0
+    );
+    const prevMonthDays = prevMonth.getDate();
+    for (let i = firstDay - 1; i >= 0; i--) {
+      days.push(
+        <div
+          key={`prev-${i}`}
+          className="text-center py-2 text-gray-400 text-sm"
+        >
+          {prevMonthDays - i}
+        </div>
+      );
+    }
+
+    // Current month days
+    for (let day = 1; day <= daysInMonth; day++) {
+      const isSelected = day === selectedDate.getDate();
+      days.push(
+        <div
+          key={day}
+          className={`text-center py-2 cursor-pointer rounded hover:bg-gray-100 text-sm ${
+            isSelected ? "bg-blue-500 text-white" : ""
+          }`}
+          onClick={() => handleDateSelect(day)}
+        >
+          {day}
+        </div>
+      );
+    }
+
+    // Next month days
+    const remainingDays = 42 - days.length; // 6 rows × 7 days
+    for (let day = 1; day <= remainingDays; day++) {
+      days.push(
+        <div key={`next-${day}`} className="text-center py-2 text-gray-400 text-sm">
+          {day}
+        </div>
+      );
+    }
+
+    return days;
+  };
+
+  const renderTimePicker = () => {
+    const hours = [];
+    const minutes = [];
+
+    for (let i = 1; i <= 12; i++) {
+      hours.push(
+        <SelectItem key={i} value={i.toString()}>
+          {i}
+        </SelectItem>
+      );
+    }
+
+    for (let i = 0; i < 60; i += 15) {
+      minutes.push(
+        <SelectItem key={i} value={i.toString()}>
+          {String(i).padStart(2, "0")}
+        </SelectItem>
+      );
+    }
+
+    return (
+      <div className="space-y-2">
+        <div className="flex space-x-2">
+          <div className="flex-1">
+            <Label className="text-xs">Hour</Label>
+            <Select
+              value={selectedTime.hours.toString()}
+              onValueChange={(value) =>
+                handleTimeChange("hours", parseInt(value))
+              }
+            >
+              <SelectTrigger className="h-8">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>{hours}</SelectContent>
+            </Select>
+          </div>
+          <div className="flex-1">
+            <Label className="text-xs">Min</Label>
+            <Select
+              value={selectedTime.minutes.toString()}
+              onValueChange={(value) =>
+                handleTimeChange("minutes", parseInt(value))
+              }
+            >
+              <SelectTrigger className="h-8">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>{minutes}</SelectContent>
+            </Select>
+          </div>
+          <div className="flex-1">
+            <Label className="text-xs">Period</Label>
+            <Select
+              value={selectedTime.period}
+              onValueChange={(value) => handleTimeChange("period", value)}
+            >
+              <SelectTrigger className="h-8">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="AM">AM</SelectItem>
+                <SelectItem value="PM">PM</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="relative">
+      <Input
+        value={value}
+        readOnly
+        onClick={() => setIsOpen(!isOpen)}
+        className="cursor-pointer"
+        placeholder="Select date and time"
+      />
+
+      {isOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+            <div className="space-y-4">
+              {/* Calendar */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigateMonth(-1)}
+                    className="h-8 w-8 p-0"
+                  >
+                    ←
+                  </Button>
+                  <span className="font-semibold text-lg">
+                    {months[selectedDate.getMonth()]}{" "}
+                    {selectedDate.getFullYear()}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigateMonth(1)}
+                    className="h-8 w-8 p-0"
+                  >
+                    →
+                  </Button>
+                </div>
+
+                <div className="grid grid-cols-7 gap-1 text-sm">
+                  {days.map((day) => (
+                    <div
+                      key={day}
+                      className="text-center font-medium text-gray-600 py-2"
+                    >
+                      {day}
+                    </div>
+                  ))}
+                  {renderCalendar()}
+                </div>
+              </div>
+
+              {/* Time Picker */}
+              <div className="border-t pt-4">
+                <div className="text-sm font-medium mb-3">Select Time</div>
+                {renderTimePicker()}
+              </div>
+            </div>
+
+            <div className="mt-6 pt-4 border-t flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => setIsOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={() => setIsOpen(false)}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                Done
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 function CampaignManagement() {
   const { user, logout, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -70,9 +347,52 @@ function CampaignManagement() {
     is_active: false, // Default to Inactive as per requirements
     start_call: "",
     call_created_at: "",
+    call_created_at_custom: "",
     call_updated_at: "",
+    call_updated_at_custom: "",
   };
   const [newCampaign, setNewCampaign] = useState({ ...emptyCampaign });
+
+  // Helper function to convert dropdown values to actual datetime
+  const getDateTimeValue = (dropdownValue, customValue) => {
+    if (!dropdownValue) return undefined;
+
+    if (dropdownValue === "custom") {
+      return customValue || undefined;
+    }
+
+    if (dropdownValue === "now") {
+      return new Date().toISOString().slice(0, 16);
+    }
+
+    const now = new Date();
+    let targetDate;
+
+    switch (dropdownValue) {
+      case "1-hour-ago":
+        targetDate = new Date(now.getTime() - 60 * 60 * 1000);
+        break;
+      case "2-hours-ago":
+        targetDate = new Date(now.getTime() - 2 * 60 * 60 * 1000);
+        break;
+      case "4-hours-ago":
+        targetDate = new Date(now.getTime() - 4 * 60 * 60 * 1000);
+        break;
+      case "1-day-ago":
+        targetDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        break;
+      case "2-days-ago":
+        targetDate = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000);
+        break;
+      case "1-week-ago":
+        targetDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        break;
+      default:
+        return undefined;
+    }
+
+    return targetDate.toISOString().slice(0, 16);
+  };
 
   useEffect(() => {
     if (user && !authLoading) {
@@ -146,8 +466,14 @@ function CampaignManagement() {
         timezone_shared: newCampaign.timezone_shared || undefined,
         is_active: !!newCampaign.is_active,
         start_call: newCampaign.start_call || undefined,
-        call_created_at: newCampaign.call_created_at || undefined,
-        call_updated_at: newCampaign.call_updated_at || undefined,
+        call_created_at: getDateTimeValue(
+          newCampaign.call_created_at,
+          newCampaign.call_created_at_custom
+        ),
+        call_updated_at: getDateTimeValue(
+          newCampaign.call_updated_at,
+          newCampaign.call_updated_at_custom
+        ),
       };
 
       await apiClient.post("/campaigns", payload);
@@ -204,17 +530,17 @@ function CampaignManagement() {
         campaign_id: selectedCampaign.campaign_id || undefined,
         client_id: selectedCampaign.client_id || undefined,
         agent_id: selectedCampaign.agent_id || undefined,
-        main_sequence_attempts:
-          Number(selectedCampaign.main_sequence_attempts) || undefined,
-        follow_up_delay_days_pc:
-          Number(selectedCampaign.follow_up_delay_days_pc) || undefined,
-        follow_up_max_attempts_pc:
-          Number(selectedCampaign.follow_up_max_attempts_pc) || undefined,
-        holiday_calendar_pc: selectedCampaign.holiday_calendar_pc || undefined,
-        weekend_adjustment_pc: !!selectedCampaign.weekend_adjustment_pc,
         timezone_shared: selectedCampaign.timezone_shared || undefined,
         is_active: !!selectedCampaign.is_active,
         start_call: selectedCampaign.start_call || undefined,
+        call_created_at: getDateTimeValue(
+          selectedCampaign.call_created_at,
+          selectedCampaign.call_created_at_custom
+        ),
+        call_updated_at: getDateTimeValue(
+          selectedCampaign.call_updated_at,
+          selectedCampaign.call_updated_at_custom
+        ),
       };
 
       await apiClient.put(`/campaigns/${selectedCampaign.id}`, payload);
@@ -505,28 +831,24 @@ function CampaignManagement() {
               </div>
               <div>
                 <Label htmlFor="call-created-at">Call Created At</Label>
-                <Input
-                  id="call-created-at"
-                  type="datetime-local"
+                <DateTimePicker
                   value={newCampaign.call_created_at || ""}
-                  onChange={(e) =>
+                  onChange={(value) =>
                     setNewCampaign({
                       ...newCampaign,
-                      call_created_at: e.target.value,
+                      call_created_at: value,
                     })
                   }
                 />
               </div>
               <div>
                 <Label htmlFor="call-updated-at">Call Updated At</Label>
-                <Input
-                  id="call-updated-at"
-                  type="datetime-local"
+                <DateTimePicker
                   value={newCampaign.call_updated_at || ""}
-                  onChange={(e) =>
+                  onChange={(value) =>
                     setNewCampaign({
                       ...newCampaign,
-                      call_updated_at: e.target.value,
+                      call_updated_at: value,
                     })
                   }
                 />
@@ -540,8 +862,9 @@ function CampaignManagement() {
               type="button"
               variant="outline"
               onClick={() => {
-                setEditDialogOpen(false);
-                setNewCampaign(null);
+                setCreateDialogOpen(false);
+                setNewCampaign({ ...emptyCampaign });
+                setSelectedLeads([]);
               }}
             >
               Cancel
@@ -577,21 +900,25 @@ function CampaignManagement() {
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">
                     <CardTitle className="text-lg truncate">
-                      {campaign.campaign_name || campaign.name}
+                      {campaign?.campaign_name ||
+                        campaign?.name ||
+                        "Untitled Campaign"}
                     </CardTitle>
                     <CardDescription className="mt-1">
-                      {campaign.campaign_description ||
-                        campaign.description ||
+                      {campaign?.campaign_description ||
+                        campaign?.description ||
                         "No description"}
                     </CardDescription>
-                    {campaign.campaign_id && (
+                    {campaign && campaign.campaign_id && (
                       <div className="text-xs text-gray-500 mt-1 font-mono">
                         ID: {campaign.campaign_id}
                       </div>
                     )}
                   </div>
-                  <Badge variant={campaign.is_active ? "default" : "secondary"}>
-                    {campaign.is_active ? "Active" : "Inactive"}
+                  <Badge
+                    variant={campaign?.is_active ? "default" : "secondary"}
+                  >
+                    {campaign?.is_active ? "Active" : "Inactive"}
                   </Badge>
                 </div>
               </CardHeader>
@@ -844,14 +1171,14 @@ function CampaignManagement() {
                   <Input
                     id="edit-campaign-id"
                     value={selectedCampaign.campaign_id}
-                    onChange={(e) =>
-                      setSelectedCampaign({
-                        ...selectedCampaign,
-                        campaign_id: e.target.value,
-                      })
-                    }
-                    placeholder="Enter unique campaign ID"
+                    placeholder="Campaign ID (cannot be changed)"
+                    className="bg-gray-100 cursor-not-allowed"
+                    readOnly
+                    disabled
                   />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Campaign ID cannot be modified after creation
+                  </p>
                 </div>
 
                 <div>
@@ -964,14 +1291,12 @@ function CampaignManagement() {
                     <Label htmlFor="edit-call-created-at">
                       Call Created At
                     </Label>
-                    <Input
-                      id="edit-call-created-at"
-                      type="datetime-local"
+                    <DateTimePicker
                       value={selectedCampaign.call_created_at || ""}
-                      onChange={(e) =>
+                      onChange={(value) =>
                         setSelectedCampaign({
                           ...selectedCampaign,
-                          call_created_at: e.target.value,
+                          call_created_at: value,
                         })
                       }
                     />
@@ -980,69 +1305,12 @@ function CampaignManagement() {
                     <Label htmlFor="edit-call-updated-at">
                       Call Updated At
                     </Label>
-                    <Input
-                      id="edit-call-updated-at"
-                      type="datetime-local"
+                    <DateTimePicker
                       value={selectedCampaign.call_updated_at || ""}
-                      onChange={(e) =>
+                      onChange={(value) =>
                         setSelectedCampaign({
                           ...selectedCampaign,
-                          call_updated_at: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Operational */}
-              <div className="pt-4 border-t">
-                <h3 className="text-base font-semibold mb-2">Operational</h3>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-center space-x-3 mt-2">
-                    <Checkbox
-                      id="edit-is-active"
-                      checked={selectedCampaign.is_active}
-                      onCheckedChange={(checked) =>
-                        setSelectedCampaign({
-                          ...selectedCampaign,
-                          is_active: checked,
-                        })
-                      }
-                    />
-                    <Label htmlFor="edit-is-active" className="text-sm">
-                      Is Active
-                    </Label>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                  <div>
-                    <Label htmlFor="edit-created-at">Created At</Label>
-                    <Input
-                      id="edit-created-at"
-                      type="datetime-local"
-                      value={selectedCampaign.created_at}
-                      onChange={(e) =>
-                        setSelectedCampaign({
-                          ...selectedCampaign,
-                          created_at: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="edit-updated-at">Updated At</Label>
-                    <Input
-                      id="edit-updated-at"
-                      type="datetime-local"
-                      value={selectedCampaign.updated_at}
-                      onChange={(e) =>
-                        setSelectedCampaign({
-                          ...selectedCampaign,
-                          updated_at: e.target.value,
+                          call_updated_at: value,
                         })
                       }
                     />
