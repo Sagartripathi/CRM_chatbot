@@ -94,7 +94,7 @@ Contains lead data structures and campaign lead schemas.
 import uuid
 from datetime import datetime, timezone, date, time
 from typing import List, Optional
-from pydantic import BaseModel, Field, EmailStr, validator
+from pydantic import BaseModel, Field, EmailStr, field_validator
 from .enums import LeadStatus, CampaignLeadStatus, CallOutcome
 from app.utils.validators import validate_us_phone
 
@@ -116,26 +116,39 @@ class Lead(BaseModel):
     """
     # Core Identifiers & Relationships
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    first_name: str
-    last_name: str
+    lead_id: str = Field(default_factory=lambda: f"L-{uuid.uuid4().hex[:7].upper()}")  # Auto-generated lead ID
+    lead_type: str = Field(..., description="Lead type: individual or organization")
+    
+    # Campaign Information (Mandatory)
+    campaign_name: str = Field(..., description="Campaign name - mandatory")
+    campaign_id: str = Field(..., description="Campaign ID - fetched from database")
+    
+    # Individual Lead Fields (conditionally required)
+    lead_first_name: Optional[str] = Field(None, description="First Name - required if lead_type is individual")
+    lead_last_name: Optional[str] = Field(None, description="Last Name - required if lead_type is individual")
+    lead_phone: Optional[str] = Field(None, description="Lead's Contact # - required if lead_type is individual")
+    leads_notes: Optional[str] = Field(None, description="Lead's Insight - required if lead_type is individual")
+    lead_email: Optional[str] = Field(None, description="Lead's Email - optional for individual")
+    
+    # Organization Lead Fields (conditionally required)
+    business_name: Optional[str] = Field(None, description="Business name - required if lead_type is organization")
+    business_phone: Optional[str] = Field(None, description="Business phone - required if lead_type is organization")
+    business_address: Optional[str] = Field(None, description="Business address - required if lead_type is organization")
+    business_summary: Optional[str] = Field(None, max_length=240, description="Lead's Business Insight - optional for organization, max 240 chars")
+    
+    # Legacy fields (kept for backward compatibility)
+    first_name: str = ""  # Will be populated from lead_first_name or empty for organization
+    last_name: str = ""  # Will be populated from lead_last_name or empty for organization
     phone: Optional[str] = None
     email: Optional[EmailStr] = None
     source: Optional[str] = None
     notes: Optional[str] = None
     status: LeadStatus = LeadStatus.NEW
     assigned_to: Optional[str] = None  # User ID
-    campaign_id: Optional[str] = None  # Campaign ID
     campaign_history: List[dict] = Field(default_factory=list)  # Track campaign changes
     created_by: str  # User ID
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    
-    # Business Context (CRM-managed)
-    business_name: Optional[str] = None
-    business_address: Optional[str] = None
-    business_phone: Optional[str] = None
-    business_summary_vb: Optional[str] = None
-    leads_notes: Optional[str] = None
     
     # Personalization (Voice Bot updates)
     first_contact_name_vb: Optional[str] = None
@@ -167,11 +180,6 @@ class Lead(BaseModel):
     # System Audit (CRM/System-managed)
     updated_by_shared: Optional[str] = None
     
-    @validator('phone', 'business_phone', 'referral_phone_vb')
-    def validate_phone_format(cls, v):
-        """Validate US phone number format with optional extension."""
-        return validate_us_phone(v)
-
     class Config:
         """Pydantic configuration."""
         use_enum_values = True
@@ -182,22 +190,35 @@ class LeadCreate(BaseModel):
     Lead creation schema.
     Used for creating new leads.
     """
-    first_name: str
-    last_name: str
+    # Mandatory fields
+    lead_type: str = Field(..., description="Lead type: individual or organization")
+    campaign_name: str = Field(..., description="Campaign name - mandatory")
+    campaign_id: str = Field(..., description="Campaign ID - fetched from database")
+    
+    # Individual Lead Fields (conditionally required)
+    lead_first_name: Optional[str] = Field(None, description="First Name - required if lead_type is individual")
+    lead_last_name: Optional[str] = Field(None, description="Last Name - required if lead_type is individual")
+    lead_phone: Optional[str] = Field(None, description="Lead's Contact # - required if lead_type is individual")
+    leads_notes: Optional[str] = Field(None, description="Lead's Insight - required if lead_type is individual")
+    lead_email: Optional[str] = Field(None, description="Lead's Email - optional for individual")
+    
+    # Organization Lead Fields (conditionally required)
+    business_name: Optional[str] = Field(None, description="Business name - required if lead_type is organization")
+    business_phone: Optional[str] = Field(None, description="Business phone - required if lead_type is organization")
+    business_address: Optional[str] = Field(None, description="Business address - required if lead_type is organization")
+    business_summary: Optional[str] = Field(None, max_length=240, description="Lead's Business Insight - optional for organization, max 240 chars")
+    
+    # Legacy fields (for backward compatibility)
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
     phone: Optional[str] = None
     email: Optional[EmailStr] = None
     source: Optional[str] = None
     notes: Optional[str] = None
     status: LeadStatus = LeadStatus.NEW
     assigned_to: Optional[str] = None
-    campaign_id: Optional[str] = None
     
-    # NEW: Optional fields for creation
-    business_name: Optional[str] = None
-    business_address: Optional[str] = None
-    business_phone: Optional[str] = None
-    business_summary_vb: Optional[str] = None
-    leads_notes: Optional[str] = None
+    # Voice Bot fields
     decision_maker_identified_shared: Optional[bool] = None
     first_contact_name_vb: Optional[str] = None
     referral_name_vb: Optional[str] = None
@@ -213,11 +234,6 @@ class LeadCreate(BaseModel):
     demo_booking_shared: Optional[DemoBooking] = None
     updated_by_shared: Optional[str] = None
     
-    @validator('phone', 'business_phone', 'referral_phone_vb')
-    def validate_phone_format(cls, v):
-        """Validate US phone number format with optional extension."""
-        return validate_us_phone(v)
-
     class Config:
         """Pydantic configuration."""
         use_enum_values = True
