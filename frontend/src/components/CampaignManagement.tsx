@@ -69,11 +69,11 @@ function CampaignManagement() {
     main_sequence_attempts: "",
     follow_up_delay_days_pc: "",
     follow_up_max_attempts_pc: "",
-    holiday_calendar_pc: "",
-    weekend_adjustment_pc: false,
     timezone_shared: "", // Will be selected from dropdown
     is_active: false, // Default to Inactive as per requirements
     start_call: "",
+    call_created_at: "",
+    call_updated_at: "",
   };
   const [newCampaign, setNewCampaign] = useState({ ...emptyCampaign });
 
@@ -152,11 +152,11 @@ function CampaignManagement() {
           Number(newCampaign.follow_up_delay_days_pc) || undefined,
         follow_up_max_attempts_pc:
           Number(newCampaign.follow_up_max_attempts_pc) || undefined,
-        holiday_calendar_pc: newCampaign.holiday_calendar_pc || undefined,
-        weekend_adjustment_pc: !!newCampaign.weekend_adjustment_pc,
         timezone_shared: newCampaign.timezone_shared || undefined,
         is_active: !!newCampaign.is_active,
         start_call: newCampaign.start_call || undefined,
+        call_created_at: newCampaign.call_created_at || undefined,
+        call_updated_at: newCampaign.call_updated_at || undefined,
       };
 
       await apiClient.post("/campaigns", payload);
@@ -494,13 +494,14 @@ function CampaignManagement() {
             </div>
           </div>
 
-          {/* Attempt Settings */}
+          {/* Scheduling & Attempts */}
           <div className="pt-4 border-t space-y-3">
-            <Label className="text-base font-medium">Attempt Settings</Label>
+            <Label className="text-base font-medium">
+              Scheduling & Attempts
+            </Label>
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <Label htmlFor="main-attempts">Main Attempts</Label>
-
                 <Input
                   id="main-attempts"
                   type="number"
@@ -542,42 +543,54 @@ function CampaignManagement() {
                 />
               </div>
             </div>
+            
+            {/* New Call Scheduling Fields */}
+            <div className="grid grid-cols-3 gap-4 pt-4">
+              <div>
+                <Label htmlFor="start-call">Start Call (API Trigger)</Label>
+                <Input
+                  id="start-call"
+                  value={newCampaign.start_call || ""}
+                  onChange={(e) =>
+                    setNewCampaign({
+                      ...newCampaign,
+                      start_call: e.target.value,
+                    })
+                  }
+                  placeholder="API trigger for start call"
+                />
+              </div>
+              <div>
+                <Label htmlFor="call-created-at">Call Created At</Label>
+                <Input
+                  id="call-created-at"
+                  type="datetime-local"
+                  value={newCampaign.call_created_at || ""}
+                  onChange={(e) =>
+                    setNewCampaign({
+                      ...newCampaign,
+                      call_created_at: e.target.value,
+                    })
+                  }
+                />
+              </div>
+              <div>
+                <Label htmlFor="call-updated-at">Call Updated At</Label>
+                <Input
+                  id="call-updated-at"
+                  type="datetime-local"
+                  value={newCampaign.call_updated_at || ""}
+                  onChange={(e) =>
+                    setNewCampaign({
+                      ...newCampaign,
+                      call_updated_at: e.target.value,
+                    })
+                  }
+                />
+              </div>
+            </div>
           </div>
 
-          {/* Config Flags */}
-          <div className="pt-4 border-t space-y-2">
-            <Label className="text-base font-medium">Configuration</Label>
-            <div className="flex items-center space-x-3">
-              <Checkbox
-                id="weekend-adjustment"
-                checked={!!newCampaign.weekend_adjustment_pc}
-                onCheckedChange={(checked) =>
-                  setNewCampaign({
-                    ...newCampaign,
-                    weekend_adjustment_pc: checked ? true : false,
-                  })
-                }
-              />
-              <Label htmlFor="weekend-adjustment" className="text-sm">
-                Enable Weekend Adjustment
-              </Label>
-            </div>
-
-            <div>
-              <Label htmlFor="holiday-calendar">Holiday Calendar</Label>
-              <Input
-                id="holiday-calendar"
-                value={newCampaign.holiday_calendar_pc || ""}
-                onChange={(e) =>
-                  setNewCampaign({
-                    ...newCampaign,
-                    holiday_calendar_pc: e.target.value,
-                  })
-                }
-                placeholder="Enter holiday calendar name (optional)"
-              />
-            </div>
-          </div>
 
           {/* Save / Cancel */}
           <div className="flex justify-end space-x-3 pt-6 border-t">
@@ -715,20 +728,38 @@ function CampaignManagement() {
                       </div>
                     </div>
 
-                    {/* Config Badges */}
-                    {(campaign.weekend_adjustment_pc ||
-                      campaign.holiday_calendar_pc) && (
-                      <div className="flex flex-wrap gap-1 pt-2">
-                        {campaign.weekend_adjustment_pc && (
-                          <Badge variant="outline" className="text-xs">
-                            Weekend Adjust
-                          </Badge>
-                        )}
-                        {campaign.holiday_calendar_pc && (
-                          <Badge variant="outline" className="text-xs">
-                            {campaign.holiday_calendar_pc}
-                          </Badge>
-                        )}
+                    {/* Call Scheduling Info */}
+                    {(campaign.start_call || campaign.call_created_at || campaign.call_updated_at) && (
+                      <div className="pt-2 border-t">
+                        <div className="text-xs font-semibold text-gray-600 mb-1">
+                          Call Scheduling
+                        </div>
+                        <div className="space-y-1 text-xs">
+                          {campaign.start_call && (
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">API Trigger:</span>
+                              <span className="font-medium text-gray-700">
+                                {campaign.start_call}
+                              </span>
+                            </div>
+                          )}
+                          {campaign.call_created_at && (
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">Call Created:</span>
+                              <span className="font-medium text-gray-700">
+                                {new Date(campaign.call_created_at).toLocaleDateString()}
+                              </span>
+                            </div>
+                          )}
+                          {campaign.call_updated_at && (
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">Call Updated:</span>
+                              <span className="font-medium text-gray-700">
+                                {new Date(campaign.call_updated_at).toLocaleDateString()}
+                              </span>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>
@@ -1043,69 +1074,54 @@ function CampaignManagement() {
                     />
                   </div>
                 </div>
-              </div>
-
-              {/* Config Parameters */}
-              <div className="pt-4 border-t">
-                <h3 className="text-base font-semibold mb-2">
-                  Config Parameters
-                </h3>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                
+                {/* New Call Scheduling Fields */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                   <div>
-                    <Label htmlFor="edit-holiday-calendar">
-                      Holiday Calendar
-                    </Label>
+                    <Label htmlFor="edit-start-call">Start Call (API Trigger)</Label>
                     <Input
-                      id="edit-holiday-calendar"
-                      value={selectedCampaign.holiday_calendar_pc}
+                      id="edit-start-call"
+                      value={selectedCampaign.start_call || ""}
                       onChange={(e) =>
                         setSelectedCampaign({
                           ...selectedCampaign,
-                          holiday_calendar_pc: e.target.value,
+                          start_call: e.target.value,
                         })
                       }
-                      placeholder='e.g. "server_side_US_federal"'
+                      placeholder="API trigger for start call"
                     />
                   </div>
-
-                  <div className="flex items-center space-x-3 mt-6">
-                    <Checkbox
-                      id="edit-weekend-adjustment"
-                      checked={selectedCampaign.weekend_adjustment_pc}
-                      onCheckedChange={(checked) =>
-                        setSelectedCampaign({
-                          ...selectedCampaign,
-                          weekend_adjustment_pc: checked,
-                        })
-                      }
-                    />
-                    <Label
-                      htmlFor="edit-weekend-adjustment"
-                      className="text-sm"
-                    >
-                      Weekend Adjustment (Move to Monday)
-                    </Label>
-                  </div>
-
                   <div>
-                    <Label htmlFor="edit-timezone-shared">
-                      Timezone Shared
-                    </Label>
+                    <Label htmlFor="edit-call-created-at">Call Created At</Label>
                     <Input
-                      id="edit-timezone-shared"
-                      value={selectedCampaign.timezone_shared}
+                      id="edit-call-created-at"
+                      type="datetime-local"
+                      value={selectedCampaign.call_created_at || ""}
                       onChange={(e) =>
                         setSelectedCampaign({
                           ...selectedCampaign,
-                          timezone_shared: e.target.value,
+                          call_created_at: e.target.value,
                         })
                       }
-                      placeholder="e.g. America/New_York"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-call-updated-at">Call Updated At</Label>
+                    <Input
+                      id="edit-call-updated-at"
+                      type="datetime-local"
+                      value={selectedCampaign.call_updated_at || ""}
+                      onChange={(e) =>
+                        setSelectedCampaign({
+                          ...selectedCampaign,
+                          call_updated_at: e.target.value,
+                        })
+                      }
                     />
                   </div>
                 </div>
               </div>
+
 
               {/* Operational */}
               <div className="pt-4 border-t">
@@ -1128,20 +1144,6 @@ function CampaignManagement() {
                     </Label>
                   </div>
 
-                  <div>
-                    <Label htmlFor="edit-start-call">Start Call Trigger</Label>
-                    <Input
-                      id="edit-start-call"
-                      value={selectedCampaign.start_call}
-                      onChange={(e) =>
-                        setSelectedCampaign({
-                          ...selectedCampaign,
-                          start_call: e.target.value,
-                        })
-                      }
-                      placeholder="API trigger endpoint"
-                    />
-                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
