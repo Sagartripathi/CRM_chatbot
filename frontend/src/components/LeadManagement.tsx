@@ -361,21 +361,47 @@ function LeadManagement() {
   const handleEditLead = async (e) => {
     e.preventDefault();
 
-    if (!selectedLead.first_name.trim() || !selectedLead.last_name.trim()) {
-      toast.error("First name and last name are required");
-      return;
+    // Validate conditional fields based on lead type
+    if (selectedLead.lead_type === "individual") {
+      if (!selectedLead.lead_first_name?.trim()) {
+        toast.error("First Name is required for individual leads");
+        return;
+      }
+      if (!selectedLead.lead_last_name?.trim()) {
+        toast.error("Last Name is required for individual leads");
+        return;
+      }
+      if (!selectedLead.lead_phone?.trim()) {
+        toast.error("Lead's Contact # is required for individual leads");
+        return;
+      }
+      if (!selectedLead.leads_notes?.trim()) {
+        toast.error("Lead's Insight is required for individual leads");
+        return;
+      }
+    } else if (selectedLead.lead_type === "organization") {
+      if (!selectedLead.business_name?.trim()) {
+        toast.error("Business Name is required for organization leads");
+        return;
+      }
+      if (!selectedLead.business_phone?.trim()) {
+        toast.error("Business Phone is required for organization leads");
+        return;
+      }
+      if (!selectedLead.business_address?.trim()) {
+        toast.error("Business Address is required for organization leads");
+        return;
+      }
     }
 
     try {
-      // Clean up the data before sending
+      // Send all existing lead data
       const leadData = {
         ...selectedLead,
-        // Convert empty strings to undefined for optional fields
-        business_name: selectedLead.business_name || undefined,
-        business_address: selectedLead.business_address || undefined,
-        business_phone: selectedLead.business_phone || undefined,
-        business_summary_vb: selectedLead.business_summary_vb || undefined,
-        leads_notes: selectedLead.leads_notes || undefined,
+        // Ensure optional fields are undefined if empty
+        lead_email: selectedLead.lead_email || undefined,
+        business_summary: selectedLead.business_summary || undefined,
+        // Voice bot fields
         first_contact_name_vb: selectedLead.first_contact_name_vb || undefined,
         referral_name_vb: selectedLead.referral_name_vb || undefined,
         referral_phone_vb: selectedLead.referral_phone_vb || undefined,
@@ -386,7 +412,7 @@ function LeadManagement() {
         conversation_summary_vb:
           selectedLead.conversation_summary_vb || undefined,
         updated_by_shared: selectedLead.updated_by_shared || undefined,
-        // Handle demo_booking_shared - only send if it has data
+        // Handle demo_booking_shared
         demo_booking_shared:
           selectedLead.demo_booking_shared?.booking_name_shared ||
           selectedLead.demo_booking_shared?.booking_phone_shared ||
@@ -932,13 +958,20 @@ function LeadManagement() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <div className="text-sm font-medium text-gray-900">
-                            {lead.first_name} {lead.last_name}
+                            {lead.lead_type === "individual" 
+                              ? `${lead.lead_first_name || lead.first_name || ""} ${lead.lead_last_name || lead.last_name || ""}`
+                              : lead.business_name || lead.first_name || "N/A"}
                           </div>
-                          {lead.notes && (
-                            <div className="text-xs text-gray-500 truncate max-w-xs">
-                              {lead.notes}
-                            </div>
-                          )}
+                          <div className="text-xs text-gray-500">
+                            <Badge variant="outline" className="mr-1 capitalize text-xs">
+                              {lead.lead_type || "N/A"}
+                            </Badge>
+                            {lead.lead_id && (
+                              <span className="font-mono text-xs">
+                                {lead.lead_id}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -960,12 +993,16 @@ function LeadManagement() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <button
-                          onClick={() => openCampaignDialog(lead)}
-                          className="text-sm text-indigo-600 hover:text-indigo-900 underline"
-                        >
-                          {getCampaignName(lead.campaign_id)}
-                        </button>
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">
+                            {lead.campaign_name || getCampaignName(lead.campaign_id)}
+                          </div>
+                          {lead.campaign_id && (
+                            <div className="text-xs text-gray-500 font-mono">
+                              ({lead.campaign_id})
+                            </div>
+                          )}
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <Badge
@@ -1243,194 +1280,204 @@ function LeadManagement() {
           </DialogHeader>
           {selectedLead && (
             <form onSubmit={handleEditLead} className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label htmlFor="edit-first-name">First Name *</Label>
-                  <Input
-                    id="edit-first-name"
-                    data-testid="edit-lead-firstname-input"
-                    value={selectedLead.first_name}
-                    onChange={(e) =>
-                      setSelectedLead({
-                        ...selectedLead,
-                        first_name: e.target.value,
-                      })
-                    }
-                    placeholder="John"
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="edit-last-name">Last Name *</Label>
-                  <Input
-                    id="edit-last-name"
-                    data-testid="edit-lead-lastname-input"
-                    value={selectedLead.last_name}
-                    onChange={(e) =>
-                      setSelectedLead({
-                        ...selectedLead,
-                        last_name: e.target.value,
-                      })
-                    }
-                    placeholder="Doe"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="edit-email">Email</Label>
-                <Input
-                  id="edit-email"
-                  data-testid="edit-lead-email-input"
-                  type="email"
-                  value={selectedLead.email || ""}
-                  onChange={(e) =>
-                    setSelectedLead({ ...selectedLead, email: e.target.value })
-                  }
-                  placeholder="john@example.com"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="edit-phone">Phone</Label>
-                <Input
-                  id="edit-phone"
-                  data-testid="edit-lead-phone-input"
-                  value={selectedLead.phone || ""}
-                  onChange={(e) =>
-                    setSelectedLead({ ...selectedLead, phone: e.target.value })
-                  }
-                  placeholder="+1 (555) 123-4567"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="edit-source">Source</Label>
-                <Input
-                  id="edit-source"
-                  data-testid="edit-lead-source-input"
-                  value={selectedLead.source || ""}
-                  onChange={(e) =>
-                    setSelectedLead({ ...selectedLead, source: e.target.value })
-                  }
-                  placeholder="Website, Referral, etc."
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="edit-notes">Notes</Label>
-                <Textarea
-                  id="edit-notes"
-                  data-testid="edit-lead-notes-input"
-                  value={selectedLead.notes || ""}
-                  onChange={(e) =>
-                    setSelectedLead({ ...selectedLead, notes: e.target.value })
-                  }
-                  placeholder="Add any relevant notes..."
-                  rows={3}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="edit-campaign">Campaign</Label>
-                <Select
-                  value={selectedLead.campaign_id || "none"}
-                  onValueChange={(value) =>
-                    setSelectedLead({
-                      ...selectedLead,
-                      campaign_id: value === "none" ? "" : value,
-                    })
-                  }
-                >
-                  <SelectTrigger data-testid="edit-lead-campaign-select">
-                    <SelectValue placeholder="Select a campaign" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">No Campaign</SelectItem>
-                    {campaigns.map((campaign) => (
-                      <SelectItem key={campaign.id} value={campaign.id}>
-                        {campaign.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Business Information Section - ADD HERE */}
-              <div className="space-y-4 border-t pt-4">
+              {/* Campaign Information - Display at top */}
+              <div className="space-y-3 border-b pb-4 bg-gray-50 p-4 rounded-lg">
                 <h3 className="text-lg font-medium text-gray-900">
-                  Business Information
+                  Campaign Information
                 </h3>
-
                 <div>
-                  <Label htmlFor="edit-business-name">Business Name</Label>
-                  <Input
-                    id="edit-business-name"
-                    value={selectedLead.business_name || ""}
-                    onChange={(e) =>
-                      setSelectedLead({
-                        ...selectedLead,
-                        business_name: e.target.value,
-                      })
-                    }
-                    placeholder="Company Name"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="edit-business-address">
-                    Business Address
-                  </Label>
-                  <Textarea
-                    id="edit-business-address"
-                    value={selectedLead.business_address || ""}
-                    onChange={(e) =>
-                      setSelectedLead({
-                        ...selectedLead,
-                        business_address: e.target.value,
-                      })
-                    }
-                    placeholder="Full business address"
-                    rows={2}
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="edit-business-phone">Business Phone</Label>
-                  <Input
-                    id="edit-business-phone"
-                    value={selectedLead.business_phone || ""}
-                    onChange={(e) =>
-                      setSelectedLead({
-                        ...selectedLead,
-                        business_phone: e.target.value,
-                      })
-                    }
-                    placeholder="Business phone number"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="edit-business-summary">
-                    Business Summary
-                  </Label>
-                  <Textarea
-                    id="edit-business-summary"
-                    value={selectedLead.business_summary_vb || ""}
-                    onChange={(e) =>
-                      setSelectedLead({
-                        ...selectedLead,
-                        business_summary_vb: e.target.value,
-                      })
-                    }
-                    placeholder="Brief description of the business"
-                    rows={3}
-                  />
+                  <Label>Campaign</Label>
+                  <div className="text-sm mt-1">
+                    <span className="font-medium">{selectedLead.campaign_name || "No Campaign"}</span>
+                    {selectedLead.campaign_id && (
+                      <span className="ml-2 text-xs text-gray-500">
+                        ({selectedLead.campaign_id})
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
 
-              <div className="flex justify-end space-x-3"></div>
+              {/* Lead Information */}
+              <div className="space-y-3 border-b pb-4">
+                <h3 className="text-lg font-medium text-gray-900">
+                  Lead Information
+                </h3>
+                <div>
+                  <Label>Lead ID</Label>
+                  <div className="text-sm font-mono bg-gray-100 p-2 rounded mt-1">
+                    {selectedLead.lead_id || selectedLead.id}
+                  </div>
+                </div>
+                <div>
+                  <Label>Lead Type</Label>
+                  <div className="text-sm font-medium mt-1 capitalize">
+                    {selectedLead.lead_type || "N/A"}
+                  </div>
+                </div>
+              </div>
+
+              {/* Conditional Fields Based on Lead Type */}
+              {selectedLead.lead_type === "individual" && (
+                <div className="space-y-3 border-b pb-4">
+                  <h3 className="text-lg font-medium text-gray-900">
+                    Individual Details
+                  </h3>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label htmlFor="edit-lead-first-name">First Name *</Label>
+                      <Input
+                        id="edit-lead-first-name"
+                        value={selectedLead.lead_first_name || ""}
+                        onChange={(e) =>
+                          setSelectedLead({
+                            ...selectedLead,
+                            lead_first_name: e.target.value,
+                          })
+                        }
+                        placeholder="John"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="edit-lead-last-name">Last Name *</Label>
+                      <Input
+                        id="edit-lead-last-name"
+                        value={selectedLead.lead_last_name || ""}
+                        onChange={(e) =>
+                          setSelectedLead({
+                            ...selectedLead,
+                            lead_last_name: e.target.value,
+                          })
+                        }
+                        placeholder="Doe"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="edit-lead-phone">Lead's Contact # *</Label>
+                    <Input
+                      id="edit-lead-phone"
+                      value={selectedLead.lead_phone || ""}
+                      onChange={(e) =>
+                        setSelectedLead({
+                          ...selectedLead,
+                          lead_phone: e.target.value,
+                        })
+                      }
+                      placeholder="+1 (555) 123-4567"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="edit-lead-email">Lead's Email</Label>
+                    <Input
+                      id="edit-lead-email"
+                      type="email"
+                      value={selectedLead.lead_email || ""}
+                      onChange={(e) =>
+                        setSelectedLead({
+                          ...selectedLead,
+                          lead_email: e.target.value,
+                        })
+                      }
+                      placeholder="john@example.com"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="edit-leads-notes">Lead's Insight *</Label>
+                    <Textarea
+                      id="edit-leads-notes"
+                      value={selectedLead.leads_notes || ""}
+                      onChange={(e) =>
+                        setSelectedLead({
+                          ...selectedLead,
+                          leads_notes: e.target.value,
+                        })
+                      }
+                      placeholder="Add notes or background information..."
+                      rows={3}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {selectedLead.lead_type === "organization" && (
+                <div className="space-y-3 border-b pb-4">
+                  <h3 className="text-lg font-medium text-gray-900">
+                    Organization Details
+                  </h3>
+                  
+                  <div>
+                    <Label htmlFor="edit-business-name">Business Name *</Label>
+                    <Input
+                      id="edit-business-name"
+                      value={selectedLead.business_name || ""}
+                      onChange={(e) =>
+                        setSelectedLead({
+                          ...selectedLead,
+                          business_name: e.target.value,
+                        })
+                      }
+                      placeholder="Company Name"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="edit-business-phone">Business Phone *</Label>
+                    <Input
+                      id="edit-business-phone"
+                      value={selectedLead.business_phone || ""}
+                      onChange={(e) =>
+                        setSelectedLead({
+                          ...selectedLead,
+                          business_phone: e.target.value,
+                        })
+                      }
+                      placeholder="Business phone number"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="edit-business-address">Business Address *</Label>
+                    <Textarea
+                      id="edit-business-address"
+                      value={selectedLead.business_address || ""}
+                      onChange={(e) =>
+                        setSelectedLead({
+                          ...selectedLead,
+                          business_address: e.target.value,
+                        })
+                      }
+                      placeholder="Full business address"
+                      rows={2}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="edit-business-summary">Lead's Business Insight (Optional, max 240 chars)</Label>
+                    <Textarea
+                      id="edit-business-summary"
+                      value={selectedLead.business_summary || ""}
+                      onChange={(e) =>
+                        setSelectedLead({
+                          ...selectedLead,
+                          business_summary: e.target.value,
+                        })
+                      }
+                      placeholder="Brief description of the business"
+                      maxLength={240}
+                      rows={3}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      {selectedLead.business_summary?.length || 0}/240 characters
+                    </p>
+                  </div>
+                </div>
+              )}
+
               <div className="flex justify-end space-x-3">
                 <Button
                   type="button"
