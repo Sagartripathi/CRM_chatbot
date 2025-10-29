@@ -158,7 +158,6 @@ function LeadManagement() {
       setLoading(true);
 
       if (!user) {
-        console.log("User not authenticated, skipping leads data fetch");
         return;
       }
 
@@ -169,10 +168,8 @@ function LeadManagement() {
       setLeads(leadsResponse.data);
       setFilteredLeads(leadsResponse.data);
       setCampaigns(campaignsResponse.data);
-      console.log("Campaigns loaded:", campaignsResponse.data);
     } catch (error: any) {
       if (error.response?.status === 401 || error.response?.status === 403) {
-        console.log("Authentication error - user may need to log in");
         toast.error("Please log in to access leads data");
       } else {
         toast.error("Failed to load data");
@@ -333,7 +330,6 @@ function LeadManagement() {
       if (newLead.updated_by_shared)
         leadData.updated_by_shared = newLead.updated_by_shared;
 
-      console.log("Sending lead data:", JSON.stringify(leadData, null, 2));
       await apiClient.post("/leads/", leadData);
       toast.success("Lead created successfully!");
       setCreateDialogOpen(false);
@@ -1040,87 +1036,88 @@ function LeadManagement() {
                     </tr>
 
                     {/* Call Tracking Section - commented out for now */}
-                    {false && (lead.call_status_vb ||
-                      lead.business_name ||
-                      lead.conversation_summary_vb ||
-                      lead.first_contact_name_vb) && (
-                      <tr>
-                        <td colSpan={6} className="px-6 py-4 bg-gray-50">
-                          <div className="space-y-3">
-                            <h4 className="text-sm font-medium text-gray-900">
-                              Additional Information
-                            </h4>
+                    {false &&
+                      (lead.call_status_vb ||
+                        lead.business_name ||
+                        lead.conversation_summary_vb ||
+                        lead.first_contact_name_vb) && (
+                        <tr>
+                          <td colSpan={6} className="px-6 py-4 bg-gray-50">
+                            <div className="space-y-3">
+                              <h4 className="text-sm font-medium text-gray-900">
+                                Additional Information
+                              </h4>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              {/* Business Info */}
-                              {lead.business_name && (
-                                <div className="text-sm">
-                                  <span className="font-medium text-gray-700">
-                                    Business:
-                                  </span>
-                                  <span className="ml-2 text-gray-600">
-                                    {lead.business_name}
-                                  </span>
-                                </div>
-                              )}
-
-                              {/* Call Status */}
-                              {lead.call_status_vb && (
-                                <div className="text-sm">
-                                  <span className="font-medium text-gray-700">
-                                    Call Status:
-                                  </span>
-                                  <Badge variant="outline" className="ml-2">
-                                    {lead.call_status_vb}
-                                  </Badge>
-                                  {lead.call_duration_vb && (
-                                    <span className="ml-2 text-gray-500">
-                                      ({lead.call_duration_vb}s)
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {/* Business Info */}
+                                {lead.business_name && (
+                                  <div className="text-sm">
+                                    <span className="font-medium text-gray-700">
+                                      Business:
                                     </span>
-                                  )}
-                                </div>
-                              )}
+                                    <span className="ml-2 text-gray-600">
+                                      {lead.business_name}
+                                    </span>
+                                  </div>
+                                )}
 
-                              {/* Contact Name */}
-                              {lead.first_contact_name_vb && (
-                                <div className="text-sm">
-                                  <span className="font-medium text-gray-700">
-                                    Contact:
-                                  </span>
-                                  <span className="ml-2 text-gray-600">
-                                    {lead.first_contact_name_vb}
-                                  </span>
-                                </div>
-                              )}
+                                {/* Call Status */}
+                                {lead.call_status_vb && (
+                                  <div className="text-sm">
+                                    <span className="font-medium text-gray-700">
+                                      Call Status:
+                                    </span>
+                                    <Badge variant="outline" className="ml-2">
+                                      {lead.call_status_vb}
+                                    </Badge>
+                                    {lead.call_duration_vb && (
+                                      <span className="ml-2 text-gray-500">
+                                        ({lead.call_duration_vb}s)
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
 
-                              {/* Referral Info */}
-                              {lead.referral_name_vb && (
-                                <div className="text-sm">
+                                {/* Contact Name */}
+                                {lead.first_contact_name_vb && (
+                                  <div className="text-sm">
+                                    <span className="font-medium text-gray-700">
+                                      Contact:
+                                    </span>
+                                    <span className="ml-2 text-gray-600">
+                                      {lead.first_contact_name_vb}
+                                    </span>
+                                  </div>
+                                )}
+
+                                {/* Referral Info */}
+                                {lead.referral_name_vb && (
+                                  <div className="text-sm">
+                                    <span className="font-medium text-gray-700">
+                                      Referral:
+                                    </span>
+                                    <span className="ml-2 text-gray-600">
+                                      {lead.referral_name_vb}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Conversation Summary */}
+                              {lead.conversation_summary_vb && (
+                                <div className="text-sm bg-white p-3 rounded border">
                                   <span className="font-medium text-gray-700">
-                                    Referral:
+                                    Summary:
                                   </span>
-                                  <span className="ml-2 text-gray-600">
-                                    {lead.referral_name_vb}
-                                  </span>
+                                  <p className="mt-1 text-gray-600">
+                                    {lead.conversation_summary_vb}
+                                  </p>
                                 </div>
                               )}
                             </div>
-
-                            {/* Conversation Summary */}
-                            {lead.conversation_summary_vb && (
-                              <div className="text-sm bg-white p-3 rounded border">
-                                <span className="font-medium text-gray-700">
-                                  Summary:
-                                </span>
-                                <p className="mt-1 text-gray-600">
-                                  {lead.conversation_summary_vb}
-                                </p>
-                              </div>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    )}
+                          </td>
+                        </tr>
+                      )}
                   </React.Fragment>
                 ))}
               </tbody>

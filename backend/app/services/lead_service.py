@@ -218,12 +218,6 @@ class LeadService:
         Raises:
             HTTPException: If file format is invalid or required columns missing
         """
-        # Debug information
-        print(f"Debug - File details:")
-        print(f"  Filename: {file.filename}")
-        print(f"  Content-Type: {file.content_type}")
-        print(f"  Size: {file.size if hasattr(file, 'size') else 'Unknown'}")
-        
         # Validate file type
         if not file.filename:
             raise HTTPException(status_code=400, detail="No file provided")
@@ -234,7 +228,7 @@ class LeadService:
         # Check content type as additional validation
         if file.content_type and file.content_type not in ['text/csv', 'application/csv', 'text/plain']:
             # Don't fail on content type alone, just log it
-            print(f"Warning: Unexpected content type {file.content_type} for file {file.filename}")
+            pass
         
         # Validate campaign_id is provided
         if not campaign_id:
@@ -248,7 +242,6 @@ class LeadService:
         # Read CSV content with multiple encoding support
         try:
             contents = await file.read()
-            print(f"Debug - File contents length: {len(contents)} bytes")
             
             # Try different encodings
             decoded = None
@@ -257,22 +250,16 @@ class LeadService:
             for encoding in encodings_to_try:
                 try:
                     decoded = contents.decode(encoding)
-                    print(f"Debug - Successfully decoded with {encoding}")
                     break
                 except UnicodeDecodeError:
-                    print(f"Debug - Failed to decode with {encoding}")
                     continue
             
             if decoded is None:
                 raise HTTPException(status_code=400, detail="Could not decode CSV file. Please ensure the file is saved as UTF-8 or a compatible encoding.")
             
-            print(f"Debug - Decoded content preview: {decoded[:200]}...")
-            
             csv_reader = csv.DictReader(io.StringIO(decoded))
-            print(f"Debug - CSV fieldnames: {csv_reader.fieldnames}")
             
         except Exception as e:
-            print(f"Debug - Error reading file: {str(e)}")
             raise HTTPException(status_code=400, detail=f"Error reading CSV file: {str(e)}")
         
         # Validate required columns

@@ -61,7 +61,6 @@ function CallInterface() {
       setLoading(true);
 
       if (!user) {
-        console.log("User not authenticated, skipping lead fetch");
         navigate("/login");
         return;
       }
@@ -78,7 +77,6 @@ function CallInterface() {
       toast.success(response.data.message);
     } catch (error: any) {
       if (error.response?.status === 401 || error.response?.status === 403) {
-        console.log("Authentication error - user may need to log in");
         toast.error("Please log in to access call interface");
         navigate("/login");
       } else if (error.response?.status === 404) {
@@ -146,7 +144,6 @@ function CallInterface() {
       }
     } catch (error: any) {
       if (error.response?.status === 401 || error.response?.status === 403) {
-        console.log("Authentication error - user may need to log in");
         toast.error("Please log in to log call");
         navigate("/login");
       } else {
