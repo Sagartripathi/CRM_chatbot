@@ -637,11 +637,13 @@ function LeadManagement() {
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleCreateLead} className="space-y-4">
+
             {/* Campaign Information Section - At the top */}
             <div className="space-y-3 border-b pb-4">
               <h3 className="text-lg font-medium text-gray-900">
                 Campaign Information
               </h3>
+
 
               <CampaignSelector
                 campaigns={campaigns}
@@ -1285,6 +1287,7 @@ function LeadManagement() {
                 <h3 className="text-lg font-medium text-gray-900">
                   Campaign Information
                 </h3>
+
                 <div>
                   <Label>Campaign</Label>
                   <div className="text-sm mt-1">
@@ -1331,7 +1334,10 @@ function LeadManagement() {
                       <SelectItem value="no-response">No Response</SelectItem>
                     </SelectContent>
                   </Select>
+
+              
                 </div>
+
 
                 <div>
                   <Label>Lead ID</Label>
