@@ -266,7 +266,7 @@ function LeadManagement() {
       }
 
       // Add optional legacy fields
-      if (newLead.source) leadData.source = newLead.source;
+      leadData.source = "manual_form"; // Set source for form-created leads
       if (newLead.notes) leadData.notes = newLead.notes;
 
       // Voice Bot Contact fields
@@ -495,14 +495,17 @@ function LeadManagement() {
       return;
     }
 
+    if (!uploadCampaignId) {
+      toast.error("Please select a campaign to assign the leads to");
+      return;
+    }
+
     try {
       setUploading(true);
       const formData = new FormData();
       formData.append("file", uploadFile);
 
-      const url = uploadCampaignId
-        ? `/leads/upload-csv?campaign_id=${uploadCampaignId}`
-        : "/leads/upload-csv";
+      const url = `/leads/upload-csv?campaign_id=${uploadCampaignId}`;
 
       const response = await apiClient.post(url, formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -637,13 +640,11 @@ function LeadManagement() {
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleCreateLead} className="space-y-4">
-
             {/* Campaign Information Section - At the top */}
             <div className="space-y-3 border-b pb-4">
               <h3 className="text-lg font-medium text-gray-900">
                 Campaign Information
               </h3>
-
 
               <CampaignSelector
                 campaigns={campaigns}
@@ -946,58 +947,59 @@ function LeadManagement() {
                 {paginatedLeads.map((lead) => (
                   <React.Fragment key={lead.id}>
                     <tr
-                      className="hover:bg-gray-50"
+                      className="hover:bg-gray-50 h-20"
                       data-testid={`lead-row-${lead.id}`}
                     >
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap h-20">
+                        <div className="h-full flex flex-col justify-center">
+                          <div className="text-sm font-medium text-gray-900 mb-1">
                             {lead.lead_type === "individual"
                               ? `${
                                   lead.lead_first_name || lead.first_name || ""
                                 } ${
                                   lead.lead_last_name || lead.last_name || ""
-                                }`
-                              : lead.business_name || lead.first_name || "N/A"}
+                                }`.trim() || "No name"
+                              : lead.business_name ||
+                                lead.first_name ||
+                                "No business name"}
                           </div>
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-gray-500 flex items-center space-x-2">
                             <Badge
                               variant="outline"
-                              className="mr-1 capitalize text-xs"
+                              className="capitalize text-xs"
                             >
-                              {lead.lead_type || "N/A"}
+                              {lead.lead_type || "Unknown"}
                             </Badge>
                             {lead.lead_id && (
-                              <span className="font-mono text-xs">
+                              <span className="font-mono text-xs text-gray-400">
                                 {lead.lead_id}
                               </span>
                             )}
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
-                          {lead.email && (
-                            <div className="flex items-center space-x-1">
-                              <Mail className="h-3 w-3 text-gray-400" />
-                              <span className="truncate max-w-xs">
-                                {lead.email}
-                              </span>
-                            </div>
-                          )}
-                          {lead.phone && (
-                            <div className="flex items-center space-x-1 mt-1">
-                              <Phone className="h-3 w-3 text-gray-400" />
-                              <span>{lead.phone}</span>
-                            </div>
-                          )}
+                      <td className="px-6 py-4 whitespace-nowrap h-20">
+                        <div className="h-full flex flex-col justify-center space-y-1">
+                          <div className="flex items-center space-x-1 h-5">
+                            <Mail className="h-3 w-3 text-gray-400 flex-shrink-0" />
+                            <span className="truncate max-w-xs text-gray-900">
+                              {lead.email || "No email"}
+                            </span>
+                          </div>
+                          <div className="flex items-center space-x-1 h-5">
+                            <Phone className="h-3 w-3 text-gray-400 flex-shrink-0" />
+                            <span className="text-gray-900">
+                              {lead.phone || "No phone"}
+                            </span>
+                          </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
+                      <td className="px-6 py-4 whitespace-nowrap h-20">
+                        <div className="h-full flex flex-col justify-center">
                           <div className="text-sm font-medium text-gray-900">
                             {lead.campaign_name ||
-                              getCampaignName(lead.campaign_id)}
+                              getCampaignName(lead.campaign_id) ||
+                              "No campaign"}
                           </div>
                           {lead.campaign_id && (
                             <div className="text-xs text-gray-500 font-mono">
@@ -1006,20 +1008,45 @@ function LeadManagement() {
                           )}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <Badge
-                          className={`${getStatusColor(
-                            lead.status
-                          )} capitalize`}
-                        >
-                          {lead.status.replace("_", " ")}
-                        </Badge>
+                      <td className="px-6 py-4 whitespace-nowrap h-20">
+                        <div className="h-full flex items-center">
+                          <Badge
+                            className={`${getStatusColor(
+                              lead.status
+                            )} capitalize`}
+                          >
+                            {lead.status.replace("_", " ")}
+                          </Badge>
+                        </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {lead.source || "-"}
+                      <td className="px-6 py-4 whitespace-nowrap h-20">
+                        <div className="h-full flex items-center">
+                          {lead.source ? (
+                            <Badge
+                              variant="outline"
+                              className={`text-xs ${
+                                lead.source === "csv_upload"
+                                  ? "bg-blue-50 text-blue-700 border-blue-200"
+                                  : lead.source === "manual_form"
+                                  ? "bg-green-50 text-green-700 border-green-200"
+                                  : "bg-gray-50 text-gray-700 border-gray-200"
+                              }`}
+                            >
+                              {lead.source === "csv_upload"
+                                ? "CSV Upload"
+                                : lead.source === "manual_form"
+                                ? "Manual Form"
+                                : lead.source}
+                            </Badge>
+                          ) : (
+                            <span className="text-gray-400 italic">
+                              Not specified
+                            </span>
+                          )}
+                        </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <div className="flex items-center justify-end space-x-2">
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium h-20">
+                        <div className="h-full flex items-center justify-end space-x-2">
                           <Button
                             size="sm"
                             variant="ghost"
@@ -1334,10 +1361,7 @@ function LeadManagement() {
                       <SelectItem value="no-response">No Response</SelectItem>
                     </SelectContent>
                   </Select>
-
-              
                 </div>
-
 
                 <div>
                   <Label>Lead ID</Label>
@@ -1597,8 +1621,10 @@ function LeadManagement() {
           <DialogHeader>
             <DialogTitle>Upload Leads from CSV</DialogTitle>
             <DialogDescription>
-              Upload a CSV file with leads. Required columns: first_name,
-              last_name, email, phone, status
+              Upload a CSV file with leads. Required columns: lead_type, status.
+              For individual leads: first_name, last_name, phone. For
+              organization leads: business_name, business_phone,
+              business_address. Campaign assignment is mandatory.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleUploadCSV} className="space-y-4">
@@ -1612,32 +1638,21 @@ function LeadManagement() {
                 required
               />
               <p className="text-xs text-gray-500 mt-1">
-                Format: first_name, last_name, email, phone, status
+                Format: lead_type, status, first_name, last_name, phone
+                (individual) OR business_name, business_phone, business_address
+                (organization)
               </p>
             </div>
 
             <div>
-              <Label htmlFor="upload-campaign">
-                Assign to Campaign (Optional)
-              </Label>
-              <Select
-                value={uploadCampaignId || "none"}
-                onValueChange={(value) =>
-                  setUploadCampaignId(value === "none" ? "" : value)
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="No campaign (add later)" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No Campaign</SelectItem>
-                  {campaigns.map((campaign) => (
-                    <SelectItem key={campaign.id} value={campaign.id}>
-                      {campaign.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <CampaignSelector
+                campaigns={campaigns}
+                value={uploadCampaignId}
+                onValueChange={(campaignId, campaignName) => {
+                  setUploadCampaignId(campaignId);
+                }}
+                placeholder="Search and select campaign"
+              />
             </div>
 
             <div className="flex justify-end space-x-3">

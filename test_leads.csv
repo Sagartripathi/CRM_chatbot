@@ -1,0 +1,3 @@
+lead_type,status,first_name,last_name,phone,email,leads_notes
+individual,new,John,Smith,+1-555-0123,john.smith@email.com,Interested in our services
+individual,ready,Jane,Doe,+1-555-0124,jane.doe@company.com,Potential customer
