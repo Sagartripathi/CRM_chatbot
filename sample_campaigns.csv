@@ -1,0 +1,11 @@
+campaign_name,campaign_description,timezone_shared,is_active
+"Q4 Sales Campaign","Outbound sales campaign for Q4 2024 targeting enterprise clients",America/New_York,true
+"Lead Generation Drive","Generate leads for our new product launch in the healthcare sector",America/Chicago,false
+"Customer Retention Program","Follow-up campaign for existing customers to increase retention",America/Los_Angeles,true
+"Market Research Survey","Conduct market research through phone surveys for product development",America/Denver,false
+"Partnership Outreach","Reach out to potential business partners for strategic alliances",America/Toronto,true
+"Event Follow-up","Follow up with attendees from our recent industry conference",America/Winnipeg,false
+"Product Demo Scheduling","Schedule product demonstrations for interested prospects",America/Edmonton,true
+"Feedback Collection","Collect customer feedback on our services and products",America/Vancouver,false
+"Referral Program","Implement referral program to acquire new customers",Pacific/Honolulu,true
+"Competitive Analysis","Research competitive landscape through customer interviews",America/Anchorage,false
