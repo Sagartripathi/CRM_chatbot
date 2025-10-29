@@ -263,7 +263,7 @@ function LeadManagement() {
       }
 
       // Add optional legacy fields
-      if (newLead.source) leadData.source = newLead.source;
+      leadData.source = "manual_form"; // Set source for form-created leads
       if (newLead.notes) leadData.notes = newLead.notes;
 
       // Voice Bot Contact fields
@@ -900,7 +900,10 @@ function LeadManagement() {
               <SelectItem value="manual_form">Manual Form</SelectItem>
               <SelectItem value="csv_upload">CSV Upload</SelectItem>
               {getUniqueValues("source")
-                .filter(source => source !== "manual_form" && source !== "csv_upload")
+                .filter(
+                  (source) =>
+                    source !== "manual_form" && source !== "csv_upload"
+                )
                 .map((source) => (
                   <SelectItem key={source} value={source}>
                     {source}
