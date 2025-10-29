@@ -69,7 +69,6 @@ function MeetingManagement() {
       setLoading(true);
 
       if (!user) {
-        console.log("User not authenticated, skipping meetings data fetch");
         return;
       }
 
@@ -82,7 +81,6 @@ function MeetingManagement() {
       setLeads(leadsResponse.data);
     } catch (error: any) {
       if (error.response?.status === 401 || error.response?.status === 403) {
-        console.log("Authentication error - user may need to log in");
         toast.error("Please log in to access meetings data");
       } else {
         toast.error("Failed to load data");
