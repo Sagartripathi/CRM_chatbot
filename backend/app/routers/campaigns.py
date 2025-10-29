@@ -4,7 +4,7 @@ Handles campaign CRUD operations and call logging.
 """
 
 from typing import List
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, UploadFile, File, Query
 from app.models import (
     Campaign, CampaignCreate, CampaignUpdate, CallLog, CallLogCreate, User,
     NextLeadResponse
@@ -186,3 +186,30 @@ async def delete_campaign(
         HTTPException: If user not authorized, campaign not found, or campaign has active calls
     """
     return await campaign_service.delete_campaign(campaign_id, current_user)
+
+
+@router.post("/upload-csv")
+async def upload_campaigns_csv(
+    file: UploadFile = File(...),
+    client_id: str = Query(..., description="Client ID to assign to all campaigns"),
+    agent_id: str = Query(..., description="Agent ID to assign to all campaigns"),
+    current_user: User = Depends(get_current_user),
+    campaign_service: CampaignService = Depends(get_campaign_service)
+):
+    """
+    Upload campaigns from CSV file.
+    
+    Args:
+        file: CSV file upload
+        client_id: Client ID to assign to all campaigns (mandatory)
+        agent_id: Agent ID to assign to all campaigns (mandatory)
+        current_user: Current authenticated user
+        campaign_service: Campaign service dependency
+        
+    Returns:
+        dict: Upload results with statistics
+        
+    Raises:
+        HTTPException: If file format is invalid or required columns missing
+    """
+    return await campaign_service.upload_campaigns_csv(file, current_user, client_id, agent_id)
