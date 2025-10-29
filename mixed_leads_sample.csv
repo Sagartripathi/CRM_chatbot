@@ -1,6 +1,0 @@
-lead_type,status,first_name,last_name,phone,email,leads_notes,business_name,business_phone,business_address,business_summary
-individual,new,John,Smith,+1-555-0123,john.smith@email.com,Interested in our services,,,,
-individual,ready,Jane,Doe,+1-555-0124,jane.doe@company.com,Potential customer,,,,
-organization,new,,,,,contact@acmecorp.com,Acme Corp Inc,+1-555-0200,"123 Business St, City, State 12345",Large enterprise client
-organization,ready,,,,,info@techsolutions.com,Tech Solutions LLC,+1-555-0201,"456 Tech Ave, City, State 12345",Software company
-individual,pending_preview,Mike,Johnson,+1-555-0125,mike.j@business.net,Follow up needed,,,,
