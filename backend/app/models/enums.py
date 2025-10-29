@@ -16,8 +16,9 @@ class UserRole(str, Enum):
 class LeadStatus(str, Enum):
     """Lead status enumeration."""
     NEW = "new"
-    CONTACTED = "contacted"
-    CONVERTED = "converted"
+    READY = "ready"
+    PENDING_PREVIEW = "pending_preview"
+    PREVIEWED = "previewed"
     LOST = "lost"
     NO_RESPONSE = "no_response"
 

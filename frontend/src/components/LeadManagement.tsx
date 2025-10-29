@@ -564,6 +564,9 @@ function LeadManagement() {
   const getStatusColor = (status) => {
     const colors = {
       new: "bg-blue-100 text-blue-800",
+      ready: "bg-indigo-100 text-indigo-800",
+      pending_preview: "bg-violet-100 text-violet-800",
+      previewed: "bg-purple-100 text-purple-800",
       contacted: "bg-yellow-100 text-yellow-800",
       converted: "bg-green-100 text-green-800",
       lost: "bg-red-100 text-red-800",
@@ -634,8 +637,14 @@ function LeadManagement() {
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleCreateLead} className="space-y-4">
-            {/* Campaign selector only */}
+
+            {/* Campaign Information Section - At the top */}
             <div className="space-y-3 border-b pb-4">
+              <h3 className="text-lg font-medium text-gray-900">
+                Campaign Information
+              </h3>
+
+
               <CampaignSelector
                 campaigns={campaigns}
                 value={newLead.campaign_id}
@@ -876,8 +885,9 @@ function LeadManagement() {
             <SelectContent>
               <SelectItem value="all">All Statuses</SelectItem>
               <SelectItem value="new">New</SelectItem>
-              <SelectItem value="contacted">Contacted</SelectItem>
-              <SelectItem value="converted">Converted</SelectItem>
+              <SelectItem value="ready">Ready</SelectItem>
+              <SelectItem value="pending_preview">Pending Preview</SelectItem>
+              <SelectItem value="previewed">Previewed</SelectItem>
               <SelectItem value="lost">Lost</SelectItem>
               <SelectItem value="no_response">No Response</SelectItem>
             </SelectContent>
@@ -1039,20 +1049,20 @@ function LeadManagement() {
                       <tr>
                         <td colSpan={6} className="px-6 py-4 bg-gray-50">
                           <div className="space-y-3">
-                            <h4 className="text-sm font-medium text-gray-900">
+                            {/* <h4 className="text-sm font-medium text-gray-900">
                               Additional Information
-                            </h4>
+                            </h4> */}
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                               {/* Business Info */}
                               {lead.business_name && (
                                 <div className="text-sm">
-                                  <span className="font-medium text-gray-700">
+                                  {/* <span className="font-medium text-gray-700">
                                     Business:
-                                  </span>
-                                  <span className="ml-2 text-gray-600">
+                                  </span> */}
+                                  {/* <span className="ml-2 text-gray-600">
                                     {lead.business_name}
-                                  </span>
+                                  </span> */}
                                 </div>
                               )}
 
@@ -1277,6 +1287,7 @@ function LeadManagement() {
                 <h3 className="text-lg font-medium text-gray-900">
                   Campaign Information
                 </h3>
+
                 <div>
                   <Label>Campaign</Label>
                   <div className="text-sm mt-1">
@@ -1297,6 +1308,37 @@ function LeadManagement() {
                 <h3 className="text-lg font-medium text-gray-900">
                   Lead Information
                 </h3>
+                <div>
+                  <Label>Status</Label>
+                  <Select
+                    value={(selectedLead.status || "new").replace("_", "-")}
+                    onValueChange={(value) =>
+                      setSelectedLead({
+                        ...selectedLead,
+                        // map dash to underscore for API/backend enum
+                        status: value.replace("-", "_") as any,
+                      })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="new">New</SelectItem>
+                      <SelectItem value="ready">Ready</SelectItem>
+                      <SelectItem value="pending-preview">
+                        Pending Preview
+                      </SelectItem>
+                      <SelectItem value="previewed">Previewed</SelectItem>
+                      <SelectItem value="lost">Lost</SelectItem>
+                      <SelectItem value="no-response">No Response</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+              
+                </div>
+
+
                 <div>
                   <Label>Lead ID</Label>
                   <div className="text-sm font-mono bg-gray-100 p-2 rounded mt-1">

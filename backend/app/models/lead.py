@@ -94,7 +94,9 @@ Contains lead data structures and campaign lead schemas.
 import uuid
 from datetime import datetime, timezone, date, time
 from typing import List, Optional
-from pydantic import BaseModel, Field, EmailStr, field_validator
+
+from pydantic import BaseModel, Field, EmailStr, field_validator, model_validator
+
 from .enums import LeadStatus, CampaignLeadStatus, CallOutcome
 from app.utils.validators import validate_us_phone
 
@@ -180,6 +182,23 @@ class Lead(BaseModel):
     # System Audit (CRM/System-managed)
     updated_by_shared: Optional[str] = None
     
+
+    @model_validator(mode='after')
+    def populate_legacy_fields(self):
+        """Populate legacy fields from new fields for backward compatibility."""
+        if not self.first_name and self.lead_first_name:
+            self.first_name = self.lead_first_name
+        if not self.last_name and self.lead_last_name:
+            self.last_name = self.lead_last_name
+        if not self.phone and self.lead_phone:
+            self.phone = self.lead_phone
+        if not self.email and self.lead_email:
+            self.email = self.lead_email
+        if not self.notes and self.leads_notes:
+            self.notes = self.leads_notes
+        return self
+
+
     class Config:
         """Pydantic configuration."""
         use_enum_values = True

@@ -28,19 +28,31 @@ class Database:
         Creates client and database references.
         """
         try:
-            # Create client with working SSL configuration for MongoDB Atlas
-            self.client = AsyncIOMotorClient(
-                settings.mongo_url,
-                tls=True,
-
-                tlsAllowInvalidCertificates=True,
-                connectTimeoutMS=settings.db_connect_timeout,
-                serverSelectionTimeoutMS=settings.db_server_selection_timeout,
-                socketTimeoutMS=settings.db_socket_timeout,
-                maxPoolSize=settings.db_max_pool_size,
-                retryWrites=True
-
-            )
+            # Determine if we should use SSL based on the connection string
+            use_ssl = "mongodb+srv://" in settings.mongo_url or "ssl=true" in settings.mongo_url.lower()
+            
+            # Create client with conditional SSL configuration
+            client_kwargs = {
+                "connectTimeoutMS": settings.db_connect_timeout,
+                "serverSelectionTimeoutMS": settings.db_server_selection_timeout,
+                "socketTimeoutMS": settings.db_socket_timeout,
+                "maxPoolSize": settings.db_max_pool_size,
+                "retryWrites": True
+            }
+            
+            # Only add SSL settings for MongoDB Atlas connections
+            if use_ssl:
+                client_kwargs.update({
+                    "tls": True
+                })
+                # In development we may tolerate self-signed certs. In production, do not.
+                if settings.environment != "production":
+                    client_kwargs["tlsAllowInvalidCertificates"] = True
+                logger.info("Using SSL connection for MongoDB Atlas (env=%s)", settings.environment)
+            else:
+                logger.info("Using non-SSL connection for local MongoDB")
+            
+            self.client = AsyncIOMotorClient(settings.mongo_url, **client_kwargs)
             self.database = self.client[settings.db_name]
             
             # Test connection
