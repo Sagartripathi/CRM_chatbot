@@ -45,7 +45,6 @@ function Dashboard(): React.ReactElement {
       setLoading(true);
 
       if (!user) {
-        console.log("User not authenticated, skipping dashboard data fetch");
         return;
       }
 
@@ -77,7 +76,6 @@ function Dashboard(): React.ReactElement {
       setRecentCampaigns(campaigns.slice(0, 5));
     } catch (error: any) {
       if (error.response?.status === 401 || error.response?.status === 403) {
-        console.log("Authentication error - user may need to log in");
         toast.error("Please log in to access dashboard data");
       } else {
         console.error("Error fetching dashboard data:", error);
