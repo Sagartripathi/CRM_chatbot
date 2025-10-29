@@ -359,6 +359,10 @@ function CampaignManagement() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [statsDialogOpen, setStatsDialogOpen] = useState(false);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  const [uploadFile, setUploadFile] = useState(null);
+  const [uploadClientId, setUploadClientId] = useState("");
+  const [uploadAgentId, setUploadAgentId] = useState("");
+  const [uploading, setUploading] = useState(false);
   const [selectedCampaign, setSelectedCampaign] = useState(null);
   const [selectedCampaignStats, setSelectedCampaignStats] = useState(null);
   // Sidebar managed by Layout component
@@ -626,6 +630,55 @@ function CampaignManagement() {
       fetchData();
     } catch (error) {
       toast.error(error.response?.data?.detail || "Failed to delete campaign");
+    }
+  };
+
+  const handleUploadCSV = async (e) => {
+    e.preventDefault();
+
+    if (!uploadFile) {
+      toast.error("Please select a CSV file");
+      return;
+    }
+
+    if (!uploadClientId) {
+      toast.error("Please select a client ID");
+      return;
+    }
+
+    if (!uploadAgentId) {
+      toast.error("Please select an agent ID");
+      return;
+    }
+
+    try {
+      setUploading(true);
+      const formData = new FormData();
+      formData.append("file", uploadFile);
+
+      const url = `/campaigns/upload-csv?client_id=${uploadClientId}&agent_id=${uploadAgentId}`;
+
+      const response = await apiClient.post(url, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      toast.success(response.data.message);
+      if (response.data.skipped_count > 0) {
+        toast.info(`${response.data.skipped_count} duplicates skipped`);
+      }
+      if (response.data.error_count > 0) {
+        toast.warning(`${response.data.error_count} rows had errors`);
+      }
+
+      setUploadDialogOpen(false);
+      setUploadFile(null);
+      setUploadClientId("");
+      setUploadAgentId("");
+      fetchData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || "Failed to upload CSV");
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -935,51 +988,87 @@ function CampaignManagement() {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4">
-            <div className="text-sm text-gray-600">
-              <p className="mb-2">CSV should contain the following columns:</p>
+          <form onSubmit={handleUploadCSV} className="space-y-4">
+            <div>
+              <Label htmlFor="csv-file">CSV File *</Label>
+              <Input
+                id="csv-file"
+                type="file"
+                accept=".csv"
+                onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
+                required
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Select a CSV file with campaign data
+              </p>
+            </div>
+
+            <div>
+              <Label htmlFor="upload-client-id">Client ID *</Label>
+              <Select
+                value={uploadClientId}
+                onValueChange={setUploadClientId}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select client ID" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="CLI-00001">CLI-00001</SelectItem>
+                  <SelectItem value="CLI-00002">CLI-00002</SelectItem>
+                  <SelectItem value="CLI-00003">CLI-00003</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="upload-agent-id">Agent ID *</Label>
+              <Select
+                value={uploadAgentId}
+                onValueChange={setUploadAgentId}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select agent ID" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="AGE-00001">AGE-00001</SelectItem>
+                  <SelectItem value="AGE-00002">AGE-00002</SelectItem>
+                  <SelectItem value="AGE-00003">AGE-00003</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
+              <p className="mb-2 font-medium">CSV should contain the following columns:</p>
               <ul className="list-disc list-inside space-y-1 text-xs">
-                <li>
-                  <strong>campaign_name</strong> - Name of the campaign
-                </li>
-                <li>
-                  <strong>campaign_description</strong> - Description of the
-                  campaign
-                </li>
-                <li>
-                  <strong>client_id</strong> - Client ID for the campaign
-                </li>
-                <li>
-                  <strong>agent_id</strong> - Agent ID for the campaign
-                </li>
-                <li>
-                  <strong>timezone_shared</strong> - Timezone (e.g.,
-                  "America/New_York")
-                </li>
-                <li>
-                  <strong>is_active</strong> - true/false for active status
-                </li>
+                <li><strong>campaign_name</strong> - Name of the campaign</li>
+                <li><strong>campaign_description</strong> - Description of the campaign</li>
+                <li><strong>timezone_shared</strong> - Timezone (optional, e.g., "America/New_York")</li>
+                <li><strong>is_active</strong> - true/false for active status (optional)</li>
               </ul>
             </div>
 
             <div className="flex justify-end space-x-3">
               <Button
+                type="button"
                 variant="outline"
-                onClick={() => setUploadDialogOpen(false)}
+                onClick={() => {
+                  setUploadDialogOpen(false);
+                  setUploadFile(null);
+                  setUploadClientId("");
+                  setUploadAgentId("");
+                }}
               >
                 Cancel
               </Button>
               <Button
-                onClick={() => {
-                  toast.info("CSV upload functionality coming soon!");
-                  setUploadDialogOpen(false);
-                }}
+                type="submit"
+                disabled={uploading}
                 className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
               >
-                Upload CSV
+                {uploading ? "Uploading..." : "Upload CSV"}
               </Button>
             </div>
-          </div>
+          </form>
         </DialogContent>
       </Dialog>
     </div>
