@@ -134,11 +134,15 @@ function LeadManagement() {
     if (searchTerm) {
       filtered = filtered.filter(
         (lead) =>
-          `${lead.first_name} ${lead.last_name}`
+          `${lead.lead_first_name || lead.first_name || ""} ${
+            lead.lead_last_name || lead.last_name || ""
+          }`
             .toLowerCase()
             .includes(searchTerm.toLowerCase()) ||
-          lead.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          lead.phone?.includes(searchTerm)
+          (lead.lead_email || lead.email)
+            ?.toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          (lead.lead_phone || lead.phone)?.includes(searchTerm)
       );
     }
 
@@ -244,11 +248,10 @@ function LeadManagement() {
         leadData.leads_notes = newLead.leads_notes;
         if (newLead.lead_email) leadData.lead_email = newLead.lead_email;
 
-        // Populate legacy fields for backward compatibility
-        leadData.first_name = newLead.lead_first_name;
-        leadData.last_name = newLead.lead_last_name;
-        leadData.phone = newLead.lead_phone;
-        if (newLead.lead_email) leadData.email = newLead.lead_email;
+        // Internal fields (will be set by backend)
+        leadData.batch_id = "";
+        leadData.updated_at_shared = "";
+        leadData.is_valid = "";
       } else if (newLead.lead_type === "organization") {
         leadData.business_name = newLead.business_name;
         leadData.business_phone = newLead.business_phone;
@@ -256,10 +259,10 @@ function LeadManagement() {
         if (newLead.business_summary)
           leadData.business_summary = newLead.business_summary;
 
-        // Populate legacy fields with organization info
-        leadData.first_name = newLead.business_name;
-        leadData.last_name = "";
-        leadData.phone = newLead.business_phone;
+        // Internal fields (will be set by backend)
+        leadData.batch_id = "";
+        leadData.updated_at_shared = "";
+        leadData.is_valid = "";
       }
 
       // Add optional legacy fields
@@ -957,14 +960,10 @@ function LeadManagement() {
                         <div className="h-full flex flex-col justify-center">
                           <div className="text-sm font-medium text-gray-900 mb-1">
                             {lead.lead_type === "individual"
-                              ? `${
-                                  lead.lead_first_name || lead.first_name || ""
-                                } ${
-                                  lead.lead_last_name || lead.last_name || ""
+                              ? `${lead.lead_first_name || ""} ${
+                                  lead.lead_last_name || ""
                                 }`.trim() || "No name"
-                              : lead.business_name ||
-                                lead.first_name ||
-                                "No business name"}
+                              : lead.business_name || "No business name"}
                           </div>
                           <div className="text-xs text-gray-500 flex items-center space-x-2">
                             <Badge
@@ -986,13 +985,13 @@ function LeadManagement() {
                           <div className="flex items-center space-x-1 h-5">
                             <Mail className="h-3 w-3 text-gray-400 flex-shrink-0" />
                             <span className="truncate max-w-xs text-gray-900">
-                              {lead.email || "No email"}
+                              {lead.lead_email || lead.email || "No email"}
                             </span>
                           </div>
                           <div className="flex items-center space-x-1 h-5">
                             <Phone className="h-3 w-3 text-gray-400 flex-shrink-0" />
                             <span className="text-gray-900">
-                              {lead.phone || "No phone"}
+                              {lead.lead_phone || lead.phone || "No phone"}
                             </span>
                           </div>
                         </div>
@@ -1587,11 +1586,15 @@ function LeadManagement() {
             <div className="space-y-4">
               <div className="p-4 bg-red-50 rounded-lg">
                 <h4 className="font-medium text-red-900">
-                  {selectedLead.first_name} {selectedLead.last_name}
+                  {selectedLead.lead_first_name ||
+                    selectedLead.first_name ||
+                    ""}{" "}
+                  {selectedLead.lead_last_name || selectedLead.last_name || ""}
                 </h4>
                 <p className="text-sm text-red-700 mt-1">
-                  {selectedLead.email || "No email"} •{" "}
-                  {selectedLead.phone || "No phone"}
+                  {selectedLead.lead_email || selectedLead.email || "No email"}{" "}
+                  •{" "}
+                  {selectedLead.lead_phone || selectedLead.phone || "No phone"}
                 </p>
               </div>
 
