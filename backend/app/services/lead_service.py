@@ -44,8 +44,8 @@ class LeadService:
         """
         # Check for duplicates by email or phone
         duplicate_lead = await self.lead_repo.check_duplicate_lead(
-            email=lead_data.email,
-            phone=lead_data.phone
+            email=lead_data.lead_email,
+            phone=lead_data.lead_phone
         )
         
         if duplicate_lead:
@@ -150,13 +150,13 @@ class LeadService:
             raise HTTPException(status_code=403, detail="Not authorized to update this lead")
         
         # Check for duplicates (excluding current lead)
-        if lead_data.email and lead_data.email != existing_lead.get("email"):
-            duplicate = await self.lead_repo.check_duplicate_lead(email=lead_data.email)
+        if lead_data.lead_email and lead_data.lead_email != existing_lead.get("email"):
+            duplicate = await self.lead_repo.check_duplicate_lead(email=lead_data.lead_email)
             if duplicate and duplicate["id"] != lead_id:
                 raise HTTPException(status_code=400, detail="Lead with this email already exists")
         
-        if lead_data.phone and lead_data.phone != existing_lead.get("phone"):
-            duplicate = await self.lead_repo.check_duplicate_lead(phone=lead_data.phone)
+        if lead_data.lead_phone and lead_data.lead_phone != existing_lead.get("phone"):
+            duplicate = await self.lead_repo.check_duplicate_lead(phone=lead_data.lead_phone)
             if duplicate and duplicate["id"] != lead_id:
                 raise HTTPException(status_code=400, detail="Lead with this phone already exists")
         
