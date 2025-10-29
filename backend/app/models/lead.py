@@ -139,10 +139,9 @@ class Lead(BaseModel):
     business_summary: Optional[str] = Field(None, max_length=240, description="Lead's Business Insight - optional for organization, max 240 chars")
     
     # Legacy fields (kept for backward compatibility)
-    first_name: str = ""  # Will be populated from lead_first_name or empty for organization
-    last_name: str = ""  # Will be populated from lead_last_name or empty for organization
-    phone: Optional[str] = None
-    email: Optional[EmailStr] = None
+    batch_id: str = ""
+    updated_at_shared: str = ""
+    is_valid: str = ""
     source: Optional[str] = None
     notes: Optional[str] = None
     status: LeadStatus = LeadStatus.NEW
@@ -186,14 +185,6 @@ class Lead(BaseModel):
     @model_validator(mode='after')
     def populate_legacy_fields(self):
         """Populate legacy fields from new fields for backward compatibility."""
-        if not self.first_name and self.lead_first_name:
-            self.first_name = self.lead_first_name
-        if not self.last_name and self.lead_last_name:
-            self.last_name = self.lead_last_name
-        if not self.phone and self.lead_phone:
-            self.phone = self.lead_phone
-        if not self.email and self.lead_email:
-            self.email = self.lead_email
         if not self.notes and self.leads_notes:
             self.notes = self.leads_notes
         return self
@@ -227,11 +218,12 @@ class LeadCreate(BaseModel):
     business_address: Optional[str] = Field(None, description="Business address - required if lead_type is organization")
     business_summary: Optional[str] = Field(None, max_length=240, description="Lead's Business Insight - optional for organization, max 240 chars")
     
+    # Internal fields
+    batch_id: str = ""
+    updated_at_shared: str = ""
+    is_valid: str = ""
+    
     # Legacy fields (for backward compatibility)
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
-    phone: Optional[str] = None
-    email: Optional[EmailStr] = None
     source: Optional[str] = None
     notes: Optional[str] = None
     status: LeadStatus = LeadStatus.NEW
