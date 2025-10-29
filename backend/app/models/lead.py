@@ -95,7 +95,9 @@ import uuid
 from datetime import datetime, timezone, date, time
 from typing import List, Optional
 
+
 from pydantic import BaseModel, Field, EmailStr, field_validator, model_validator
+
 
 from .enums import LeadStatus, CampaignLeadStatus, CallOutcome
 from app.utils.validators import validate_us_phone
@@ -183,6 +185,7 @@ class Lead(BaseModel):
     updated_by_shared: Optional[str] = None
     
 
+
     @model_validator(mode='after')
     def populate_legacy_fields(self):
         """Populate legacy fields from new fields for backward compatibility."""
@@ -197,6 +200,7 @@ class Lead(BaseModel):
         if not self.notes and self.leads_notes:
             self.notes = self.leads_notes
         return self
+
 
 
     class Config:

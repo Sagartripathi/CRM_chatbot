@@ -168,6 +168,7 @@ function LeadManagement() {
       setLeads(leadsResponse.data);
       setFilteredLeads(leadsResponse.data);
       setCampaigns(campaignsResponse.data);
+      console.log("Campaigns loaded:", campaignsResponse.data);
     } catch (error: any) {
       if (error.response?.status === 401 || error.response?.status === 403) {
         toast.error("Please log in to access leads data");
@@ -186,6 +187,7 @@ function LeadManagement() {
     // Validate mandatory fields
     if (!newLead.campaign_name.trim() || !newLead.campaign_id.trim()) {
       toast.error("Campaign is required");
+
       return;
     }
 
@@ -194,7 +196,7 @@ function LeadManagement() {
       return;
     }
 
-    // Validate conditional fields based on lead type
+conditional fields based on lead type
     if (newLead.lead_type === "individual") {
       if (!newLead.lead_first_name.trim()) {
         toast.error("First Name is required for individual leads");
@@ -263,7 +265,9 @@ function LeadManagement() {
       }
 
       // Add optional legacy fields
+
       leadData.source = "manual_form"; // Set source for form-created leads
+
       if (newLead.notes) leadData.notes = newLead.notes;
 
       // Voice Bot Contact fields
@@ -329,6 +333,7 @@ function LeadManagement() {
 
       if (newLead.updated_by_shared)
         leadData.updated_by_shared = newLead.updated_by_shared;
+
 
       await apiClient.post("/leads/", leadData);
       toast.success("Lead created successfully!");
@@ -636,6 +641,7 @@ function LeadManagement() {
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleCreateLead} className="space-y-4">
+
             {/* Campaign Information Section - At the top */}
             <div className="space-y-3 border-b pb-4">
               <h3 className="text-lg font-medium text-gray-900">
@@ -953,14 +959,17 @@ function LeadManagement() {
                       className="hover:bg-gray-50 h-20"
                       data-testid={`lead-row-${lead.id}`}
                     >
+
                       <td className="px-6 py-4 whitespace-nowrap h-20">
                         <div className="h-full flex flex-col justify-center">
                           <div className="text-sm font-medium text-gray-900 mb-1">
+
                             {lead.lead_type === "individual"
                               ? `${
                                   lead.lead_first_name || lead.first_name || ""
                                 } ${
                                   lead.lead_last_name || lead.last_name || ""
+
                                 }`.trim() || "No name"
                               : lead.business_name ||
                                 lead.first_name ||
@@ -975,6 +984,7 @@ function LeadManagement() {
                             </Badge>
                             {lead.lead_id && (
                               <span className="font-mono text-xs text-gray-400">
+
                                 {lead.lead_id}
                               </span>
                             )}
@@ -1011,6 +1021,7 @@ function LeadManagement() {
                           )}
                         </div>
                       </td>
+
                       <td className="px-6 py-4 whitespace-nowrap h-20">
                         <div className="h-full flex items-center">
                           <Badge
@@ -1021,6 +1032,7 @@ function LeadManagement() {
                             {lead.status.replace("_", " ")}
                           </Badge>
                         </div>
+
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap h-20">
                         <div className="h-full flex items-center">
@@ -1319,6 +1331,7 @@ function LeadManagement() {
                   Campaign Information
                 </h3>
 
+
                 <div>
                   <Label>Campaign</Label>
                   <div className="text-sm mt-1">
@@ -1365,7 +1378,9 @@ function LeadManagement() {
                       <SelectItem value="no-response">No Response</SelectItem>
                     </SelectContent>
                   </Select>
+
                 </div>
+
 
                 <div>
                   <Label>Lead ID</Label>

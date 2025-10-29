@@ -24,15 +24,15 @@ class Campaign(BaseModel):
     # System ID (internal use)
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     
-    # Campaign Info (Mandatory)
+    # Campaign Info
     campaign_id: str = Field(default_factory=generate_campaign_id)
-    campaign_name: str
-    campaign_description: str  # Mandatory
-    client_id: str = Field(..., description="Client ID - must be one of: CLI-00001, CLI-00002, CLI-00003")
-    agent_id: str = Field(..., description="Agent ID - must be one of: AGE-00001, AGE-00002, AGE-00003")
+    campaign_name: Optional[str] = None  # Optional for backward compatibility with old data
+    campaign_description: Optional[str] = None  # Optional for backward compatibility with old data
+    client_id: Optional[str] = Field(None, description="Client ID - must be one of: CLI-00001, CLI-00002, CLI-00003")
+    agent_id: Optional[str] = Field(None, description="Agent ID - must be one of: AGE-00001, AGE-00002, AGE-00003")
     
     # Legacy field for backward compatibility
-    created_by: str  # User ID
+    created_by: Optional[str] = None  # Optional for backward compatibility with old data
     
     # Legacy fields (deprecated, kept for backward compatibility)
     name: Optional[str] = None  # Use campaign_name instead

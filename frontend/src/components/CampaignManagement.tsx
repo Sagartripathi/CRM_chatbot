@@ -787,6 +787,7 @@ function CampaignManagement() {
               />
             </div>
 
+
             {/* Client and Agent IDs */}
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -818,6 +819,7 @@ function CampaignManagement() {
                     setNewCampaign({
                       ...newCampaign,
                       agent_id: value,
+
                     })
                   }
                 >
@@ -836,6 +838,7 @@ function CampaignManagement() {
             {/* Timezone & Status */}
             <div className="grid grid-cols-2 gap-4">
               <div>
+
                 <Label htmlFor="timezone">Timezone</Label>
                 <Select
                   value={newCampaign.timezone_shared || ""}
@@ -843,6 +846,7 @@ function CampaignManagement() {
                     setNewCampaign({
                       ...newCampaign,
                       timezone_shared: value,
+
                     })
                   }
                 >
@@ -904,6 +908,7 @@ function CampaignManagement() {
                 </Select>
               </div>
             </div>
+
 
             {/* Call Scheduling */}
             <div className="pt-4 border-t space-y-3">
@@ -1075,6 +1080,7 @@ function CampaignManagement() {
         </DialogContent>
       </Dialog>
     </div>
+
   );
 
   return (
