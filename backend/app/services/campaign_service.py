@@ -4,7 +4,9 @@ Handles business logic for campaign operations.
 """
 
 from typing import List, Optional
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, UploadFile
+import csv
+import io
 from app.models import (
     Campaign, CampaignCreate, CampaignUpdate, CampaignLead, CallLog, CallLogCreate,
     User, UserRole, NextLeadResponse, Lead
@@ -276,3 +278,173 @@ class CampaignService:
         await self.campaign_repo.delete_campaign(campaign_id)
         
         return {"message": "Campaign deleted successfully"}
+    
+    async def upload_campaigns_csv(
+        self,
+        file: UploadFile,
+        current_user: User,
+        client_id: str,
+        agent_id: str
+    ) -> dict:
+        """
+        Upload campaigns from CSV file.
+        
+        Args:
+            file: CSV file upload
+            current_user: Current authenticated user
+            client_id: Client ID to assign to all campaigns
+            agent_id: Agent ID to assign to all campaigns
+            
+        Returns:
+            dict: Upload results with statistics
+            
+        Raises:
+            HTTPException: If file format is invalid or required columns missing
+        """
+        # Validate file type
+        if not file.filename:
+            raise HTTPException(status_code=400, detail="No file provided")
+        
+        if not file.filename.lower().endswith('.csv'):
+            raise HTTPException(status_code=400, detail=f"File must be a CSV file. Received: {file.filename}")
+        
+        # Validate client_id and agent_id
+        allowed_clients = ['CLI-00001', 'CLI-00002', 'CLI-00003']
+        if client_id not in allowed_clients:
+            raise HTTPException(
+                status_code=400,
+                detail=f"client_id must be one of: {', '.join(allowed_clients)}"
+            )
+        
+        allowed_agents = ['AGE-00001', 'AGE-00002', 'AGE-00003']
+        if agent_id not in allowed_agents:
+            raise HTTPException(
+                status_code=400,
+                detail=f"agent_id must be one of: {', '.join(allowed_agents)}"
+            )
+        
+        # Read CSV content with multiple encoding support
+        try:
+            contents = await file.read()
+            
+            # Try different encodings
+            decoded = None
+            encodings_to_try = ['utf-8', 'utf-8-sig', 'latin1', 'cp1252', 'iso-8859-1']
+            
+            for encoding in encodings_to_try:
+                try:
+                    decoded = contents.decode(encoding)
+                    break
+                except UnicodeDecodeError:
+                    continue
+            
+            if decoded is None:
+                raise HTTPException(status_code=400, detail="Could not decode CSV file. Please ensure the file is saved as UTF-8 or a compatible encoding.")
+            
+            csv_reader = csv.DictReader(io.StringIO(decoded))
+            
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Error reading CSV file: {str(e)}")
+        
+        # Validate required columns
+        required_columns = {'campaign_name', 'campaign_description'}
+        if not required_columns.issubset(set(csv_reader.fieldnames or [])):
+            raise HTTPException(
+                status_code=400,
+                detail=f"CSV must contain columns: {', '.join(required_columns)}"
+            )
+        
+        created_campaigns = []
+        skipped_campaigns = []
+        errors = []
+        
+        # Valid timezone values
+        valid_timezones = [
+            'America/New_York', 'America/Chicago', 'America/Denver',
+            'America/Los_Angeles', 'America/Anchorage', 'Pacific/Honolulu',
+            'America/Toronto', 'America/Winnipeg', 'America/Edmonton',
+            'America/Vancouver'
+        ]
+        
+        for row_num, row in enumerate(csv_reader, start=2):
+            try:
+                # Validate required fields
+                if not row.get('campaign_name') or not row['campaign_name'].strip():
+                    errors.append(f"Row {row_num}: campaign_name is required")
+                    continue
+                
+                if not row.get('campaign_description') or not row['campaign_description'].strip():
+                    errors.append(f"Row {row_num}: campaign_description is required")
+                    continue
+                
+                # Validate timezone if provided
+                timezone_shared = row.get('timezone_shared', '').strip()
+                if timezone_shared and timezone_shared not in valid_timezones:
+                    errors.append(f"Row {row_num}: Invalid timezone '{timezone_shared}'. Must be one of: {', '.join(valid_timezones)}")
+                    continue
+                
+                # Parse is_active
+                is_active = False
+                if row.get('is_active'):
+                    is_active_str = str(row.get('is_active', '')).lower().strip()
+                    if is_active_str in ['true', '1', 'yes']:
+                        is_active = True
+                    elif is_active_str in ['false', '0', 'no', '']:
+                        is_active = False
+                    else:
+                        errors.append(f"Row {row_num}: Invalid is_active value '{row.get('is_active')}'. Must be true/false")
+                        continue
+                
+                # Parse call scheduling fields
+                start_call = row.get('start_call', '').strip() or None
+                call_created_at = row.get('call_created_at', '').strip() or None
+                call_updated_at = row.get('call_updated_at', '').strip() or None
+                
+                # Validate datetime formats if provided
+                if call_created_at:
+                    try:
+                        from datetime import datetime
+                        datetime.fromisoformat(call_created_at.replace('Z', '+00:00'))
+                    except ValueError:
+                        errors.append(f"Row {row_num}: Invalid call_created_at format '{call_created_at}'. Use YYYY-MM-DDTHH:MM format")
+                        continue
+                
+                if call_updated_at:
+                    try:
+                        from datetime import datetime
+                        datetime.fromisoformat(call_updated_at.replace('Z', '+00:00'))
+                    except ValueError:
+                        errors.append(f"Row {row_num}: Invalid call_updated_at format '{call_updated_at}'. Use YYYY-MM-DDTHH:MM format")
+                        continue
+                
+                # Create campaign
+                campaign_data = CampaignCreate(
+                    campaign_name=row['campaign_name'].strip(),
+                    campaign_description=row['campaign_description'].strip(),
+                    client_id=client_id,
+                    agent_id=agent_id,
+                    timezone_shared=timezone_shared if timezone_shared else None,
+                    is_active=is_active,
+                    start_call=start_call,
+                    call_created_at=call_created_at,
+                    call_updated_at=call_updated_at,
+                    lead_ids=[]  # No leads from CSV, can be added later
+                )
+                
+                campaign = await self.campaign_repo.create_campaign(campaign_data, current_user.id)
+                created_campaigns.append(campaign.dict() if hasattr(campaign, 'dict') else campaign)
+                
+            except Exception as e:
+                errors.append(f"Row {row_num}: {str(e)}")
+        
+        return {
+            "message": f"Upload complete: {len(created_campaigns)} campaigns created",
+            "created_count": len(created_campaigns),
+            "skipped_count": len(skipped_campaigns),
+            "error_count": len(errors),
+            "client_id": client_id,
+            "agent_id": agent_id,
+            "created_campaigns": created_campaigns[:10],  # Return first 10 for preview
+            "skipped": skipped_campaigns[:10],
+            "errors": errors[:10]
+        }

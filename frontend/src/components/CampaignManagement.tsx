@@ -1044,6 +1044,9 @@ function CampaignManagement() {
                 <li><strong>campaign_description</strong> - Description of the campaign</li>
                 <li><strong>timezone_shared</strong> - Timezone (optional, e.g., "America/New_York")</li>
                 <li><strong>is_active</strong> - true/false for active status (optional)</li>
+                <li><strong>start_call</strong> - API trigger for start call (optional)</li>
+                <li><strong>call_created_at</strong> - Call created date/time (optional, format: YYYY-MM-DDTHH:MM)</li>
+                <li><strong>call_updated_at</strong> - Call updated date/time (optional, format: YYYY-MM-DDTHH:MM)</li>
               </ul>
             </div>
 
