@@ -65,15 +65,15 @@ class CampaignRepository:
     
     async def get_campaign_by_id(self, campaign_id: str) -> Optional[dict]:
         """
-        Get campaign by ID.
+        Get campaign by campaign_id (e.g., C-XXXXX).
         
         Args:
-            campaign_id: Campaign's unique identifier
+            campaign_id: Campaign's unique identifier (e.g., C-XXXXX)
             
         Returns:
             Optional[dict]: Campaign document if found, None otherwise
         """
-        return await self.campaigns.find_one({"id": campaign_id})
+        return await self.campaigns.find_one({"campaign_id": campaign_id})
     
     async def get_campaigns_by_user(self, user_id: str, user_role: str) -> List[dict]:
         """

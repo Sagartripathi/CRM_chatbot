@@ -4,12 +4,12 @@ Handles lead CRUD operations and CSV upload.
 """
 
 from typing import List, Optional
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
+from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, Query
 from app.models import (
     Lead, LeadCreate, User, UserRole, LeadStatus, NextLeadResponse
 )
 from app.services import LeadService
-from app.repositories import LeadRepository, UserRepository
+from app.repositories import LeadRepository, UserRepository, CampaignRepository
 from app.database import db
 from app.dependencies import get_current_user
 
@@ -26,7 +26,8 @@ def get_lead_service() -> LeadService:
     """
     lead_repo = LeadRepository(db.database)
     user_repo = UserRepository(db.database)
-    return LeadService(lead_repo, user_repo)
+    campaign_repo = CampaignRepository(db.database)
+    return LeadService(lead_repo, user_repo, campaign_repo)
 
 
 @router.post("/", response_model=Lead)
@@ -150,7 +151,7 @@ async def delete_lead(
 @router.post("/upload-csv")
 async def upload_leads_csv(
     file: UploadFile = File(...),
-    campaign_id: Optional[str] = None,
+    campaign_id: str = Query(..., description="Campaign ID to assign all leads to"),
     current_user: User = Depends(get_current_user),
     lead_service: LeadService = Depends(get_lead_service)
 ):
@@ -159,7 +160,7 @@ async def upload_leads_csv(
     
     Args:
         file: CSV file upload
-        campaign_id: Optional campaign ID to assign leads to
+        campaign_id: Campaign ID to assign all leads to (mandatory)
         current_user: Current authenticated user
         lead_service: Lead service dependency
         
