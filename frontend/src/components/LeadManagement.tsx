@@ -1039,7 +1039,7 @@ function LeadManagement() {
                       </td>
                     </tr>
 
-                    {/* Call Tracking Section - commented out for now
+                    {/* Call Tracking Section - commented out for now */}
                     {false && (lead.call_status_vb ||
                       lead.business_name ||
                       lead.conversation_summary_vb ||
@@ -1121,7 +1121,6 @@ function LeadManagement() {
                         </td>
                       </tr>
                     )}
-                    */}
                   </React.Fragment>
                 ))}
               </tbody>
