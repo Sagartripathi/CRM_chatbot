@@ -41,6 +41,7 @@ import {
   Eye,
   Edit,
   Trash2,
+  FileText,
 } from "lucide-react";
 
 // DateTimePicker Component
@@ -357,6 +358,7 @@ function CampaignManagement() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [statsDialogOpen, setStatsDialogOpen] = useState(false);
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [selectedCampaign, setSelectedCampaign] = useState(null);
   const [selectedCampaignStats, setSelectedCampaignStats] = useState(null);
   // Sidebar managed by Layout component
@@ -649,16 +651,30 @@ function CampaignManagement() {
   }
 
   const headerActions = (
-    <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-      <DialogTrigger asChild>
-        <Button
-          data-testid="create-campaign-btn"
-          className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 btn-hover"
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          New Campaign
-        </Button>
-      </DialogTrigger>
+    <div className="flex items-center space-x-3">
+      <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
+        <DialogTrigger asChild>
+          <Button
+            variant="outline"
+            data-testid="upload-csv-btn"
+            className="border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+          >
+            <FileText className="mr-2 h-4 w-4" />
+            Upload CSV
+          </Button>
+        </DialogTrigger>
+      </Dialog>
+      
+      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+        <DialogTrigger asChild>
+          <Button
+            data-testid="create-campaign-btn"
+            className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 btn-hover"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            New Campaign
+          </Button>
+        </DialogTrigger>
       <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Create New Campaign</DialogTitle>
@@ -909,6 +925,50 @@ function CampaignManagement() {
         </form>
       </DialogContent>
     </Dialog>
+    
+    <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Upload Campaigns CSV</DialogTitle>
+          <DialogDescription>
+            Upload a CSV file to create multiple campaigns at once
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div className="space-y-4">
+          <div className="text-sm text-gray-600">
+            <p className="mb-2">CSV should contain the following columns:</p>
+            <ul className="list-disc list-inside space-y-1 text-xs">
+              <li><strong>campaign_name</strong> - Name of the campaign</li>
+              <li><strong>campaign_description</strong> - Description of the campaign</li>
+              <li><strong>client_id</strong> - Client ID for the campaign</li>
+              <li><strong>agent_id</strong> - Agent ID for the campaign</li>
+              <li><strong>timezone_shared</strong> - Timezone (e.g., "America/New_York")</li>
+              <li><strong>is_active</strong> - true/false for active status</li>
+            </ul>
+          </div>
+          
+          <div className="flex justify-end space-x-3">
+            <Button
+              variant="outline"
+              onClick={() => setUploadDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                toast.info("CSV upload functionality coming soon!");
+                setUploadDialogOpen(false);
+              }}
+              className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+            >
+              Upload CSV
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+    </div>
   );
 
   return (
