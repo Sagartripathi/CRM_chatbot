@@ -897,11 +897,15 @@ function LeadManagement() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Sources</SelectItem>
-              {getUniqueValues("source").map((source) => (
-                <SelectItem key={source} value={source}>
-                  {source}
-                </SelectItem>
-              ))}
+              <SelectItem value="manual_form">Manual Form</SelectItem>
+              <SelectItem value="csv_upload">CSV Upload</SelectItem>
+              {getUniqueValues("source")
+                .filter(source => source !== "manual_form" && source !== "csv_upload")
+                .map((source) => (
+                  <SelectItem key={source} value={source}>
+                    {source}
+                  </SelectItem>
+                ))}
             </SelectContent>
           </Select>
         </div>
@@ -1009,8 +1013,31 @@ function LeadManagement() {
                           {lead.status.replace("_", " ")}
                         </Badge>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {lead.source || "-"}
+                      <td className="px-6 py-4 whitespace-nowrap h-20">
+                        <div className="h-full flex items-center">
+                          {lead.source ? (
+                            <Badge
+                              variant="outline"
+                              className={`text-xs ${
+                                lead.source === "csv_upload"
+                                  ? "bg-blue-50 text-blue-700 border-blue-200"
+                                  : lead.source === "manual_form"
+                                  ? "bg-green-50 text-green-700 border-green-200"
+                                  : "bg-gray-50 text-gray-700 border-gray-200"
+                              }`}
+                            >
+                              {lead.source === "csv_upload"
+                                ? "CSV Upload"
+                                : lead.source === "manual_form"
+                                ? "Manual Form"
+                                : lead.source}
+                            </Badge>
+                          ) : (
+                            <span className="text-gray-400 italic">
+                              Not specified
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex items-center justify-end space-x-2">
