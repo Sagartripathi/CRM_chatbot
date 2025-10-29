@@ -65,14 +65,20 @@ class CampaignRepository:
     
     async def get_campaign_by_id(self, campaign_id: str) -> Optional[dict]:
         """
-        Get campaign by campaign_id (e.g., C-XXXXX).
+        Get campaign by ID (either MongoDB id or campaign_id).
         
         Args:
-            campaign_id: Campaign's unique identifier (e.g., C-XXXXX)
+            campaign_id: Campaign's unique identifier (MongoDB id or campaign_id like C-XXXXX)
             
         Returns:
             Optional[dict]: Campaign document if found, None otherwise
         """
+        # Try to find by MongoDB id first (UUID format)
+        campaign = await self.campaigns.find_one({"id": campaign_id})
+        if campaign:
+            return campaign
+        
+        # If not found, try to find by campaign_id (C-XXXXX format)
         return await self.campaigns.find_one({"campaign_id": campaign_id})
     
     async def get_campaigns_by_user(self, user_id: str, user_role: str) -> List[dict]:
@@ -155,7 +161,14 @@ class CampaignRepository:
             update_data["total_leads"] = total_leads_count
         
         update_data = prepare_for_mongo(update_data)
-        await self.campaigns.update_one({"id": campaign_id}, {"$set": update_data})
+        
+        # Find the campaign first to get the correct MongoDB id
+        campaign = await self.get_campaign_by_id(campaign_id)
+        if not campaign:
+            return None
+        
+        # Update using the MongoDB id
+        await self.campaigns.update_one({"id": campaign["id"]}, {"$set": update_data})
         
         return await self.get_campaign_by_id(campaign_id)
     
@@ -164,22 +177,32 @@ class CampaignRepository:
         Delete a campaign and all related data.
         
         Args:
-            campaign_id: Campaign's unique identifier
+            campaign_id: Campaign's unique identifier (MongoDB id or campaign_id)
             
         Returns:
             bool: True if campaign was deleted, False otherwise
         """
-        # Delete campaign leads and call logs
-        await self.campaign_leads.delete_many({"campaign_id": campaign_id})
+        # First, get the campaign to find the correct campaign_id for related data
+        campaign = await self.get_campaign_by_id(campaign_id)
+        if not campaign:
+            return False
         
-        # Delete call logs for this campaign
-        campaign_lead_ids = await self.campaign_leads.find({"campaign_id": campaign_id}).to_list(settings.max_page_size)
-        if campaign_lead_ids:
-            campaign_lead_id_list = [cl["id"] for cl in campaign_lead_ids]
-            await self.call_logs.delete_many({"campaign_lead_id": {"$in": campaign_lead_id_list}})
+        # Use the actual campaign_id from the document for related data deletion
+        actual_campaign_id = campaign.get("campaign_id")
+        campaign_mongo_id = campaign.get("id")
         
-        # Delete the campaign
-        result = await self.campaigns.delete_one({"id": campaign_id})
+        # Delete campaign leads and call logs using the campaign_id
+        if actual_campaign_id:
+            await self.campaign_leads.delete_many({"campaign_id": actual_campaign_id})
+            
+            # Delete call logs for this campaign
+            campaign_lead_ids = await self.campaign_leads.find({"campaign_id": actual_campaign_id}).to_list(settings.max_page_size)
+            if campaign_lead_ids:
+                campaign_lead_id_list = [cl["id"] for cl in campaign_lead_ids]
+                await self.call_logs.delete_many({"campaign_lead_id": {"$in": campaign_lead_id_list}})
+        
+        # Delete the campaign using MongoDB id
+        result = await self.campaigns.delete_one({"id": campaign_mongo_id})
         return result.deleted_count > 0
     
     async def get_next_campaign_lead(self, campaign_id: str, agent_id: str) -> Optional[dict]:
