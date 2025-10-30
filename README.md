@@ -1,4 +1,4 @@
-# CRM Chatbot Application
+# Lw&w
 
 A modern Customer Relationship Management (CRM) system with AI-powered chatbot capabilities built with FastAPI (backend) and React (frontend).
 
