@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "sonner";
 
@@ -14,6 +14,9 @@ import CampaignDetail from "./components/CampaignDetail";
 
 // Context
 import { AuthProvider, useAuth, apiClient } from "./contexts/AuthContext";
+
+// Services
+import { startKeepAlive, stopKeepAlive } from "./services/keepAliveService";
 
 const BACKEND_URL =
   process.env.REACT_APP_BACKEND_URL || "http://localhost:8000";
@@ -140,6 +143,16 @@ function AppRoutes(): React.ReactElement {
 }
 
 function App(): React.ReactElement {
+  // Start keep-alive service to prevent Render free tier from spinning down
+  useEffect(() => {
+    startKeepAlive();
+
+    // Cleanup on unmount
+    return () => {
+      stopKeepAlive();
+    };
+  }, []);
+
   return (
     <AuthProvider>
       <BrowserRouter>
