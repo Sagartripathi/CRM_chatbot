@@ -146,7 +146,7 @@ function App(): React.ReactElement {
   // Start keep-alive service to prevent Render free tier from spinning down
   useEffect(() => {
     startKeepAlive();
-    
+
     // Cleanup on unmount
     return () => {
       stopKeepAlive();
