@@ -63,7 +63,7 @@ async def migrate_leads():
                 "$set": {
                     "batch_id": "",
                     "updated_at_shared": "",
-                    "is_valid": ""
+                    "is_valid": True
                 }
             }
         )

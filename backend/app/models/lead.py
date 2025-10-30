@@ -141,7 +141,7 @@ class Lead(BaseModel):
     # Legacy fields (kept for backward compatibility)
     batch_id: str = ""
     updated_at_shared: str = ""
-    is_valid: str = ""
+    is_valid: bool = True
     source: Optional[str] = None
     notes: Optional[str] = None
     status: LeadStatus = LeadStatus.NEW
@@ -221,7 +221,7 @@ class LeadCreate(BaseModel):
     # Internal fields
     batch_id: str = ""
     updated_at_shared: str = ""
-    is_valid: str = ""
+    is_valid: bool = True
     
     # Legacy fields (for backward compatibility)
     source: Optional[str] = None
