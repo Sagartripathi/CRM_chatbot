@@ -79,7 +79,7 @@ function GlobalSidebar({ isOpen, onClose, className = "" }) {
     <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 lg:static lg:inset-0 ${className}`}>
       {/* Header */}
       <div className="flex items-center justify-between h-16 px-6 border-b">
-        <h1 className="text-xl font-bold text-gray-900">CRM Platform</h1>
+        <h1 className="text-xl font-bold text-gray-900">Lw&w</h1>
         <Button
           variant="ghost"
           size="sm"
