@@ -142,7 +142,8 @@ function LeadManagement() {
           (lead.lead_email || lead.email)
             ?.toLowerCase()
             .includes(searchTerm.toLowerCase()) ||
-          (lead.lead_phone || lead.phone)?.includes(searchTerm)
+          (lead.lead_phone || lead.phone)?.includes(searchTerm) ||
+          lead.campaign_name?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -253,7 +254,6 @@ function LeadManagement() {
         leadData.updated_at_shared = "";
 
         leadData.is_valid = true;
-
       } else if (newLead.lead_type === "organization") {
         leadData.business_name = newLead.business_name;
         leadData.business_phone = newLead.business_phone;
@@ -266,7 +266,6 @@ function LeadManagement() {
         leadData.updated_at_shared = "";
 
         leadData.is_valid = true;
-
       }
 
       // Add optional legacy fields
@@ -870,7 +869,7 @@ function LeadManagement() {
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
-              placeholder="Search leads by name, email, or phone..."
+              placeholder="Search leads by name, email, phone, or campaign..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
