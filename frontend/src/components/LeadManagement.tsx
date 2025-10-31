@@ -40,6 +40,7 @@ import {
   FileText,
   Edit,
   Trash2,
+  Building2,
 } from "lucide-react";
 
 function LeadManagement() {
@@ -889,8 +890,8 @@ function LeadManagement() {
               <SelectItem value="all">All Statuses</SelectItem>
               <SelectItem value="new">New</SelectItem>
               <SelectItem value="ready">Ready</SelectItem>
-              <SelectItem value="pending_preview">Pending Preview</SelectItem>
-              <SelectItem value="previewed">Previewed</SelectItem>
+              <SelectItem value="pending_preview">Pending Review</SelectItem>
+              <SelectItem value="previewed">Reviewed</SelectItem>
               <SelectItem value="lost">Lost</SelectItem>
               <SelectItem value="no_response">No Response</SelectItem>
             </SelectContent>
@@ -985,18 +986,37 @@ function LeadManagement() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap h-20">
                         <div className="h-full flex flex-col justify-center space-y-1">
-                          <div className="flex items-center space-x-1 h-5">
-                            <Mail className="h-3 w-3 text-gray-400 flex-shrink-0" />
-                            <span className="truncate max-w-xs text-gray-900">
-                              {lead.lead_email || lead.email || "No email"}
-                            </span>
-                          </div>
-                          <div className="flex items-center space-x-1 h-5">
-                            <Phone className="h-3 w-3 text-gray-400 flex-shrink-0" />
-                            <span className="text-gray-900">
-                              {lead.lead_phone || lead.phone || "No phone"}
-                            </span>
-                          </div>
+                          {lead.lead_type === "individual" ? (
+                            <>
+                              <div className="flex items-center space-x-1 h-5">
+                                <Mail className="h-3 w-3 text-gray-400 flex-shrink-0" />
+                                <span className="truncate max-w-xs text-gray-900">
+                                  {lead.lead_email || lead.email || "No email"}
+                                </span>
+                              </div>
+                              <div className="flex items-center space-x-1 h-5">
+                                <Phone className="h-3 w-3 text-gray-400 flex-shrink-0" />
+                                <span className="text-gray-900">
+                                  {lead.lead_phone || lead.phone || "No phone"}
+                                </span>
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <div className="flex items-center space-x-1 h-5">
+                                <Building2 className="h-3 w-3 text-gray-400 flex-shrink-0" />
+                                <span className="truncate max-w-xs text-gray-900">
+                                  {lead.business_name || "No business name"}
+                                </span>
+                              </div>
+                              <div className="flex items-center space-x-1 h-5">
+                                <Phone className="h-3 w-3 text-gray-400 flex-shrink-0" />
+                                <span className="text-gray-900">
+                                  {lead.business_phone || "No phone"}
+                                </span>
+                              </div>
+                            </>
+                          )}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap h-20">
@@ -1360,9 +1380,9 @@ function LeadManagement() {
                       <SelectItem value="new">New</SelectItem>
                       <SelectItem value="ready">Ready</SelectItem>
                       <SelectItem value="pending-preview">
-                        Pending Preview
+                        Pending Review
                       </SelectItem>
-                      <SelectItem value="previewed">Previewed</SelectItem>
+                      <SelectItem value="previewed">Reviewed</SelectItem>
                       <SelectItem value="lost">Lost</SelectItem>
                       <SelectItem value="no-response">No Response</SelectItem>
                     </SelectContent>
@@ -1589,15 +1609,32 @@ function LeadManagement() {
             <div className="space-y-4">
               <div className="p-4 bg-red-50 rounded-lg">
                 <h4 className="font-medium text-red-900">
-                  {selectedLead.lead_first_name ||
-                    selectedLead.first_name ||
-                    ""}{" "}
-                  {selectedLead.lead_last_name || selectedLead.last_name || ""}
+                  {selectedLead.lead_type === "individual"
+                    ? `${
+                        selectedLead.lead_first_name ||
+                        selectedLead.first_name ||
+                        ""
+                      } ${
+                        selectedLead.lead_last_name ||
+                        selectedLead.last_name ||
+                        ""
+                      }`.trim() || "No name"
+                    : selectedLead.business_name || "No business name"}
                 </h4>
                 <p className="text-sm text-red-700 mt-1">
-                  {selectedLead.lead_email || selectedLead.email || "No email"}{" "}
-                  •{" "}
-                  {selectedLead.lead_phone || selectedLead.phone || "No phone"}
+                  {selectedLead.lead_type === "individual" ? (
+                    <>
+                      {selectedLead.lead_email ||
+                        selectedLead.email ||
+                        "No email"}{" "}
+                      •{" "}
+                      {selectedLead.lead_phone ||
+                        selectedLead.phone ||
+                        "No phone"}
+                    </>
+                  ) : (
+                    <>{selectedLead.business_phone || "No phone"}</>
+                  )}
                 </p>
               </div>
 

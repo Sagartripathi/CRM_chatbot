@@ -76,9 +76,9 @@ function GlobalSidebar({ isOpen, onClose, className = "" }) {
   };
 
   return (
-    <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 lg:static lg:inset-0 ${className}`}>
+    <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 lg:static lg:inset-0 ${className} flex flex-col`}>
       {/* Header */}
-      <div className="flex items-center justify-between h-16 px-6 border-b">
+      <div className="flex items-center justify-between h-16 px-6 border-b flex-shrink-0">
         <h1 className="text-xl font-bold text-gray-900">Lw&w</h1>
         <Button
           variant="ghost"
@@ -91,7 +91,7 @@ function GlobalSidebar({ isOpen, onClose, className = "" }) {
       </div>
       
       {/* Navigation */}
-      <nav className="mt-6 px-4 space-y-2">
+      <nav className="mt-6 px-4 space-y-2 flex-1 overflow-y-auto">
         {visibleItems.map((item) => {
           const Icon = item.icon;
           const isActive = isActivePath(item.path);
@@ -113,38 +113,38 @@ function GlobalSidebar({ isOpen, onClose, className = "" }) {
             </Button>
           );
         })}
-      </nav>
-      
-      {/* User Profile & Logout */}
-      <div className="absolute bottom-4 left-4 right-4">
-        <div className="bg-gray-50 rounded-lg p-4">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center">
-              <span className="text-white text-sm font-medium">
-                {user?.first_name?.[0]}{user?.last_name?.[0]}
-              </span>
+        
+        {/* User Profile & Logout - Below Support */}
+        <div className="mt-2 pt-4 border-t">
+          <div className="bg-gray-50 rounded-lg p-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center">
+                <span className="text-white text-sm font-medium">
+                  {user?.first_name?.[0]}{user?.last_name?.[0]}
+                </span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 truncate">
+                  {user?.first_name} {user?.last_name}
+                </p>
+                <Badge variant="secondary" className="text-xs">
+                  {user?.role}
+                </Badge>
+              </div>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">
-                {user?.first_name} {user?.last_name}
-              </p>
-              <Badge variant="secondary" className="text-xs">
-                {user?.role}
-              </Badge>
-            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full mt-3"
+              onClick={handleLogout}
+              data-testid="sidebar-logout"
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Logout
+            </Button>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full mt-3"
-            onClick={handleLogout}
-            data-testid="sidebar-logout"
-          >
-            <LogOut className="mr-2 h-4 w-4" />
-            Logout
-          </Button>
         </div>
-      </div>
+      </nav>
     </div>
   );
 }
