@@ -27,6 +27,7 @@ class CampaignRepository:
         self.campaigns = database.campaigns
         self.campaign_leads = database.campaign_leads
         self.call_logs = database.call_logs
+        self.leads = database.leads
     
     async def create_campaign(self, campaign_data: CampaignCreate, created_by: str) -> Campaign:
         """
@@ -102,7 +103,16 @@ class CampaignRepository:
         elif user_role == "client":
             query["created_by"] = user_id
         
-        return await self.campaigns.find(query).to_list(settings.max_page_size)
+        campaigns = await self.campaigns.find(query).to_list(settings.max_page_size)
+        
+        # Update total_leads count by counting leads with matching campaign_name
+        for campaign in campaigns:
+            campaign_name = campaign.get("campaign_name") or campaign.get("name")
+            if campaign_name:
+                total_leads_count = await self.leads.count_documents({"campaign_name": campaign_name})
+                campaign["total_leads"] = total_leads_count
+        
+        return campaigns
     
     async def update_campaign(self, campaign_id: str, campaign_data: CampaignUpdate, user_id: str) -> Optional[dict]:
         """
