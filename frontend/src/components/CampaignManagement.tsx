@@ -42,6 +42,7 @@ import {
   Edit,
   Trash2,
   FileText,
+  Mail,
 } from "lucide-react";
 
 // DateTimePicker Component
@@ -365,6 +366,11 @@ function CampaignManagement() {
   const [uploading, setUploading] = useState(false);
   const [selectedCampaign, setSelectedCampaign] = useState(null);
   const [selectedCampaignStats, setSelectedCampaignStats] = useState(null);
+  const [selectedLeadInCampaign, setSelectedLeadInCampaign] = useState(null);
+  const [editLeadInCampaignDialogOpen, setEditLeadInCampaignDialogOpen] =
+    useState(false);
+  const [deleteLeadInCampaignDialogOpen, setDeleteLeadInCampaignDialogOpen] =
+    useState(false);
   // Sidebar managed by Layout component
 
   // Campaign form state matching backend Campaign model
@@ -457,6 +463,15 @@ function CampaignManagement() {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchLeadsOnly = async () => {
+    try {
+      const leadsResponse = await apiClient.get("/leads");
+      setLeads(leadsResponse.data);
+    } catch (error: any) {
+      console.error("Error fetching leads:", error);
     }
   };
 
@@ -679,6 +694,97 @@ function CampaignManagement() {
       toast.error(error.response?.data?.detail || "Failed to upload CSV");
     } finally {
       setUploading(false);
+    }
+  };
+
+  const openEditLeadInCampaignDialog = (lead) => {
+    setSelectedLeadInCampaign(lead);
+    setEditLeadInCampaignDialogOpen(true);
+  };
+
+  const openDeleteLeadInCampaignDialog = (lead) => {
+    setSelectedLeadInCampaign(lead);
+    setDeleteLeadInCampaignDialogOpen(true);
+  };
+
+  const handleEditLeadInCampaign = async (e) => {
+    e.preventDefault();
+
+    // Validate conditional fields based on lead type
+    if (selectedLeadInCampaign.lead_type === "individual") {
+      if (!selectedLeadInCampaign.lead_first_name?.trim()) {
+        toast.error("First Name is required for individual leads");
+        return;
+      }
+      if (!selectedLeadInCampaign.lead_last_name?.trim()) {
+        toast.error("Last Name is required for individual leads");
+        return;
+      }
+      if (!selectedLeadInCampaign.lead_phone?.trim()) {
+        toast.error("Lead's Contact # is required for individual leads");
+        return;
+      }
+      if (!selectedLeadInCampaign.leads_notes?.trim()) {
+        toast.error("Lead's Insight is required for individual leads");
+        return;
+      }
+    } else if (selectedLeadInCampaign.lead_type === "organization") {
+      if (!selectedLeadInCampaign.business_name?.trim()) {
+        toast.error("Business Name is required for organization leads");
+        return;
+      }
+      if (!selectedLeadInCampaign.business_phone?.trim()) {
+        toast.error("Business Phone is required for organization leads");
+        return;
+      }
+      if (!selectedLeadInCampaign.business_address?.trim()) {
+        toast.error("Business Address is required for organization leads");
+        return;
+      }
+    }
+
+    try {
+      // Send all existing lead data
+      const leadData = {
+        ...selectedLeadInCampaign,
+        // Ensure optional fields are undefined if empty
+        lead_email: selectedLeadInCampaign.lead_email || undefined,
+        business_summary: selectedLeadInCampaign.business_summary || undefined,
+      };
+
+      await apiClient.put(`/leads/${selectedLeadInCampaign.id}`, leadData);
+      toast.success("Lead updated successfully!");
+      setEditLeadInCampaignDialogOpen(false);
+      setSelectedLeadInCampaign(null);
+      fetchLeadsOnly();
+    } catch (error) {
+      console.error("Error updating lead:", error);
+      // Handle validation errors (array of error objects)
+      if (
+        error.response?.data?.detail &&
+        Array.isArray(error.response.data.detail)
+      ) {
+        const errorMessages = error.response.data.detail
+          .map((err) => `${err.loc?.join(" > ") || "Field"}: ${err.msg}`)
+          .join(", ");
+        toast.error(`Validation error: ${errorMessages}`);
+      } else if (typeof error.response?.data?.detail === "string") {
+        toast.error(error.response.data.detail);
+      } else {
+        toast.error("Failed to update lead. Please check your input.");
+      }
+    }
+  };
+
+  const handleDeleteLeadInCampaign = async () => {
+    try {
+      await apiClient.delete(`/leads/${selectedLeadInCampaign.id}`);
+      toast.success("Lead deleted successfully!");
+      setDeleteLeadInCampaignDialogOpen(false);
+      setSelectedLeadInCampaign(null);
+      fetchLeadsOnly();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || "Failed to delete lead");
     }
   };
 
@@ -1005,10 +1111,7 @@ function CampaignManagement() {
 
             <div>
               <Label htmlFor="upload-client-id">Client ID *</Label>
-              <Select
-                value={uploadClientId}
-                onValueChange={setUploadClientId}
-              >
+              <Select value={uploadClientId} onValueChange={setUploadClientId}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select client ID" />
                 </SelectTrigger>
@@ -1022,10 +1125,7 @@ function CampaignManagement() {
 
             <div>
               <Label htmlFor="upload-agent-id">Agent ID *</Label>
-              <Select
-                value={uploadAgentId}
-                onValueChange={setUploadAgentId}
-              >
+              <Select value={uploadAgentId} onValueChange={setUploadAgentId}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select agent ID" />
                 </SelectTrigger>
@@ -1038,15 +1138,37 @@ function CampaignManagement() {
             </div>
 
             <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
-              <p className="mb-2 font-medium">CSV should contain the following columns:</p>
+              <p className="mb-2 font-medium">
+                CSV should contain the following columns:
+              </p>
               <ul className="list-disc list-inside space-y-1 text-xs">
-                <li><strong>campaign_name</strong> - Name of the campaign</li>
-                <li><strong>campaign_description</strong> - Description of the campaign</li>
-                <li><strong>timezone_shared</strong> - Timezone (optional, e.g., "America/New_York")</li>
-                <li><strong>is_active</strong> - true/false for active status (optional)</li>
-                <li><strong>start_call</strong> - API trigger for start call (optional)</li>
-                <li><strong>call_created_at</strong> - Call created date/time (optional, format: YYYY-MM-DDTHH:MM)</li>
-                <li><strong>call_updated_at</strong> - Call updated date/time (optional, format: YYYY-MM-DDTHH:MM)</li>
+                <li>
+                  <strong>campaign_name</strong> - Name of the campaign
+                </li>
+                <li>
+                  <strong>campaign_description</strong> - Description of the
+                  campaign
+                </li>
+                <li>
+                  <strong>timezone_shared</strong> - Timezone (optional, e.g.,
+                  "America/New_York")
+                </li>
+                <li>
+                  <strong>is_active</strong> - true/false for active status
+                  (optional)
+                </li>
+                <li>
+                  <strong>start_call</strong> - API trigger for start call
+                  (optional)
+                </li>
+                <li>
+                  <strong>call_created_at</strong> - Call created date/time
+                  (optional, format: YYYY-MM-DDTHH:MM)
+                </li>
+                <li>
+                  <strong>call_updated_at</strong> - Call updated date/time
+                  (optional, format: YYYY-MM-DDTHH:MM)
+                </li>
               </ul>
             </div>
 
@@ -1347,7 +1469,7 @@ function CampaignManagement() {
 
       {/* Edit Campaign Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-3xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Campaign</DialogTitle>
             <DialogDescription>Update campaign information</DialogDescription>
@@ -1509,55 +1631,138 @@ function CampaignManagement() {
                 </div>
               </div>
 
-              {/* Lead Selection for editing */}
-              <div className="pt-4 border-t">
-                <Label className="text-base font-medium">
-                  Update Leads (Optional)
+              {/* Lead Selection for editing - Display as table */}
+              <div className="pt-3 border-t">
+                <Label className="text-base font-medium mb-2 block">
+                  Campaign Leads
                 </Label>
-                <p className="text-sm text-gray-500 mb-4">
-                  Add or remove leads from this campaign
-                </p>
 
-                {leads.length > 0 ? (
-                  <div className="border rounded-lg max-h-60 overflow-y-auto">
-                    {leads.map((lead) => (
-                      <div
-                        key={lead.id}
-                        className="flex items-center space-x-3 p-3 border-b last:border-b-0 hover:bg-gray-50"
-                      >
-                        <Checkbox
-                          id={`edit-lead-${lead.id}`}
-                          data-testid={`edit-lead-checkbox-${lead.id}`}
-                          checked={selectedLeads.includes(lead.id)}
-                          onCheckedChange={(checked) =>
-                            handleLeadSelection(lead.id, checked)
-                          }
-                        />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900">
-                            {lead.first_name} {lead.last_name}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            {lead.email} • {lead.phone}
-                          </p>
-                        </div>
-                        <Badge className={getStatusColor(lead.status)}>
-                          {lead.status.replace("_", " ")}
-                        </Badge>
+                {(() => {
+                  const campaignLeads = leads.filter(
+                    (lead) =>
+                      lead.campaign_name === selectedCampaign.campaign_name
+                  );
+
+                  return campaignLeads.length > 0 ? (
+                    <div className="border rounded-lg overflow-hidden max-h-96">
+                      <div className="overflow-y-auto">
+                        <table className="min-w-full divide-y divide-gray-200">
+                          <thead className="bg-gray-50 sticky top-0">
+                            <tr>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Name
+                              </th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Contact
+                              </th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Status
+                              </th>
+                              <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Actions
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="bg-white divide-y divide-gray-200">
+                            {campaignLeads.map((lead) => (
+                              <tr
+                                key={lead.id}
+                                className="hover:bg-gray-50"
+                                data-testid={`lead-row-${lead.id}`}
+                              >
+                                <td className="px-4 py-3 whitespace-nowrap">
+                                  <div className="flex flex-col">
+                                    <div className="text-sm font-medium text-gray-900">
+                                      {lead.lead_type === "individual"
+                                        ? `${lead.lead_first_name || ""} ${
+                                            lead.lead_last_name || ""
+                                          }`.trim() || "No name"
+                                        : lead.business_name ||
+                                          "No business name"}
+                                    </div>
+                                    <div className="text-xs text-gray-500 flex items-center space-x-2">
+                                      <Badge
+                                        variant="outline"
+                                        className="capitalize text-xs"
+                                      >
+                                        {lead.lead_type || "Unknown"}
+                                      </Badge>
+                                      {lead.lead_id && (
+                                        <span className="font-mono text-xs text-gray-400">
+                                          {lead.lead_id}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="px-4 py-3 whitespace-nowrap">
+                                  <div className="flex flex-col space-y-1">
+                                    <div className="flex items-center space-x-1">
+                                      <Mail className="h-3 w-3 text-gray-400 flex-shrink-0" />
+                                      <span className="truncate max-w-xs text-sm text-gray-900">
+                                        {lead.lead_email ||
+                                          lead.email ||
+                                          "No email"}
+                                      </span>
+                                    </div>
+                                    <div className="flex items-center space-x-1">
+                                      <Phone className="h-3 w-3 text-gray-400 flex-shrink-0" />
+                                      <span className="text-sm text-gray-900">
+                                        {lead.lead_phone ||
+                                          lead.phone ||
+                                          "No phone"}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="px-4 py-3 whitespace-nowrap">
+                                  <Badge
+                                    className={`${getStatusColor(
+                                      lead.status
+                                    )} capitalize text-xs`}
+                                  >
+                                    {lead.status.replace("_", " ")}
+                                  </Badge>
+                                </td>
+                                <td className="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
+                                  <div className="flex items-center justify-end space-x-1">
+                                    <Button
+                                      type="button"
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() =>
+                                        openEditLeadInCampaignDialog(lead)
+                                      }
+                                      data-testid={`edit-lead-btn-${lead.id}`}
+                                    >
+                                      <Edit className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() =>
+                                        openDeleteLeadInCampaignDialog(lead)
+                                      }
+                                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                      data-testid={`delete-lead-btn-${lead.id}`}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-gray-500 text-center py-4">
-                    No leads available.
-                  </p>
-                )}
-
-                <p className="text-sm text-indigo-600 mt-2">
-                  {selectedLeads.length > 0
-                    ? `${selectedLeads.length} lead(s) selected`
-                    : "No leads selected"}
-                </p>
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-center py-4">
+                      No leads available for this campaign.
+                    </p>
+                  );
+                })()}
               </div>
 
               {/* Action Buttons */}
@@ -1598,16 +1803,166 @@ function CampaignManagement() {
           </DialogHeader>
           {selectedCampaign && (
             <div className="space-y-4">
+              {(() => {
+                const isActive = selectedCampaign.is_active;
+                const leadCount = selectedCampaign.total_leads || 0;
+                const campaignName =
+                  selectedCampaign.campaign_name || selectedCampaign.name;
+
+                // Check if campaign has any leads with "ready" status
+                const campaignLeads = leads.filter(
+                  (lead) => lead.campaign_name === campaignName
+                );
+                const hasReadyLeads = campaignLeads.some(
+                  (lead) => lead.status === "ready"
+                );
+
+                if (isActive && leadCount > 0) {
+                  // Active campaign with leads - cannot delete
+                  return (
+                    <div className="space-y-4">
+                      <div className="p-4 bg-red-50 rounded-lg border-2 border-red-300">
+                        <div className="flex items-center mb-2">
+                          <h4 className="font-medium text-red-900">
+                            {campaignName}
+                          </h4>
+                        </div>
+                        <p className="text-sm text-red-700 mt-2">
+                          This campaign has {leadCount} leads which can't be
+                          deleted. First delete those leads then you can delete
+                          this campaign.
+                        </p>
+                      </div>
+
+                      <div className="flex justify-end space-x-3">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            setDeleteDialogOpen(false);
+                            setSelectedCampaign(null);
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          disabled
+                          data-testid="delete-campaign-confirm-btn"
+                          className="bg-red-300 text-white cursor-not-allowed"
+                        >
+                          Delete Campaign
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                } else if (!isActive && hasReadyLeads) {
+                  // Inactive campaign with ready leads - cannot delete
+                  return (
+                    <div className="space-y-4">
+                      <div className="p-4 bg-red-50 rounded-lg border-2 border-red-300">
+                        <div className="flex items-center mb-2">
+                          <h4 className="font-medium text-red-900">
+                            {campaignName}
+                          </h4>
+                        </div>
+                        <p className="text-sm text-red-700 mt-2">
+                          You have leads with status "ready". You can't delete
+                          this campaign. Either delete the leads or change their
+                          status to something other than ready.
+                        </p>
+                      </div>
+
+                      <div className="flex justify-end space-x-3">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            setDeleteDialogOpen(false);
+                            setSelectedCampaign(null);
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          disabled
+                          data-testid="delete-campaign-confirm-btn"
+                          className="bg-red-300 text-white cursor-not-allowed"
+                        >
+                          Delete Campaign
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                } else {
+                  // Inactive campaign without ready leads or active with 0 leads - can delete
+                  return (
+                    <div className="space-y-4">
+                      <div className="p-4 bg-red-50 rounded-lg">
+                        <h4 className="font-medium text-red-900">
+                          {campaignName}
+                        </h4>
+                        <p className="text-sm text-red-600 mt-2">
+                          This will delete {leadCount} leads from the campaign
+                          and all associated call logs.
+                        </p>
+                      </div>
+
+                      <div className="flex justify-end space-x-3">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            setDeleteDialogOpen(false);
+                            setSelectedCampaign(null);
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          onClick={handleDeleteCampaign}
+                          data-testid="delete-campaign-confirm-btn"
+                          className="bg-red-600 hover:bg-red-700 text-white"
+                        >
+                          Delete Campaign
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                }
+              })()}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Lead in Campaign Dialog */}
+      <Dialog
+        open={deleteLeadInCampaignDialogOpen}
+        onOpenChange={setDeleteLeadInCampaignDialogOpen}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete Lead</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this lead? This action cannot be
+              undone.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedLeadInCampaign && (
+            <div className="space-y-4">
               <div className="p-4 bg-red-50 rounded-lg">
                 <h4 className="font-medium text-red-900">
-                  {selectedCampaign.campaign_name || selectedCampaign.name}
+                  {selectedLeadInCampaign.lead_type === "individual"
+                    ? `${selectedLeadInCampaign.lead_first_name || ""} ${
+                        selectedLeadInCampaign.lead_last_name || ""
+                      }`.trim() || "No name"
+                    : selectedLeadInCampaign.business_name ||
+                      "No business name"}
                 </h4>
                 <p className="text-sm text-red-700 mt-1">
-                  {selectedCampaign.description || "No description"}
-                </p>
-                <p className="text-sm text-red-600 mt-2">
-                  This will delete {selectedCampaign.total_leads} leads from the
-                  campaign and all associated call logs.
+                  {selectedLeadInCampaign.lead_email ||
+                    selectedLeadInCampaign.email ||
+                    "No email"}
                 </p>
               </div>
 
@@ -1616,21 +1971,306 @@ function CampaignManagement() {
                   type="button"
                   variant="outline"
                   onClick={() => {
-                    setDeleteDialogOpen(false);
-                    setSelectedCampaign(null);
+                    setDeleteLeadInCampaignDialogOpen(false);
+                    setSelectedLeadInCampaign(null);
                   }}
                 >
                   Cancel
                 </Button>
                 <Button
-                  onClick={handleDeleteCampaign}
-                  data-testid="delete-campaign-confirm-btn"
+                  onClick={handleDeleteLeadInCampaign}
                   className="bg-red-600 hover:bg-red-700 text-white"
                 >
-                  Delete Campaign
+                  Delete Lead
                 </Button>
               </div>
             </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Lead in Campaign Dialog */}
+      <Dialog
+        open={editLeadInCampaignDialogOpen}
+        onOpenChange={setEditLeadInCampaignDialogOpen}
+      >
+        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Lead</DialogTitle>
+            <DialogDescription>Update lead information</DialogDescription>
+          </DialogHeader>
+          {selectedLeadInCampaign && (
+            <form onSubmit={handleEditLeadInCampaign} className="space-y-4">
+              {/* Campaign Information - Display at top */}
+              <div className="space-y-3 border-b pb-4 bg-gray-50 p-4 rounded-lg">
+                <h3 className="text-lg font-medium text-gray-900">
+                  Campaign Information
+                </h3>
+
+                <div>
+                  <Label>Campaign</Label>
+                  <div className="text-sm mt-1">
+                    <span className="font-medium">
+                      {selectedLeadInCampaign.campaign_name || "No Campaign"}
+                    </span>
+                    {selectedLeadInCampaign.campaign_id && (
+                      <span className="ml-2 text-xs text-gray-500">
+                        ({selectedLeadInCampaign.campaign_id})
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Lead Information */}
+              <div className="space-y-3 border-b pb-4">
+                <h3 className="text-lg font-medium text-gray-900">
+                  Lead Information
+                </h3>
+                <div>
+                  <Label>Status</Label>
+                  <Select
+                    value={(selectedLeadInCampaign.status || "new").replace(
+                      "_",
+                      "-"
+                    )}
+                    onValueChange={(value) =>
+                      setSelectedLeadInCampaign({
+                        ...selectedLeadInCampaign,
+                        status: value.replace("-", "_") as any,
+                      })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="new">New</SelectItem>
+                      <SelectItem value="ready">Ready</SelectItem>
+                      <SelectItem value="pending-preview">
+                        Pending Preview
+                      </SelectItem>
+                      <SelectItem value="previewed">Previewed</SelectItem>
+                      <SelectItem value="lost">Lost</SelectItem>
+                      <SelectItem value="no-response">No Response</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label>Lead ID</Label>
+                  <div className="text-sm font-mono bg-gray-100 p-2 rounded mt-1">
+                    {selectedLeadInCampaign.lead_id ||
+                      selectedLeadInCampaign.id}
+                  </div>
+                </div>
+                <div>
+                  <Label>Lead Type</Label>
+                  <div className="text-sm font-medium mt-1 capitalize">
+                    {selectedLeadInCampaign.lead_type || "N/A"}
+                  </div>
+                </div>
+              </div>
+
+              {/* Conditional Fields Based on Lead Type */}
+              {selectedLeadInCampaign.lead_type === "individual" && (
+                <div className="space-y-3 border-b pb-4">
+                  <h3 className="text-lg font-medium text-gray-900">
+                    Individual Details
+                  </h3>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label htmlFor="edit-lead-in-campaign-first-name">
+                        First Name *
+                      </Label>
+                      <Input
+                        id="edit-lead-in-campaign-first-name"
+                        value={selectedLeadInCampaign.lead_first_name || ""}
+                        onChange={(e) =>
+                          setSelectedLeadInCampaign({
+                            ...selectedLeadInCampaign,
+                            lead_first_name: e.target.value,
+                          })
+                        }
+                        placeholder="John"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="edit-lead-in-campaign-last-name">
+                        Last Name *
+                      </Label>
+                      <Input
+                        id="edit-lead-in-campaign-last-name"
+                        value={selectedLeadInCampaign.lead_last_name || ""}
+                        onChange={(e) =>
+                          setSelectedLeadInCampaign({
+                            ...selectedLeadInCampaign,
+                            lead_last_name: e.target.value,
+                          })
+                        }
+                        placeholder="Doe"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="edit-lead-in-campaign-phone">
+                      Lead's Contact # *
+                    </Label>
+                    <Input
+                      id="edit-lead-in-campaign-phone"
+                      value={selectedLeadInCampaign.lead_phone || ""}
+                      onChange={(e) =>
+                        setSelectedLeadInCampaign({
+                          ...selectedLeadInCampaign,
+                          lead_phone: e.target.value,
+                        })
+                      }
+                      placeholder="+1 (555) 123-4567"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="edit-lead-in-campaign-email">
+                      Lead's Email
+                    </Label>
+                    <Input
+                      id="edit-lead-in-campaign-email"
+                      type="email"
+                      value={selectedLeadInCampaign.lead_email || ""}
+                      onChange={(e) =>
+                        setSelectedLeadInCampaign({
+                          ...selectedLeadInCampaign,
+                          lead_email: e.target.value,
+                        })
+                      }
+                      placeholder="john@example.com"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="edit-leads-in-campaign-notes">
+                      Lead's Insight *
+                    </Label>
+                    <Textarea
+                      id="edit-leads-in-campaign-notes"
+                      value={selectedLeadInCampaign.leads_notes || ""}
+                      onChange={(e) =>
+                        setSelectedLeadInCampaign({
+                          ...selectedLeadInCampaign,
+                          leads_notes: e.target.value,
+                        })
+                      }
+                      placeholder="Add notes or background information..."
+                      rows={3}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {selectedLeadInCampaign.lead_type === "organization" && (
+                <div className="space-y-3 border-b pb-4">
+                  <h3 className="text-lg font-medium text-gray-900">
+                    Organization Details
+                  </h3>
+
+                  <div>
+                    <Label htmlFor="edit-business-in-campaign-name">
+                      Business Name *
+                    </Label>
+                    <Input
+                      id="edit-business-in-campaign-name"
+                      value={selectedLeadInCampaign.business_name || ""}
+                      onChange={(e) =>
+                        setSelectedLeadInCampaign({
+                          ...selectedLeadInCampaign,
+                          business_name: e.target.value,
+                        })
+                      }
+                      placeholder="Company Name"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="edit-business-in-campaign-phone">
+                      Business Phone *
+                    </Label>
+                    <Input
+                      id="edit-business-in-campaign-phone"
+                      value={selectedLeadInCampaign.business_phone || ""}
+                      onChange={(e) =>
+                        setSelectedLeadInCampaign({
+                          ...selectedLeadInCampaign,
+                          business_phone: e.target.value,
+                        })
+                      }
+                      placeholder="Business phone number"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="edit-business-in-campaign-address">
+                      Business Address *
+                    </Label>
+                    <Textarea
+                      id="edit-business-in-campaign-address"
+                      value={selectedLeadInCampaign.business_address || ""}
+                      onChange={(e) =>
+                        setSelectedLeadInCampaign({
+                          ...selectedLeadInCampaign,
+                          business_address: e.target.value,
+                        })
+                      }
+                      placeholder="Full business address"
+                      rows={2}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="edit-business-in-campaign-summary">
+                      Lead's Business Insight (Optional, max 240 chars)
+                    </Label>
+                    <Textarea
+                      id="edit-business-in-campaign-summary"
+                      value={selectedLeadInCampaign.business_summary || ""}
+                      onChange={(e) =>
+                        setSelectedLeadInCampaign({
+                          ...selectedLeadInCampaign,
+                          business_summary: e.target.value,
+                        })
+                      }
+                      placeholder="Brief description of the business"
+                      maxLength={240}
+                      rows={3}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      {selectedLeadInCampaign.business_summary?.length || 0}/240
+                      characters
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-end space-x-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setEditLeadInCampaignDialogOpen(false);
+                    setSelectedLeadInCampaign(null);
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+                >
+                  Update Lead
+                </Button>
+              </div>
+            </form>
           )}
         </DialogContent>
       </Dialog>
