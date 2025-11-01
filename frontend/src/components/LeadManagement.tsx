@@ -613,11 +613,12 @@ function LeadManagement() {
     );
   }
 
-  const headerTitle = user?.role === "client"
-    ? `My Leads (${filteredLeads.length} of ${leads.length})`
-    : `Leads (${filteredLeads.length} of ${leads.length})`;
+  const headerTitle =
+    user?.role === "client"
+      ? `My Leads (${filteredLeads.length} of ${leads.length})`
+      : `Leads (${filteredLeads.length} of ${leads.length})`;
 
-  const headerActions = user?.role !== "client" ? (
+  const headerActions = (
     <div className="flex items-center space-x-3">
       <Button
         variant="outline"
@@ -862,7 +863,7 @@ function LeadManagement() {
         </DialogContent>
       </Dialog>
     </div>
-  ) : null;
+  );
 
   return (
     <Layout title={headerTitle} headerActions={headerActions}>
@@ -996,22 +997,37 @@ function LeadManagement() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap h-20">
                         <div className="h-full flex flex-col justify-center space-y-1">
-                          <div className="flex items-center space-x-1 h-5">
-                            <Mail className="h-3 w-3 text-gray-400 flex-shrink-0" />
-                            <span className="truncate max-w-xs text-gray-900">
-                              {lead.lead_type === "organization"
-                                ? "No email"
-                                : lead.lead_email || lead.email || "No email"}
-                            </span>
-                          </div>
-                          <div className="flex items-center space-x-1 h-5">
-                            <Phone className="h-3 w-3 text-gray-400 flex-shrink-0" />
-                            <span className="text-gray-900">
-                              {lead.lead_type === "organization"
-                                ? lead.business_phone || "No phone"
-                                : lead.lead_phone || lead.phone || "No phone"}
-                            </span>
-                          </div>
+                          {lead.lead_type === "organization" ? (
+                            <>
+                              <div className="flex items-center space-x-1 h-5">
+                                <Building2 className="h-3 w-3 text-indigo-600 flex-shrink-0" />
+                                <span className="truncate max-w-xs text-gray-900">
+                                  {lead.business_name || "No business name"}
+                                </span>
+                              </div>
+                              <div className="flex items-center space-x-1 h-5">
+                                <Phone className="h-3 w-3 text-gray-400 flex-shrink-0" />
+                                <span className="text-gray-900">
+                                  {lead.business_phone || "No phone"}
+                                </span>
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <div className="flex items-center space-x-1 h-5">
+                                <Mail className="h-3 w-3 text-gray-400 flex-shrink-0" />
+                                <span className="truncate max-w-xs text-gray-900">
+                                  {lead.lead_email || lead.email || "No email"}
+                                </span>
+                              </div>
+                              <div className="flex items-center space-x-1 h-5">
+                                <Phone className="h-3 w-3 text-gray-400 flex-shrink-0" />
+                                <span className="text-gray-900">
+                                  {lead.lead_phone || lead.phone || "No phone"}
+                                </span>
+                              </div>
+                            </>
+                          )}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap h-20">

@@ -221,7 +221,7 @@ class LeadService:
         if not existing_lead:
             raise HTTPException(status_code=404, detail="Lead not found")
         
-        # Check permissions (only admin and agent can delete, clients cannot delete)
+        # Check permissions (only admin and agents can delete, clients cannot delete)
         if current_user.role == UserRole.CLIENT:
             raise HTTPException(status_code=403, detail="Clients are not authorized to delete leads")
         
