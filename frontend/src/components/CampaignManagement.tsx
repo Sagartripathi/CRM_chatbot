@@ -817,102 +817,312 @@ function CampaignManagement() {
     );
   }
 
-  const headerActions = (
-    <div className="flex items-center space-x-3">
-      <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
-        <DialogTrigger asChild>
-          <Button
-            variant="outline"
-            data-testid="upload-csv-btn"
-            className="border-indigo-200 text-indigo-700 hover:bg-indigo-50"
-          >
-            <FileText className="mr-2 h-4 w-4" />
-            Upload CSV
-          </Button>
-        </DialogTrigger>
-      </Dialog>
+  const headerActions =
+    user?.role !== "client" ? (
+      <div className="flex items-center space-x-3">
+        <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
+          <DialogTrigger asChild>
+            <Button
+              variant="outline"
+              data-testid="upload-csv-btn"
+              className="border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+            >
+              <FileText className="mr-2 h-4 w-4" />
+              Upload CSV
+            </Button>
+          </DialogTrigger>
+        </Dialog>
 
-      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-        <DialogTrigger asChild>
-          <Button
-            data-testid="create-campaign-btn"
-            className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 btn-hover"
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            New Campaign
-          </Button>
-        </DialogTrigger>
-        <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Create New Campaign</DialogTitle>
-            <DialogDescription>
-              Set up a new campaign and select leads to include
-            </DialogDescription>
-          </DialogHeader>
+        <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+          <DialogTrigger asChild>
+            <Button
+              data-testid="create-campaign-btn"
+              className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 btn-hover"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              New Campaign
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Create New Campaign</DialogTitle>
+              <DialogDescription>
+                Set up a new campaign and select leads to include
+              </DialogDescription>
+            </DialogHeader>
 
-          <form onSubmit={handleCreateCampaign} className="space-y-6">
-            {/* Campaign Basic Info */}
-            <div className="space-y-4">
-              <Label htmlFor="campaign-id">Campaign ID</Label>
-              <Input
-                id="campaign-id"
-                value={newCampaign.campaign_id || ""}
-                placeholder="Auto-generated campaign ID"
-                className="bg-gray-100 cursor-not-allowed"
-                readOnly
-                disabled
-              />
-              <p className="text-xs text-gray-500">
-                Campaign ID is automatically generated when you create the
-                campaign
-              </p>
-            </div>
+            <form onSubmit={handleCreateCampaign} className="space-y-6">
+              {/* Campaign Basic Info */}
+              <div className="space-y-4">
+                <Label htmlFor="campaign-id">Campaign ID</Label>
+                <Input
+                  id="campaign-id"
+                  value={newCampaign.campaign_id || ""}
+                  placeholder="Auto-generated campaign ID"
+                  className="bg-gray-100 cursor-not-allowed"
+                  readOnly
+                  disabled
+                />
+                <p className="text-xs text-gray-500">
+                  Campaign ID is automatically generated when you create the
+                  campaign
+                </p>
+              </div>
 
-            <div>
-              <Label htmlFor="campaign-name">Campaign Name *</Label>
-              <Input
-                id="campaign-name"
-                value={newCampaign.campaign_name || ""}
-                onChange={(e) =>
-                  setNewCampaign({
-                    ...newCampaign,
-                    campaign_name: e.target.value,
-                  })
-                }
-                placeholder="Enter campaign name"
-                required
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="campaign-description">Description *</Label>
-              <Textarea
-                id="campaign-description"
-                value={newCampaign.campaign_description || ""}
-                onChange={(e) =>
-                  setNewCampaign({
-                    ...newCampaign,
-                    campaign_description: e.target.value,
-                  })
-                }
-                placeholder="Enter campaign description"
-                rows={3}
-                required
-              />
-            </div>
-
-            {/* Client and Agent IDs */}
-            <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="client-id">Client ID *</Label>
-                <Select
-                  value={newCampaign.client_id || ""}
-                  onValueChange={(value) =>
+                <Label htmlFor="campaign-name">Campaign Name *</Label>
+                <Input
+                  id="campaign-name"
+                  value={newCampaign.campaign_name || ""}
+                  onChange={(e) =>
                     setNewCampaign({
                       ...newCampaign,
-                      client_id: value,
+                      campaign_name: e.target.value,
                     })
                   }
+                  placeholder="Enter campaign name"
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="campaign-description">Description *</Label>
+                <Textarea
+                  id="campaign-description"
+                  value={newCampaign.campaign_description || ""}
+                  onChange={(e) =>
+                    setNewCampaign({
+                      ...newCampaign,
+                      campaign_description: e.target.value,
+                    })
+                  }
+                  placeholder="Enter campaign description"
+                  rows={3}
+                  required
+                />
+              </div>
+
+              {/* Client and Agent IDs */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="client-id">Client ID *</Label>
+                  <Select
+                    value={newCampaign.client_id || ""}
+                    onValueChange={(value) =>
+                      setNewCampaign({
+                        ...newCampaign,
+                        client_id: value,
+                      })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select client ID" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="CLI-00001">CLI-00001</SelectItem>
+                      <SelectItem value="CLI-00002">CLI-00002</SelectItem>
+                      <SelectItem value="CLI-00003">CLI-00003</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="agent-id">Agent ID *</Label>
+                  <Select
+                    value={newCampaign.agent_id || ""}
+                    onValueChange={(value) =>
+                      setNewCampaign({
+                        ...newCampaign,
+                        agent_id: value,
+                      })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select agent ID" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="AGE-00001">AGE-00001</SelectItem>
+                      <SelectItem value="AGE-00002">AGE-00002</SelectItem>
+                      <SelectItem value="AGE-00003">AGE-00003</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Timezone & Status */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="timezone">Timezone</Label>
+                  <Select
+                    value={newCampaign.timezone_shared || ""}
+                    onValueChange={(value) =>
+                      setNewCampaign({
+                        ...newCampaign,
+                        timezone_shared: value,
+                      })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select timezone" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="America/New_York">
+                        America/New_York (Eastern)
+                      </SelectItem>
+                      <SelectItem value="America/Chicago">
+                        America/Chicago (Central)
+                      </SelectItem>
+                      <SelectItem value="America/Denver">
+                        America/Denver (Mountain)
+                      </SelectItem>
+                      <SelectItem value="America/Los_Angeles">
+                        America/Los_Angeles (Pacific)
+                      </SelectItem>
+                      <SelectItem value="America/Anchorage">
+                        America/Anchorage (Alaska)
+                      </SelectItem>
+                      <SelectItem value="Pacific/Honolulu">
+                        Pacific/Honolulu (Hawaii)
+                      </SelectItem>
+                      <SelectItem value="America/Toronto">
+                        America/Toronto (Eastern Canada)
+                      </SelectItem>
+                      <SelectItem value="America/Winnipeg">
+                        America/Winnipeg (Central Canada)
+                      </SelectItem>
+                      <SelectItem value="America/Edmonton">
+                        America/Edmonton (Mountain Canada)
+                      </SelectItem>
+                      <SelectItem value="America/Vancouver">
+                        America/Vancouver (Pacific Canada)
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="status">Status</Label>
+                  <Select
+                    value={newCampaign.is_active ? "active" : "inactive"}
+                    onValueChange={(value) =>
+                      setNewCampaign({
+                        ...newCampaign,
+                        is_active: value === "active",
+                      })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="inactive">Inactive</SelectItem>
+                      <SelectItem value="active">Active</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Call Scheduling */}
+              <div className="pt-4 border-t space-y-3">
+                <Label className="text-base font-medium">Call Scheduling</Label>
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="start-call">Start Call (API Trigger)</Label>
+                    <Input
+                      id="start-call"
+                      value={newCampaign.start_call || ""}
+                      onChange={(e) =>
+                        setNewCampaign({
+                          ...newCampaign,
+                          start_call: e.target.value,
+                        })
+                      }
+                      placeholder="API trigger for start call"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="call-created-at">Call Created At</Label>
+                    <DateTimePicker
+                      value={newCampaign.call_created_at || ""}
+                      onChange={(value) =>
+                        setNewCampaign({
+                          ...newCampaign,
+                          call_created_at: value,
+                        })
+                      }
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="call-updated-at">Call Updated At</Label>
+                    <DateTimePicker
+                      value={newCampaign.call_updated_at || ""}
+                      onChange={(value) =>
+                        setNewCampaign({
+                          ...newCampaign,
+                          call_updated_at: value,
+                        })
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Save / Cancel */}
+              <div className="flex justify-end space-x-3 pt-6 border-t">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setCreateDialogOpen(false);
+                    setNewCampaign({ ...emptyCampaign });
+                    setSelectedLeads([]);
+                  }}
+                >
+                  Cancel
+                </Button>
+
+                <Button
+                  // onClick={() => {
+                  //   setCampaigns();
+                  // }}
+                  onClick={() => navigate("/campaigns")}
+                  type="submit"
+                  className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+                >
+                  Create Campaign
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Upload Campaigns CSV</DialogTitle>
+              <DialogDescription>
+                Upload a CSV file to create multiple campaigns at once
+              </DialogDescription>
+            </DialogHeader>
+
+            <form onSubmit={handleUploadCSV} className="space-y-4">
+              <div>
+                <Label htmlFor="csv-file">CSV File *</Label>
+                <Input
+                  id="csv-file"
+                  type="file"
+                  accept=".csv"
+                  onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
+                  required
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Select a CSV file with campaign data
+                </p>
+              </div>
+
+              <div>
+                <Label htmlFor="upload-client-id">Client ID *</Label>
+                <Select
+                  value={uploadClientId}
+                  onValueChange={setUploadClientId}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select client ID" />
@@ -924,17 +1134,10 @@ function CampaignManagement() {
                   </SelectContent>
                 </Select>
               </div>
+
               <div>
-                <Label htmlFor="agent-id">Agent ID *</Label>
-                <Select
-                  value={newCampaign.agent_id || ""}
-                  onValueChange={(value) =>
-                    setNewCampaign({
-                      ...newCampaign,
-                      agent_id: value,
-                    })
-                  }
-                >
+                <Label htmlFor="upload-agent-id">Agent ID *</Label>
+                <Select value={uploadAgentId} onValueChange={setUploadAgentId}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select agent ID" />
                   </SelectTrigger>
@@ -945,267 +1148,68 @@ function CampaignManagement() {
                   </SelectContent>
                 </Select>
               </div>
-            </div>
 
-            {/* Timezone & Status */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="timezone">Timezone</Label>
-                <Select
-                  value={newCampaign.timezone_shared || ""}
-                  onValueChange={(value) =>
-                    setNewCampaign({
-                      ...newCampaign,
-                      timezone_shared: value,
-                    })
-                  }
+              <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
+                <p className="mb-2 font-medium">
+                  CSV should contain the following columns:
+                </p>
+                <ul className="list-disc list-inside space-y-1 text-xs">
+                  <li>
+                    <strong>campaign_name</strong> - Name of the campaign
+                  </li>
+                  <li>
+                    <strong>campaign_description</strong> - Description of the
+                    campaign
+                  </li>
+                  <li>
+                    <strong>timezone_shared</strong> - Timezone (optional, e.g.,
+                    "America/New_York")
+                  </li>
+                  <li>
+                    <strong>is_active</strong> - true/false for active status
+                    (optional)
+                  </li>
+                  <li>
+                    <strong>start_call</strong> - API trigger for start call
+                    (optional)
+                  </li>
+                  <li>
+                    <strong>call_created_at</strong> - Call created date/time
+                    (optional, format: YYYY-MM-DDTHH:MM)
+                  </li>
+                  <li>
+                    <strong>call_updated_at</strong> - Call updated date/time
+                    (optional, format: YYYY-MM-DDTHH:MM)
+                  </li>
+                </ul>
+              </div>
+
+              <div className="flex justify-end space-x-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setUploadDialogOpen(false);
+                    setUploadFile(null);
+                    setUploadClientId("");
+                    setUploadAgentId("");
+                  }}
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select timezone" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="America/New_York">
-                      America/New_York (Eastern)
-                    </SelectItem>
-                    <SelectItem value="America/Chicago">
-                      America/Chicago (Central)
-                    </SelectItem>
-                    <SelectItem value="America/Denver">
-                      America/Denver (Mountain)
-                    </SelectItem>
-                    <SelectItem value="America/Los_Angeles">
-                      America/Los_Angeles (Pacific)
-                    </SelectItem>
-                    <SelectItem value="America/Anchorage">
-                      America/Anchorage (Alaska)
-                    </SelectItem>
-                    <SelectItem value="Pacific/Honolulu">
-                      Pacific/Honolulu (Hawaii)
-                    </SelectItem>
-                    <SelectItem value="America/Toronto">
-                      America/Toronto (Eastern Canada)
-                    </SelectItem>
-                    <SelectItem value="America/Winnipeg">
-                      America/Winnipeg (Central Canada)
-                    </SelectItem>
-                    <SelectItem value="America/Edmonton">
-                      America/Edmonton (Mountain Canada)
-                    </SelectItem>
-                    <SelectItem value="America/Vancouver">
-                      America/Vancouver (Pacific Canada)
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="status">Status</Label>
-                <Select
-                  value={newCampaign.is_active ? "active" : "inactive"}
-                  onValueChange={(value) =>
-                    setNewCampaign({
-                      ...newCampaign,
-                      is_active: value === "active",
-                    })
-                  }
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={uploading}
+                  className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                    <SelectItem value="active">Active</SelectItem>
-                  </SelectContent>
-                </Select>
+                  {uploading ? "Uploading..." : "Upload CSV"}
+                </Button>
               </div>
-            </div>
-
-            {/* Call Scheduling */}
-            <div className="pt-4 border-t space-y-3">
-              <Label className="text-base font-medium">Call Scheduling</Label>
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="start-call">Start Call (API Trigger)</Label>
-                  <Input
-                    id="start-call"
-                    value={newCampaign.start_call || ""}
-                    onChange={(e) =>
-                      setNewCampaign({
-                        ...newCampaign,
-                        start_call: e.target.value,
-                      })
-                    }
-                    placeholder="API trigger for start call"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="call-created-at">Call Created At</Label>
-                  <DateTimePicker
-                    value={newCampaign.call_created_at || ""}
-                    onChange={(value) =>
-                      setNewCampaign({
-                        ...newCampaign,
-                        call_created_at: value,
-                      })
-                    }
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="call-updated-at">Call Updated At</Label>
-                  <DateTimePicker
-                    value={newCampaign.call_updated_at || ""}
-                    onChange={(value) =>
-                      setNewCampaign({
-                        ...newCampaign,
-                        call_updated_at: value,
-                      })
-                    }
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Save / Cancel */}
-            <div className="flex justify-end space-x-3 pt-6 border-t">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setCreateDialogOpen(false);
-                  setNewCampaign({ ...emptyCampaign });
-                  setSelectedLeads([]);
-                }}
-              >
-                Cancel
-              </Button>
-
-              <Button
-                // onClick={() => {
-                //   setCampaigns();
-                // }}
-                onClick={() => navigate("/campaigns")}
-                type="submit"
-                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
-              >
-                Create Campaign
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Upload Campaigns CSV</DialogTitle>
-            <DialogDescription>
-              Upload a CSV file to create multiple campaigns at once
-            </DialogDescription>
-          </DialogHeader>
-
-          <form onSubmit={handleUploadCSV} className="space-y-4">
-            <div>
-              <Label htmlFor="csv-file">CSV File *</Label>
-              <Input
-                id="csv-file"
-                type="file"
-                accept=".csv"
-                onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
-                required
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Select a CSV file with campaign data
-              </p>
-            </div>
-
-            <div>
-              <Label htmlFor="upload-client-id">Client ID *</Label>
-              <Select value={uploadClientId} onValueChange={setUploadClientId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select client ID" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="CLI-00001">CLI-00001</SelectItem>
-                  <SelectItem value="CLI-00002">CLI-00002</SelectItem>
-                  <SelectItem value="CLI-00003">CLI-00003</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="upload-agent-id">Agent ID *</Label>
-              <Select value={uploadAgentId} onValueChange={setUploadAgentId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select agent ID" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="AGE-00001">AGE-00001</SelectItem>
-                  <SelectItem value="AGE-00002">AGE-00002</SelectItem>
-                  <SelectItem value="AGE-00003">AGE-00003</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
-              <p className="mb-2 font-medium">
-                CSV should contain the following columns:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-xs">
-                <li>
-                  <strong>campaign_name</strong> - Name of the campaign
-                </li>
-                <li>
-                  <strong>campaign_description</strong> - Description of the
-                  campaign
-                </li>
-                <li>
-                  <strong>timezone_shared</strong> - Timezone (optional, e.g.,
-                  "America/New_York")
-                </li>
-                <li>
-                  <strong>is_active</strong> - true/false for active status
-                  (optional)
-                </li>
-                <li>
-                  <strong>start_call</strong> - API trigger for start call
-                  (optional)
-                </li>
-                <li>
-                  <strong>call_created_at</strong> - Call created date/time
-                  (optional, format: YYYY-MM-DDTHH:MM)
-                </li>
-                <li>
-                  <strong>call_updated_at</strong> - Call updated date/time
-                  (optional, format: YYYY-MM-DDTHH:MM)
-                </li>
-              </ul>
-            </div>
-
-            <div className="flex justify-end space-x-3">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setUploadDialogOpen(false);
-                  setUploadFile(null);
-                  setUploadClientId("");
-                  setUploadAgentId("");
-                }}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={uploading}
-                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
-              >
-                {uploading ? "Uploading..." : "Upload CSV"}
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
+            </form>
+          </DialogContent>
+        </Dialog>
+      </div>
+    ) : null;
 
   // Filter campaigns based on search term
   const filteredCampaigns = campaigns.filter((campaign) => {
@@ -1388,21 +1392,28 @@ function CampaignManagement() {
                         </div>
                       </div>
 
-                      {/* Action Buttons */}
-                      <div className="flex gap-2 pt-3 border-t">
-                        <button
-                          onClick={() => handleStartCampaign(campaign.id)}
-                          className="flex-1 px-3 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 text-sm font-medium"
-                        >
-                          <Phone className="h-4 w-4 inline mr-1" />
-                          Start Calls
-                        </button>
-                        <button
-                          onClick={() => handleViewStats(campaign)}
-                          className="px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 text-sm"
-                        >
-                          <Eye className="h-4 w-4" />
-                        </button>
+                  {/* Action Buttons */}
+                  <div className="flex gap-2 pt-3 border-t">
+                    {user?.role !== "client" && (
+                      <button
+                        onClick={() => handleStartCampaign(campaign.id)}
+                        className="flex-1 px-3 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 text-sm font-medium"
+                      >
+                        <Phone className="h-4 w-4 inline mr-1" />
+                        Start Calls
+                      </button>
+                    )}
+                    <button
+                      onClick={() => handleViewStats(campaign)}
+                      className={`px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 text-sm ${
+                        user?.role === "client" ? "flex-1" : ""
+                      }`}
+                    >
+                      <Eye className="h-4 w-4 inline mr-1" />
+                      {user?.role === "client" ? "View Details" : ""}
+                    </button>
+                    {user?.role !== "client" && (
+                      <>
                         <button
                           onClick={() => openEditDialog(campaign)}
                           className="px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 text-sm"
@@ -1482,21 +1493,28 @@ function CampaignManagement() {
           <CardContent className="text-center py-12">
             <Target className="h-16 w-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-xl font-medium text-gray-900 mb-2">
-              No campaigns yet
+              {user?.role === "client"
+                ? "No campaigns found"
+                : "No campaigns yet"}
             </h3>
             <p className="text-gray-500 mb-6 max-w-md mx-auto">
-              Create your first campaign to start organizing leads and tracking
-              call activities. Campaigns help you manage outreach efforts
-              efficiently.
+              {user?.role === "client"
+                ? `No campaigns are currently associated with your client ID (${user?.client_id}). Please contact your administrator.`
+                : "Create your first campaign to start organizing leads and tracking call activities. Campaigns help you manage outreach efforts efficiently."}
             </p>
-            <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-              <DialogTrigger asChild>
-                <Button className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Create Your First Campaign
-                </Button>
-              </DialogTrigger>
-            </Dialog>
+            {user?.role !== "client" && (
+              <Dialog
+                open={createDialogOpen}
+                onOpenChange={setCreateDialogOpen}
+              >
+                <DialogTrigger asChild>
+                  <Button className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Create Your First Campaign
+                  </Button>
+                </DialogTrigger>
+              </Dialog>
+            )}
           </CardContent>
         </Card>
       )}

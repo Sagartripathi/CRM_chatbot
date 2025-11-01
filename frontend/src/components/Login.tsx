@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useAuth } from "../contexts/AuthContext";
+import React, { useState, useEffect } from "react";
+import { useAuth, apiClient } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -12,6 +12,13 @@ import {
   CardTitle,
 } from "./ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
 import { toast } from "sonner";
 import { UserCreate } from "../../types/api";
 
@@ -22,6 +29,11 @@ interface LoginForm {
 
 interface RegisterForm extends UserCreate {
   password: string;
+}
+
+interface ClientOption {
+  client_id: string;
+  name: string;
 }
 
 function Login(): React.ReactElement {
@@ -35,10 +47,25 @@ function Login(): React.ReactElement {
     first_name: "",
     last_name: "",
     role: "client",
+    client_id: "",
   });
   const [loading, setLoading] = useState<boolean>(false);
+  const [availableClients, setAvailableClients] = useState<ClientOption[]>([]);
   const { login, register } = useAuth();
   const navigate = useNavigate();
+
+  // Fetch available clients on component mount
+  useEffect(() => {
+    const fetchClients = async () => {
+      try {
+        const response = await apiClient.get("/auth/clients");
+        setAvailableClients(response.data);
+      } catch (error) {
+        console.error("Error fetching clients:", error);
+      }
+    };
+    fetchClients();
+  }, []);
 
   const handleLogin = async (
     e: React.FormEvent<HTMLFormElement>
@@ -74,6 +101,7 @@ function Login(): React.ReactElement {
         first_name: "",
         last_name: "",
         role: "client",
+        client_id: "",
       });
     } else {
       toast.error(result.error || "Registration failed");
@@ -211,6 +239,7 @@ function Login(): React.ReactElement {
                         setRegisterForm({
                           ...registerForm,
                           role: e.target.value as "admin" | "agent" | "client",
+                          client_id: e.target.value === "client" ? registerForm.client_id : undefined,
                         })
                       }
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -220,6 +249,33 @@ function Login(): React.ReactElement {
                       <option value="admin">Admin</option>
                     </select>
                   </div>
+                  
+                  {registerForm.role === "client" && (
+                    <div>
+                      <Label htmlFor="register-client-id">Client ID</Label>
+                      <Select
+                        value={registerForm.client_id}
+                        onValueChange={(value) =>
+                          setRegisterForm({
+                            ...registerForm,
+                            client_id: value,
+                          })
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select Client ID" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableClients.map((client) => (
+                            <SelectItem key={client.client_id} value={client.client_id}>
+                              {client.client_id} - {client.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                  
                   <Button type="submit" className="w-full" disabled={loading}>
                     {loading ? "Creating account..." : "Create Account"}
                   </Button>

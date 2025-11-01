@@ -82,13 +82,14 @@ class CampaignRepository:
         # If not found, try to find by campaign_id (C-XXXXX format)
         return await self.campaigns.find_one({"campaign_id": campaign_id})
     
-    async def get_campaigns_by_user(self, user_id: str, user_role: str) -> List[dict]:
+    async def get_campaigns_by_user(self, user_id: str, user_role: str, client_id: str = None) -> List[dict]:
         """
         Get campaigns accessible to a user based on their role.
         
         Args:
             user_id: User's unique identifier
             user_role: User's role (admin, agent, client)
+            client_id: Client ID (required for client role)
             
         Returns:
             List[dict]: List of campaign documents
@@ -101,7 +102,12 @@ class CampaignRepository:
             campaign_ids = [cl["campaign_id"] for cl in campaign_leads]
             query["id"] = {"$in": campaign_ids}
         elif user_role == "client":
-            query["created_by"] = user_id
+            # Filter campaigns by client_id instead of created_by
+            if client_id:
+                query["client_id"] = client_id
+            else:
+                # Fallback to old behavior if client_id not provided
+                query["created_by"] = user_id
         
         campaigns = await self.campaigns.find(query).to_list(settings.max_page_size)
         

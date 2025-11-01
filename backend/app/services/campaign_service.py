@@ -80,7 +80,7 @@ class CampaignService:
             List[Campaign]: List of campaign objects
         """
         campaigns = await self.campaign_repo.get_campaigns_by_user(
-            current_user.id, current_user.role
+            current_user.id, current_user.role, current_user.client_id
         )
         return [Campaign(**campaign) for campaign in campaigns]
     
