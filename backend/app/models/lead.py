@@ -170,6 +170,7 @@ class Lead(BaseModel):
     call_status_vb: Optional[str] = None
     call_duration_vb: Optional[int] = None
     conversation_summary_vb: Optional[str] = None
+    record_summary_shared: Optional[str] = None
     
     # Follow-up System (Post-Call/Voice Bot)
     follow_up_count_pc: Optional[bool] = None
@@ -243,6 +244,7 @@ class LeadCreate(BaseModel):
     call_status_vb: Optional[str] = None
     call_duration_vb: Optional[int] = None
     conversation_summary_vb: Optional[str] = None
+    record_summary_shared: Optional[str] = None
     follow_up_count_pc: Optional[bool] = None
     undetermined_flag_pc: Optional[bool] = None
     meeting_booked_shared: Optional[bool] = None

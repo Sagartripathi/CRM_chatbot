@@ -106,6 +106,7 @@ function LeadManagement() {
     call_status_vb: "",
     call_duration_vb: 0,
     conversation_summary_vb: "",
+    record_summary_shared: "",
     follow_up_count_pc: false,
     undetermined_flag_pc: false,
     meeting_booked_shared: false,
@@ -292,6 +293,8 @@ function LeadManagement() {
         leadData.call_duration_vb = newLead.call_duration_vb;
       if (newLead.conversation_summary_vb)
         leadData.conversation_summary_vb = newLead.conversation_summary_vb;
+      if (newLead.record_summary_shared)
+        leadData.record_summary_shared = newLead.record_summary_shared;
 
       // Boolean fields - include if true
       if (newLead.decision_maker_identified_shared)
@@ -417,6 +420,7 @@ function LeadManagement() {
         call_duration_vb: selectedLead.call_duration_vb || undefined,
         conversation_summary_vb:
           selectedLead.conversation_summary_vb || undefined,
+        record_summary_shared: selectedLead.record_summary_shared || undefined,
         updated_by_shared: selectedLead.updated_by_shared || undefined,
         // Handle demo_booking_shared
         demo_booking_shared:
