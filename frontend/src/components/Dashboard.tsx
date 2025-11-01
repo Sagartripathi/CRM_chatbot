@@ -48,11 +48,11 @@ function Dashboard(): React.ReactElement {
         return;
       }
 
-      // Fetch campaigns
+      // Fetch campaigns (will be filtered by backend based on user role and client_id)
       const campaignsResponse = await apiClient.get<Campaign[]>("/campaigns");
       const campaigns = campaignsResponse.data;
 
-      // Fetch leads
+      // Fetch leads (will be filtered by backend based on user role and client_id)
       const leadsResponse = await apiClient.get<Lead[]>("/leads");
       const leads = leadsResponse.data;
 
@@ -111,14 +111,18 @@ function Dashboard(): React.ReactElement {
               Welcome back, {user?.first_name}!
             </h1>
             <p className="text-gray-600">
-              Here's what's happening with your CRM today.
+              {user?.role === "client" && user?.client_id
+                ? `Client ID: ${user.client_id} - Your campaigns and leads overview`
+                : "Here's what's happening with your CRM today."}
             </p>
           </div>
           <div className="flex space-x-2">
-            <Button onClick={() => navigate("/campaigns")} variant="outline">
-              <Plus className="h-4 w-4 mr-2" />
-              New Campaign
-            </Button>
+            {user?.role !== "client" && (
+              <Button onClick={() => navigate("/campaigns")} variant="outline">
+                <Plus className="h-4 w-4 mr-2" />
+                New Campaign
+              </Button>
+            )}
             <Button onClick={handleLogout} variant="outline">
               Logout
             </Button>
@@ -129,25 +133,31 @@ function Dashboard(): React.ReactElement {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Leads</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                {user?.role === "client" ? "My Leads" : "Total Leads"}
+              </CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.totalLeads}</div>
-              <p className="text-xs text-muted-foreground">All time leads</p>
+              <p className="text-xs text-muted-foreground">
+                {user?.role === "client" ? "Leads in your campaigns" : "All time leads"}
+              </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Active Campaigns
+                {user?.role === "client" ? "My Campaigns" : "Active Campaigns"}
               </CardTitle>
               <Target className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.activeCampaigns}</div>
-              <p className="text-xs text-muted-foreground">Currently running</p>
+              <p className="text-xs text-muted-foreground">
+                {user?.role === "client" ? "Active campaigns" : "Currently running"}
+              </p>
             </CardContent>
           </Card>
 
@@ -181,8 +191,14 @@ function Dashboard(): React.ReactElement {
         {/* Recent Campaigns */}
         <Card>
           <CardHeader>
-            <CardTitle>Recent Campaigns</CardTitle>
-            <CardDescription>Your latest campaign activities</CardDescription>
+            <CardTitle>
+              {user?.role === "client" ? "My Campaigns" : "Recent Campaigns"}
+            </CardTitle>
+            <CardDescription>
+              {user?.role === "client"
+                ? `Campaigns associated with ${user?.client_id}`
+                : "Your latest campaign activities"}
+            </CardDescription>
           </CardHeader>
           <CardContent>
             {recentCampaigns.length > 0 ? (

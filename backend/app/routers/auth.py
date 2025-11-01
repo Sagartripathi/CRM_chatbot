@@ -79,3 +79,18 @@ async def get_current_user_info(current_user: User = Depends(get_current_user)):
         User: Current user information
     """
     return current_user
+
+
+@router.get("/clients")
+async def get_available_clients():
+    """
+    Get list of available client IDs for registration.
+    
+    Returns:
+        List[dict]: List of available client IDs with their information
+    """
+    return [
+        {"client_id": "CLI-00001", "name": "Client 1"},
+        {"client_id": "CLI-00002", "name": "Client 2"},
+        {"client_id": "CLI-00003", "name": "Client 3"}
+    ]

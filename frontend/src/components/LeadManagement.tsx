@@ -40,6 +40,8 @@ import {
   FileText,
   Edit,
   Trash2,
+  Building2,
+  User,
 } from "lucide-react";
 
 function LeadManagement() {
@@ -105,6 +107,7 @@ function LeadManagement() {
     call_status_vb: "",
     call_duration_vb: 0,
     conversation_summary_vb: "",
+    record_summary_shared: "",
     follow_up_count_pc: false,
     undetermined_flag_pc: false,
     meeting_booked_shared: false,
@@ -142,7 +145,8 @@ function LeadManagement() {
           (lead.lead_email || lead.email)
             ?.toLowerCase()
             .includes(searchTerm.toLowerCase()) ||
-          (lead.lead_phone || lead.phone)?.includes(searchTerm)
+          (lead.lead_phone || lead.phone)?.includes(searchTerm) ||
+          lead.campaign_name?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -292,6 +296,8 @@ function LeadManagement() {
         leadData.call_duration_vb = newLead.call_duration_vb;
       if (newLead.conversation_summary_vb)
         leadData.conversation_summary_vb = newLead.conversation_summary_vb;
+      if (newLead.record_summary_shared)
+        leadData.record_summary_shared = newLead.record_summary_shared;
 
       // Boolean fields - include if true
       if (newLead.decision_maker_identified_shared)
@@ -417,6 +423,7 @@ function LeadManagement() {
         call_duration_vb: selectedLead.call_duration_vb || undefined,
         conversation_summary_vb:
           selectedLead.conversation_summary_vb || undefined,
+        record_summary_shared: selectedLead.record_summary_shared || undefined,
         updated_by_shared: selectedLead.updated_by_shared || undefined,
         // Handle demo_booking_shared
         demo_booking_shared:
@@ -612,7 +619,10 @@ function LeadManagement() {
     );
   }
 
-  const headerTitle = `Leads (${filteredLeads.length} of ${leads.length})`;
+  const headerTitle =
+    user?.role === "client"
+      ? `My Leads (${filteredLeads.length} of ${leads.length})`
+      : `Leads (${filteredLeads.length} of ${leads.length})`;
 
   const headerActions = (
     <div className="flex items-center space-x-3">
@@ -870,7 +880,7 @@ function LeadManagement() {
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
-              placeholder="Search leads by name, email, or phone..."
+              placeholder="Search leads by name, email, phone, or campaign..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -890,8 +900,8 @@ function LeadManagement() {
               <SelectItem value="all">All Statuses</SelectItem>
               <SelectItem value="new">New</SelectItem>
               <SelectItem value="ready">Ready</SelectItem>
-              <SelectItem value="pending_preview">Pending Preview</SelectItem>
-              <SelectItem value="previewed">Previewed</SelectItem>
+              <SelectItem value="pending_preview">Pending Review</SelectItem>
+              <SelectItem value="previewed">Reviewed</SelectItem>
               <SelectItem value="lost">Lost</SelectItem>
               <SelectItem value="no_response">No Response</SelectItem>
             </SelectContent>
@@ -962,14 +972,21 @@ function LeadManagement() {
                     >
                       <td className="px-6 py-4 whitespace-nowrap h-20">
                         <div className="h-full flex flex-col justify-center">
-                          <div className="text-sm font-medium text-gray-900 mb-1">
-                            {lead.lead_type === "individual"
-                              ? `${lead.lead_first_name || ""} ${
-                                  lead.lead_last_name || ""
-                                }`.trim() || "No name"
-                              : lead.business_name || "No business name"}
+                          <div className="flex items-center space-x-2 mb-1">
+                            {lead.lead_type === "organization" ? (
+                              <Building2 className="h-4 w-4 text-indigo-600 flex-shrink-0" />
+                            ) : (
+                              <User className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                            )}
+                            <div className="text-sm font-medium text-gray-900">
+                              {lead.lead_type === "individual"
+                                ? `${lead.lead_first_name || ""} ${
+                                    lead.lead_last_name || ""
+                                  }`.trim() || "No name"
+                                : lead.business_name || "No business name"}
+                            </div>
                           </div>
-                          <div className="text-xs text-gray-500 flex items-center space-x-2">
+                          <div className="text-xs text-gray-500 flex items-center space-x-2 ml-6">
                             <Badge
                               variant="outline"
                               className="capitalize text-xs"
@@ -986,18 +1003,37 @@ function LeadManagement() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap h-20">
                         <div className="h-full flex flex-col justify-center space-y-1">
-                          <div className="flex items-center space-x-1 h-5">
-                            <Mail className="h-3 w-3 text-gray-400 flex-shrink-0" />
-                            <span className="truncate max-w-xs text-gray-900">
-                              {lead.lead_email || lead.email || "No email"}
-                            </span>
-                          </div>
-                          <div className="flex items-center space-x-1 h-5">
-                            <Phone className="h-3 w-3 text-gray-400 flex-shrink-0" />
-                            <span className="text-gray-900">
-                              {lead.lead_phone || lead.phone || "No phone"}
-                            </span>
-                          </div>
+                          {lead.lead_type === "organization" ? (
+                            <>
+                              <div className="flex items-center space-x-1 h-5">
+                                <Building2 className="h-3 w-3 text-indigo-600 flex-shrink-0" />
+                                <span className="truncate max-w-xs text-gray-900">
+                                  {lead.business_name || "No business name"}
+                                </span>
+                              </div>
+                              <div className="flex items-center space-x-1 h-5">
+                                <Phone className="h-3 w-3 text-gray-400 flex-shrink-0" />
+                                <span className="text-gray-900">
+                                  {lead.business_phone || "No phone"}
+                                </span>
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <div className="flex items-center space-x-1 h-5">
+                                <Mail className="h-3 w-3 text-gray-400 flex-shrink-0" />
+                                <span className="truncate max-w-xs text-gray-900">
+                                  {lead.lead_email || lead.email || "No email"}
+                                </span>
+                              </div>
+                              <div className="flex items-center space-x-1 h-5">
+                                <Phone className="h-3 w-3 text-gray-400 flex-shrink-0" />
+                                <span className="text-gray-900">
+                                  {lead.lead_phone || lead.phone || "No phone"}
+                                </span>
+                              </div>
+                            </>
+                          )}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap h-20">
@@ -1061,15 +1097,17 @@ function LeadManagement() {
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => openDeleteDialog(lead)}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                            data-testid={`delete-lead-btn-${lead.id}`}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          {user?.role !== "client" && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => openDeleteDialog(lead)}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              data-testid={`delete-lead-btn-${lead.id}`}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -1361,9 +1399,9 @@ function LeadManagement() {
                       <SelectItem value="new">New</SelectItem>
                       <SelectItem value="ready">Ready</SelectItem>
                       <SelectItem value="pending-preview">
-                        Pending Preview
+                        Pending Review
                       </SelectItem>
-                      <SelectItem value="previewed">Previewed</SelectItem>
+                      <SelectItem value="previewed">Reviewed</SelectItem>
                       <SelectItem value="lost">Lost</SelectItem>
                       <SelectItem value="no-response">No Response</SelectItem>
                     </SelectContent>
@@ -1590,15 +1628,32 @@ function LeadManagement() {
             <div className="space-y-4">
               <div className="p-4 bg-red-50 rounded-lg">
                 <h4 className="font-medium text-red-900">
-                  {selectedLead.lead_first_name ||
-                    selectedLead.first_name ||
-                    ""}{" "}
-                  {selectedLead.lead_last_name || selectedLead.last_name || ""}
+                  {selectedLead.lead_type === "individual"
+                    ? `${
+                        selectedLead.lead_first_name ||
+                        selectedLead.first_name ||
+                        ""
+                      } ${
+                        selectedLead.lead_last_name ||
+                        selectedLead.last_name ||
+                        ""
+                      }`.trim() || "No name"
+                    : selectedLead.business_name || "No business name"}
                 </h4>
                 <p className="text-sm text-red-700 mt-1">
-                  {selectedLead.lead_email || selectedLead.email || "No email"}{" "}
-                  •{" "}
-                  {selectedLead.lead_phone || selectedLead.phone || "No phone"}
+                  {selectedLead.lead_type === "individual" ? (
+                    <>
+                      {selectedLead.lead_email ||
+                        selectedLead.email ||
+                        "No email"}{" "}
+                      •{" "}
+                      {selectedLead.lead_phone ||
+                        selectedLead.phone ||
+                        "No phone"}
+                    </>
+                  ) : (
+                    <>{selectedLead.business_phone || "No phone"}</>
+                  )}
                 </p>
               </div>
 
