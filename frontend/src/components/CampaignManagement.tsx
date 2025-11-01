@@ -1392,40 +1392,42 @@ function CampaignManagement() {
                         </div>
                       </div>
 
-                  {/* Action Buttons */}
-                  <div className="flex gap-2 pt-3 border-t">
-                    {user?.role !== "client" && (
-                      <button
-                        onClick={() => handleStartCampaign(campaign.id)}
-                        className="flex-1 px-3 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 text-sm font-medium"
-                      >
-                        <Phone className="h-4 w-4 inline mr-1" />
-                        Start Calls
-                      </button>
-                    )}
-                    <button
-                      onClick={() => handleViewStats(campaign)}
-                      className={`px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 text-sm ${
-                        user?.role === "client" ? "flex-1" : ""
-                      }`}
-                    >
-                      <Eye className="h-4 w-4 inline mr-1" />
-                      {user?.role === "client" ? "View Details" : ""}
-                    </button>
-                    {user?.role !== "client" && (
-                      <>
+                      {/* Action Buttons */}
+                      <div className="flex gap-2 pt-3 border-t">
+                        {user?.role !== "client" && (
+                          <button
+                            onClick={() => handleStartCampaign(campaign.id)}
+                            className="flex-1 px-3 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 text-sm font-medium"
+                          >
+                            <Phone className="h-4 w-4 inline mr-1" />
+                            Start Calls
+                          </button>
+                        )}
                         <button
-                          onClick={() => openEditDialog(campaign)}
-                          className="px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 text-sm"
+                          onClick={() => handleViewStats(campaign)}
+                          className={`px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 text-sm ${
+                            user?.role === "client" ? "flex-1" : ""
+                          }`}
                         >
-                          <Edit className="h-4 w-4" />
+                          <Eye className="h-4 w-4 inline mr-1" />
+                          {user?.role === "client" ? "View Details" : ""}
                         </button>
-                        <button
-                          onClick={() => openDeleteDialog(campaign)}
-                          className="px-3 py-2 border border-red-300 text-red-600 rounded-md hover:bg-red-50 text-sm"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+                        {user?.role !== "client" && (
+                          <>
+                            <button
+                              onClick={() => openEditDialog(campaign)}
+                              className="px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 text-sm"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => openDeleteDialog(campaign)}
+                              className="px-3 py-2 border border-red-300 text-red-600 rounded-md hover:bg-red-50 text-sm"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </>
+                        )}
                       </div>
                     </div>
                   </CardContent>

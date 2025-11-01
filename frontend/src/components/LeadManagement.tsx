@@ -1001,31 +1001,27 @@ function LeadManagement() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap h-20">
                         <div className="h-full flex flex-col justify-center space-y-1">
-
-                          {lead.lead_type === "individual" ? (
+                          {lead.lead_type === "organization" ? (
                             <>
                               <div className="flex items-center space-x-1 h-5">
-                                <Mail className="h-3 w-3 text-gray-400 flex-shrink-0" />
+                                <Building2 className="h-3 w-3 text-indigo-600 flex-shrink-0" />
                                 <span className="truncate max-w-xs text-gray-900">
-                                  {lead.lead_email || lead.email || "No email"}
-
+                                  {lead.business_name || "No business name"}
                                 </span>
                               </div>
                               <div className="flex items-center space-x-1 h-5">
                                 <Phone className="h-3 w-3 text-gray-400 flex-shrink-0" />
                                 <span className="text-gray-900">
-
-                                  {lead.lead_phone || lead.phone || "No phone"}
-
+                                  {lead.business_phone || "No phone"}
                                 </span>
                               </div>
                             </>
                           ) : (
                             <>
                               <div className="flex items-center space-x-1 h-5">
-                                <Building2 className="h-3 w-3 text-gray-400 flex-shrink-0" />
+                                <Mail className="h-3 w-3 text-gray-400 flex-shrink-0" />
                                 <span className="truncate max-w-xs text-gray-900">
-                                  {lead.business_name || "No business name"}
+                                  {lead.lead_email || lead.email || "No email"}
                                 </span>
                               </div>
                               <div className="flex items-center space-x-1 h-5">
