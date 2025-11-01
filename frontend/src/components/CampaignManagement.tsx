@@ -43,6 +43,8 @@ import {
   Trash2,
   FileText,
   Mail,
+  Building2,
+  Search,
 } from "lucide-react";
 
 // DateTimePicker Component
@@ -371,6 +373,10 @@ function CampaignManagement() {
     useState(false);
   const [deleteLeadInCampaignDialogOpen, setDeleteLeadInCampaignDialogOpen] =
     useState(false);
+  const [isEditingCampaign, setIsEditingCampaign] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 9; // 12 campaigns per page as requested
+  const [searchTerm, setSearchTerm] = useState("");
   // Sidebar managed by Layout component
 
   // Campaign form state matching backend Campaign model
@@ -592,6 +598,7 @@ function CampaignManagement() {
       await apiClient.put(`/campaigns/${selectedCampaign.id}`, payload);
 
       toast.success("Campaign updated successfully!");
+      setIsEditingCampaign(false);
       setEditDialogOpen(false);
       setSelectedCampaign(null);
       setSelectedLeads([]);
@@ -628,6 +635,7 @@ function CampaignManagement() {
       (campaign.leads ? campaign.leads.map((l) => l.id) : []) ??
       [];
     setSelectedLeads(Array.isArray(leadIds) ? leadIds : []);
+    setIsEditingCampaign(false);
     setEditDialogOpen(true);
   };
 
@@ -1203,180 +1211,284 @@ function CampaignManagement() {
       </div>
     ) : null;
 
+  // Filter campaigns based on search term
+  const filteredCampaigns = campaigns.filter((campaign) => {
+    const lowerCaseSearchTerm = searchTerm.toLowerCase();
+    return (
+      (campaign.campaign_name || campaign.name || "")
+        .toLowerCase()
+        .includes(lowerCaseSearchTerm) ||
+      (campaign.campaign_id || "")
+        .toLowerCase()
+        .includes(lowerCaseSearchTerm) ||
+      (campaign.timezone_shared || "")
+        .toLowerCase()
+        .includes(lowerCaseSearchTerm)
+    );
+  });
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredCampaigns.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedCampaigns = filteredCampaigns.slice(startIndex, endIndex);
+
   return (
     <Layout title="Campaigns" headerActions={headerActions}>
+      {/* Search Bar */}
+      <div className="mb-4">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Input
+            placeholder="Search campaigns by name, ID, or timezone..."
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1); // Reset to first page when searching
+            }}
+            className="pl-10"
+            data-testid="search-campaigns-input"
+          />
+        </div>
+      </div>
+
       {campaigns.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {campaigns.map((campaign) => (
-            <Card
-              key={campaign.id}
-              className="card-hover"
-              data-testid={`campaign-card-${campaign.id}`}
-            >
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex-1 min-w-0">
-                    <CardTitle className="text-lg truncate">
-                      {campaign?.campaign_name ||
-                        campaign?.name ||
-                        "Untitled Campaign"}
-                    </CardTitle>
-                    <CardDescription className="mt-1">
-                      {campaign?.campaign_description ||
-                        campaign?.description ||
-                        "No description"}
-                    </CardDescription>
-                    {campaign && campaign.campaign_id && (
-                      <div className="text-xs text-gray-500 mt-1 font-mono">
-                        ID: {campaign.campaign_id}
+        <>
+          {filteredCampaigns.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              {paginatedCampaigns.map((campaign) => (
+                <Card
+                  key={campaign.id}
+                  className="card-hover"
+                  data-testid={`campaign-card-${campaign.id}`}
+                >
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 min-w-0">
+                        <CardTitle className="text-lg truncate">
+                          {campaign?.campaign_name ||
+                            campaign?.name ||
+                            "Untitled Campaign"}
+                        </CardTitle>
+                        <CardDescription className="mt-1">
+                          {campaign?.campaign_description ||
+                            campaign?.description ||
+                            "No description"}
+                        </CardDescription>
+                        {campaign && campaign.campaign_id && (
+                          <div className="text-xs text-gray-500 mt-1 font-mono">
+                            ID: {campaign.campaign_id}
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                  <Badge
-                    variant={campaign?.is_active ? "default" : "secondary"}
-                  >
-                    {campaign?.is_active ? "Active" : "Inactive"}
-                  </Badge>
-                </div>
-              </CardHeader>
-
-              <CardContent>
-                <div className="space-y-3">
-                  {/* Stats Section */}
-                  <div className="grid grid-cols-2 gap-4 pb-3 border-b">
-                    <div>
-                      <div className="text-xs text-gray-500">Total Leads</div>
-                      <div className="text-lg font-semibold">
-                        {campaign.total_leads || 0}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-xs text-gray-500">Completed</div>
-                      <div className="text-lg font-semibold">
-                        {campaign.completed_leads || 0}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Campaign Details */}
-                  <div className="space-y-2 text-sm">
-                    {campaign.client_id && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-gray-500">Client ID:</span>
-                        <span className="font-medium text-gray-700">
-                          {campaign.client_id}
-                        </span>
-                      </div>
-                    )}
-
-                    {(campaign.agent_id || campaign.agent_id_vb) && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-gray-500">Agent ID:</span>
-                        <span className="font-medium text-gray-700 font-mono text-xs">
-                          {campaign.agent_id || campaign.agent_id_vb}
-                        </span>
-                      </div>
-                    )}
-
-                    {campaign.timezone_shared && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-gray-500">Timezone:</span>
-                        <span className="font-medium text-gray-700">
-                          {campaign.timezone_shared}
-                        </span>
-                      </div>
-                    )}
-
-                    {/* Call Scheduling Info */}
-                    {(campaign.start_call ||
-                      campaign.call_created_at ||
-                      campaign.call_updated_at) && (
-                      <div className="pt-2 border-t">
-                        <div className="text-xs font-semibold text-gray-600 mb-1">
-                          Call Scheduling
-                        </div>
-                        <div className="space-y-1 text-xs">
-                          {campaign.start_call && (
-                            <div className="flex justify-between">
-                              <span className="text-gray-500">
-                                API Trigger:
-                              </span>
-                              <span className="font-medium text-gray-700">
-                                {campaign.start_call}
-                              </span>
-                            </div>
-                          )}
-                          {campaign.call_created_at && (
-                            <div className="flex justify-between">
-                              <span className="text-gray-500">
-                                Call Created:
-                              </span>
-                              <span className="font-medium text-gray-700">
-                                {new Date(
-                                  campaign.call_created_at
-                                ).toLocaleDateString()}
-                              </span>
-                            </div>
-                          )}
-                          {campaign.call_updated_at && (
-                            <div className="flex justify-between">
-                              <span className="text-gray-500">
-                                Call Updated:
-                              </span>
-                              <span className="font-medium text-gray-700">
-                                {new Date(
-                                  campaign.call_updated_at
-                                ).toLocaleDateString()}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex gap-2 pt-3 border-t">
-                    {user?.role !== "client" && (
-                      <button
-                        onClick={() => handleStartCampaign(campaign.id)}
-                        className="flex-1 px-3 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 text-sm font-medium"
+                      <Badge
+                        variant={campaign?.is_active ? "default" : "secondary"}
                       >
-                        <Phone className="h-4 w-4 inline mr-1" />
-                        Start Calls
-                      </button>
-                    )}
-                    <button
-                      onClick={() => handleViewStats(campaign)}
-                      className={`px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 text-sm ${
-                        user?.role === "client" ? "flex-1" : ""
-                      }`}
-                    >
-                      <Eye className="h-4 w-4 inline mr-1" />
-                      {user?.role === "client" ? "View Details" : ""}
-                    </button>
-                    {user?.role !== "client" && (
-                      <>
+                        {campaign?.is_active ? "Active" : "Inactive"}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+
+                  <CardContent>
+                    <div className="space-y-3">
+                      {/* Stats Section */}
+                      <div className="grid grid-cols-2 gap-4 pb-3 border-b">
+                        <div>
+                          <div className="text-xs text-gray-500">
+                            Total Leads
+                          </div>
+                          <div className="text-lg font-semibold">
+                            {campaign.total_leads || 0}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-xs text-gray-500">Completed</div>
+                          <div className="text-lg font-semibold">
+                            {campaign.completed_leads || 0}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Campaign Details */}
+                      <div className="space-y-2 text-sm">
+                        {campaign.client_id && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-500">Client ID:</span>
+                            <span className="font-medium text-gray-700">
+                              {campaign.client_id}
+                            </span>
+                          </div>
+                        )}
+
+                        {(campaign.agent_id || campaign.agent_id_vb) && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-500">Agent ID:</span>
+                            <span className="font-medium text-gray-700 font-mono text-xs">
+                              {campaign.agent_id || campaign.agent_id_vb}
+                            </span>
+                          </div>
+                        )}
+
+                        {campaign.timezone_shared && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-500">Timezone:</span>
+                            <span className="font-medium text-gray-700">
+                              {campaign.timezone_shared}
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Call Scheduling Info - Always show with fixed height */}
+                        <div className="pt-2 border-t min-h-[60px]">
+                          {campaign.start_call ||
+                          campaign.call_created_at ||
+                          campaign.call_updated_at ? (
+                            <>
+                              <div className="text-xs font-semibold text-gray-600 mb-1">
+                                Call Scheduling
+                              </div>
+                              <div className="space-y-1 text-xs">
+                                {campaign.start_call && (
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-500">
+                                      API Trigger:
+                                    </span>
+                                    <span className="font-medium text-gray-700">
+                                      {campaign.start_call}
+                                    </span>
+                                  </div>
+                                )}
+                                {campaign.call_created_at && (
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-500">
+                                      Call Created:
+                                    </span>
+                                    <span className="font-medium text-gray-700">
+                                      {new Date(
+                                        campaign.call_created_at
+                                      ).toLocaleDateString()}
+                                    </span>
+                                  </div>
+                                )}
+                                {campaign.call_updated_at && (
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-500">
+                                      Call Updated:
+                                    </span>
+                                    <span className="font-medium text-gray-700">
+                                      {new Date(
+                                        campaign.call_updated_at
+                                      ).toLocaleDateString()}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            </>
+                          ) : (
+                            <div className="text-xs text-gray-400 italic">
+                              No call scheduling configured
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex gap-2 pt-3 border-t">
+                        {user?.role !== "client" && (
+                          <button
+                            onClick={() => handleStartCampaign(campaign.id)}
+                            className="flex-1 px-3 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 text-sm font-medium"
+                          >
+                            <Phone className="h-4 w-4 inline mr-1" />
+                            Start Calls
+                          </button>
+                        )}
                         <button
-                          onClick={() => openEditDialog(campaign)}
-                          className="px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 text-sm"
+                          onClick={() => handleViewStats(campaign)}
+                          className={`px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 text-sm ${
+                            user?.role === "client" ? "flex-1" : ""
+                          }`}
                         >
-                          <Edit className="h-4 w-4" />
+                          <Eye className="h-4 w-4 inline mr-1" />
+                          {user?.role === "client" ? "View Details" : ""}
                         </button>
-                        <button
-                          onClick={() => openDeleteDialog(campaign)}
-                          className="px-3 py-2 border border-red-300 text-red-600 rounded-md hover:bg-red-50 text-sm"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </>
-                    )}
-                  </div>
-                </div>
+                        {user?.role !== "client" && (
+                          <>
+                            <button
+                              onClick={() => openEditDialog(campaign)}
+                              className="px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 text-sm"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => openDeleteDialog(campaign)}
+                              className="px-3 py-2 border border-red-300 text-red-600 rounded-md hover:bg-red-50 text-sm"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="text-center py-12">
+                <Search className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-xl font-medium text-gray-900 mb-2">
+                  No campaigns found
+                </h3>
+                <p className="text-gray-500 mb-6 max-w-md mx-auto">
+                  Try adjusting your search terms or creating a new campaign.
+                </p>
               </CardContent>
             </Card>
-          ))}
-        </div>
+          )}
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="mt-6 flex items-center justify-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+              >
+                Previous
+              </Button>
+              <div className="flex items-center gap-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  (page) => (
+                    <Button
+                      key={page}
+                      variant={currentPage === page ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setCurrentPage(page)}
+                      className={
+                        currentPage === page ? "bg-indigo-600 text-white" : ""
+                      }
+                    >
+                      {page}
+                    </Button>
+                  )
+                )}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                }
+                disabled={currentPage === totalPages}
+              >
+                Next
+              </Button>
+            </div>
+          )}
+        </>
       ) : (
         // Empty State
         <Card>
@@ -1496,50 +1608,92 @@ function CampaignManagement() {
           </DialogHeader>
 
           {selectedCampaign && (
-            <form onSubmit={handleEditCampaign} className="space-y-6">
-              {/* Basic Info */}
-              <div className="space-y-4">
+            <form onSubmit={handleEditCampaign} className="space-y-4">
+              {/* Row 1: Campaign ID, Campaign Name, Client ID, Agent ID */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                 <div>
-                  <Label htmlFor="edit-campaign-id">Campaign ID</Label>
+                  <Label htmlFor="edit-campaign-id" className="text-xs">
+                    Campaign ID
+                  </Label>
                   <Input
                     id="edit-campaign-id"
                     value={selectedCampaign.campaign_id}
-                    placeholder="Campaign ID (cannot be changed)"
-                    className="bg-gray-100 cursor-not-allowed"
+                    className="bg-gray-100 cursor-not-allowed text-xs"
                     readOnly
                     disabled
                   />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Campaign ID cannot be modified after creation
-                  </p>
                 </div>
 
                 <div>
-                  <Label htmlFor="edit-campaign-name">Campaign Name</Label>
+                  <Label htmlFor="edit-campaign-name" className="text-xs">
+                    Campaign Name
+                  </Label>
+                  {isEditingCampaign ? (
+                    <Input
+                      id="edit-campaign-name"
+                      data-testid="edit-campaign-name-input"
+                      value={
+                        selectedCampaign.campaign_name ??
+                        selectedCampaign.name ??
+                        ""
+                      }
+                      onChange={(e) =>
+                        setSelectedCampaign({
+                          ...selectedCampaign,
+                          campaign_name: e.target.value,
+                          name: e.target.value,
+                        })
+                      }
+                      placeholder="Enter campaign name"
+                      className="text-xs"
+                      required
+                    />
+                  ) : (
+                    <div className="text-sm py-2 px-3 bg-gray-50 rounded-md border border-gray-200">
+                      {selectedCampaign.campaign_name ||
+                        selectedCampaign.name ||
+                        "N/A"}
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <Label htmlFor="edit-client-id" className="text-xs">
+                    Client ID
+                  </Label>
                   <Input
-                    id="edit-campaign-name"
-                    data-testid="edit-campaign-name-input"
-                    value={
-                      selectedCampaign.campaign_name ??
-                      selectedCampaign.name ??
-                      ""
-                    }
-                    onChange={(e) =>
-                      setSelectedCampaign({
-                        ...selectedCampaign,
-                        campaign_name: e.target.value,
-                        // keep legacy name in sync for backwards compatibility
-                        name: e.target.value,
-                      })
-                    }
-                    placeholder="Enter campaign name"
-                    required
+                    id="edit-client-id"
+                    value={selectedCampaign.client_id || ""}
+                    className="bg-gray-100 cursor-not-allowed text-xs"
+                    readOnly
+                    disabled
                   />
                 </div>
+
                 <div>
-                  <Label htmlFor="edit-campaign-description">
-                    Description *
+                  <Label htmlFor="edit-agent-id" className="text-xs">
+                    Agent ID
                   </Label>
+                  <Input
+                    id="edit-agent-id"
+                    value={
+                      selectedCampaign.agent_id ??
+                      selectedCampaign.agent_id_vb ??
+                      ""
+                    }
+                    className="bg-gray-100 cursor-not-allowed text-xs"
+                    readOnly
+                    disabled
+                  />
+                </div>
+              </div>
+
+              {/* Row 2: Description */}
+              <div>
+                <Label htmlFor="edit-campaign-description" className="text-xs">
+                  Description
+                </Label>
+                {isEditingCampaign ? (
                   <Textarea
                     id="edit-campaign-description"
                     data-testid="edit-campaign-description-input"
@@ -1552,102 +1706,170 @@ function CampaignManagement() {
                       setSelectedCampaign({
                         ...selectedCampaign,
                         campaign_description: e.target.value,
-                        // keep legacy description in sync for backwards compatibility
                         description: e.target.value,
                       })
                     }
                     placeholder="Describe this campaign"
-                    rows={3}
+                    rows={2}
+                    className="text-xs"
                     required
                   />
-                </div>
-
-                <div>
-                  <Label htmlFor="edit-client-id">Client ID</Label>
-                  <Input
-                    id="edit-client-id"
-                    value={selectedCampaign.client_id || ""}
-                    onChange={(e) =>
-                      setSelectedCampaign({
-                        ...selectedCampaign,
-                        client_id: e.target.value,
-                      })
-                    }
-                    placeholder="Enter client ID"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="edit-agent-id">Agent ID</Label>
-                  <Input
-                    id="edit-agent-id"
-                    value={
-                      selectedCampaign.agent_id ??
-                      selectedCampaign.agent_id_vb ??
-                      ""
-                    }
-                    onChange={(e) =>
-                      setSelectedCampaign({
-                        ...selectedCampaign,
-                        agent_id: e.target.value,
-                      })
-                    }
-                    placeholder="Enter agent ID"
-                  />
-                </div>
+                ) : (
+                  <div className="text-sm py-2 px-3 bg-gray-50 rounded-md border border-gray-200 min-h-[48px]">
+                    {selectedCampaign.campaign_description ||
+                      selectedCampaign.description ||
+                      "No description"}
+                  </div>
+                )}
               </div>
 
-              {/* Call Scheduling */}
-              <div className="pt-4 border-t">
-                <h3 className="text-base font-semibold mb-2">
+              {/* Row 3: Call Scheduling */}
+              <div>
+                <Label className="text-xs font-semibold mb-2 block">
                   Call Scheduling
-                </h3>
+                </Label>
+                {isEditingCampaign ? (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div>
+                      <Label
+                        htmlFor="edit-start-call"
+                        className="text-xs text-gray-600"
+                      >
+                        Start Call
+                      </Label>
+                      <Input
+                        id="edit-start-call"
+                        value={selectedCampaign.start_call || ""}
+                        onChange={(e) =>
+                          setSelectedCampaign({
+                            ...selectedCampaign,
+                            start_call: e.target.value,
+                          })
+                        }
+                        placeholder="API trigger"
+                        className="text-xs"
+                      />
+                    </div>
+                    <div>
+                      <Label
+                        htmlFor="edit-call-created-at"
+                        className="text-xs text-gray-600"
+                      >
+                        Call Created At
+                      </Label>
+                      <DateTimePicker
+                        value={selectedCampaign.call_created_at || ""}
+                        onChange={(value) =>
+                          setSelectedCampaign({
+                            ...selectedCampaign,
+                            call_created_at: value,
+                          })
+                        }
+                      />
+                    </div>
+                    <div>
+                      <Label
+                        htmlFor="edit-call-updated-at"
+                        className="text-xs text-gray-600"
+                      >
+                        Call Updated At
+                      </Label>
+                      <DateTimePicker
+                        value={selectedCampaign.call_updated_at || ""}
+                        onChange={(value) =>
+                          setSelectedCampaign({
+                            ...selectedCampaign,
+                            call_updated_at: value,
+                          })
+                        }
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                    <div className="py-2 px-3 bg-gray-50 rounded-md border border-gray-200">
+                      <div className="text-gray-600 text-xs mb-1">
+                        Start Call
+                      </div>
+                      {selectedCampaign.start_call || "Not set"}
+                    </div>
+                    <div className="py-2 px-3 bg-gray-50 rounded-md border border-gray-200">
+                      <div className="text-gray-600 text-xs mb-1">
+                        Call Created At
+                      </div>
+                      {selectedCampaign.call_created_at
+                        ? new Date(
+                            selectedCampaign.call_created_at
+                          ).toLocaleString()
+                        : "Not set"}
+                    </div>
+                    <div className="py-2 px-3 bg-gray-50 rounded-md border border-gray-200">
+                      <div className="text-gray-600 text-xs mb-1">
+                        Call Updated At
+                      </div>
+                      {selectedCampaign.call_updated_at
+                        ? new Date(
+                            selectedCampaign.call_updated_at
+                          ).toLocaleString()
+                        : "Not set"}
+                    </div>
+                  </div>
+                )}
+              </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <Label htmlFor="edit-start-call">
-                      Start Call (API Trigger)
-                    </Label>
-                    <Input
-                      id="edit-start-call"
-                      value={selectedCampaign.start_call || ""}
-                      onChange={(e) =>
-                        setSelectedCampaign({
-                          ...selectedCampaign,
-                          start_call: e.target.value,
-                        })
-                      }
-                      placeholder="API trigger for start call"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="edit-call-created-at">
-                      Call Created At
-                    </Label>
-                    <DateTimePicker
-                      value={selectedCampaign.call_created_at || ""}
-                      onChange={(value) =>
-                        setSelectedCampaign({
-                          ...selectedCampaign,
-                          call_created_at: value,
-                        })
-                      }
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="edit-call-updated-at">
-                      Call Updated At
-                    </Label>
-                    <DateTimePicker
-                      value={selectedCampaign.call_updated_at || ""}
-                      onChange={(value) =>
-                        setSelectedCampaign({
-                          ...selectedCampaign,
-                          call_updated_at: value,
-                        })
-                      }
-                    />
-                  </div>
+              {/* Action Buttons */}
+              <div className="flex justify-between items-center pt-2 border-t">
+                <div>
+                  {!isEditingCampaign && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setIsEditingCampaign(true)}
+                      className="text-xs"
+                    >
+                      <Edit className="h-3 w-3 mr-1" />
+                      Edit
+                    </Button>
+                  )}
+                </div>
+                <div className="flex space-x-2">
+                  {isEditingCampaign && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setIsEditingCampaign(false);
+                      }}
+                      className="text-xs"
+                    >
+                      Cancel Edit
+                    </Button>
+                  )}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setIsEditingCampaign(false);
+                      setEditDialogOpen(false);
+                      setSelectedCampaign(null);
+                      setSelectedLeads([]);
+                    }}
+                    className="text-xs"
+                  >
+                    Close
+                  </Button>
+                  <Button
+                    type="submit"
+                    size="sm"
+                    data-testid="edit-campaign-submit-btn"
+                    disabled={!isEditingCampaign}
+                    className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Update Campaign
+                  </Button>
                 </div>
               </div>
 
@@ -1717,22 +1939,42 @@ function CampaignManagement() {
                                 </td>
                                 <td className="px-4 py-3 whitespace-nowrap">
                                   <div className="flex flex-col space-y-1">
-                                    <div className="flex items-center space-x-1">
-                                      <Mail className="h-3 w-3 text-gray-400 flex-shrink-0" />
-                                      <span className="truncate max-w-xs text-sm text-gray-900">
-                                        {lead.lead_email ||
-                                          lead.email ||
-                                          "No email"}
-                                      </span>
-                                    </div>
-                                    <div className="flex items-center space-x-1">
-                                      <Phone className="h-3 w-3 text-gray-400 flex-shrink-0" />
-                                      <span className="text-sm text-gray-900">
-                                        {lead.lead_phone ||
-                                          lead.phone ||
-                                          "No phone"}
-                                      </span>
-                                    </div>
+                                    {lead.lead_type === "individual" ? (
+                                      <>
+                                        <div className="flex items-center space-x-1">
+                                          <Mail className="h-3 w-3 text-gray-400 flex-shrink-0" />
+                                          <span className="truncate max-w-xs text-sm text-gray-900">
+                                            {lead.lead_email ||
+                                              lead.email ||
+                                              "No email"}
+                                          </span>
+                                        </div>
+                                        <div className="flex items-center space-x-1">
+                                          <Phone className="h-3 w-3 text-gray-400 flex-shrink-0" />
+                                          <span className="text-sm text-gray-900">
+                                            {lead.lead_phone ||
+                                              lead.phone ||
+                                              "No phone"}
+                                          </span>
+                                        </div>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <div className="flex items-center space-x-1">
+                                          <Building2 className="h-3 w-3 text-gray-400 flex-shrink-0" />
+                                          <span className="truncate max-w-xs text-sm text-gray-900">
+                                            {lead.business_name ||
+                                              "No business name"}
+                                          </span>
+                                        </div>
+                                        <div className="flex items-center space-x-1">
+                                          <Phone className="h-3 w-3 text-gray-400 flex-shrink-0" />
+                                          <span className="text-sm text-gray-900">
+                                            {lead.business_phone || "No phone"}
+                                          </span>
+                                        </div>
+                                      </>
+                                    )}
                                   </div>
                                 </td>
                                 <td className="px-4 py-3 whitespace-nowrap">
@@ -1783,28 +2025,6 @@ function CampaignManagement() {
                     </p>
                   );
                 })()}
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex justify-end space-x-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    setEditDialogOpen(false);
-                    setSelectedCampaign(null);
-                    setSelectedLeads([]);
-                  }}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  data-testid="edit-campaign-submit-btn"
-                  className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
-                >
-                  Update Campaign
-                </Button>
               </div>
             </form>
           )}
@@ -1980,9 +2200,19 @@ function CampaignManagement() {
                       "No business name"}
                 </h4>
                 <p className="text-sm text-red-700 mt-1">
-                  {selectedLeadInCampaign.lead_email ||
-                    selectedLeadInCampaign.email ||
-                    "No email"}
+                  {selectedLeadInCampaign.lead_type === "individual" ? (
+                    <>
+                      {selectedLeadInCampaign.lead_email ||
+                        selectedLeadInCampaign.email ||
+                        "No email"}{" "}
+                      •{" "}
+                      {selectedLeadInCampaign.lead_phone ||
+                        selectedLeadInCampaign.phone ||
+                        "No phone"}
+                    </>
+                  ) : (
+                    <>{selectedLeadInCampaign.business_phone || "No phone"}</>
+                  )}
                 </p>
               </div>
 
