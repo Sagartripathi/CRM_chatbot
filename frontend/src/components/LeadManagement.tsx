@@ -40,6 +40,8 @@ import {
   FileText,
   Edit,
   Trash2,
+  Building2,
+  User,
 } from "lucide-react";
 
 function LeadManagement() {
@@ -611,9 +613,11 @@ function LeadManagement() {
     );
   }
 
-  const headerTitle = `Leads (${filteredLeads.length} of ${leads.length})`;
+  const headerTitle = user?.role === "client"
+    ? `My Leads (${filteredLeads.length} of ${leads.length})`
+    : `Leads (${filteredLeads.length} of ${leads.length})`;
 
-  const headerActions = (
+  const headerActions = user?.role !== "client" ? (
     <div className="flex items-center space-x-3">
       <Button
         variant="outline"
@@ -858,7 +862,7 @@ function LeadManagement() {
         </DialogContent>
       </Dialog>
     </div>
-  );
+  ) : null;
 
   return (
     <Layout title={headerTitle} headerActions={headerActions}>
@@ -961,14 +965,21 @@ function LeadManagement() {
                     >
                       <td className="px-6 py-4 whitespace-nowrap h-20">
                         <div className="h-full flex flex-col justify-center">
-                          <div className="text-sm font-medium text-gray-900 mb-1">
-                            {lead.lead_type === "individual"
-                              ? `${lead.lead_first_name || ""} ${
-                                  lead.lead_last_name || ""
-                                }`.trim() || "No name"
-                              : lead.business_name || "No business name"}
+                          <div className="flex items-center space-x-2 mb-1">
+                            {lead.lead_type === "organization" ? (
+                              <Building2 className="h-4 w-4 text-indigo-600 flex-shrink-0" />
+                            ) : (
+                              <User className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                            )}
+                            <div className="text-sm font-medium text-gray-900">
+                              {lead.lead_type === "individual"
+                                ? `${lead.lead_first_name || ""} ${
+                                    lead.lead_last_name || ""
+                                  }`.trim() || "No name"
+                                : lead.business_name || "No business name"}
+                            </div>
                           </div>
-                          <div className="text-xs text-gray-500 flex items-center space-x-2">
+                          <div className="text-xs text-gray-500 flex items-center space-x-2 ml-6">
                             <Badge
                               variant="outline"
                               className="capitalize text-xs"
@@ -988,13 +999,17 @@ function LeadManagement() {
                           <div className="flex items-center space-x-1 h-5">
                             <Mail className="h-3 w-3 text-gray-400 flex-shrink-0" />
                             <span className="truncate max-w-xs text-gray-900">
-                              {lead.lead_email || lead.email || "No email"}
+                              {lead.lead_type === "organization"
+                                ? "No email"
+                                : lead.lead_email || lead.email || "No email"}
                             </span>
                           </div>
                           <div className="flex items-center space-x-1 h-5">
                             <Phone className="h-3 w-3 text-gray-400 flex-shrink-0" />
                             <span className="text-gray-900">
-                              {lead.lead_phone || lead.phone || "No phone"}
+                              {lead.lead_type === "organization"
+                                ? lead.business_phone || "No phone"
+                                : lead.lead_phone || lead.phone || "No phone"}
                             </span>
                           </div>
                         </div>
@@ -1060,15 +1075,17 @@ function LeadManagement() {
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => openDeleteDialog(lead)}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                            data-testid={`delete-lead-btn-${lead.id}`}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          {user?.role !== "client" && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => openDeleteDialog(lead)}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              data-testid={`delete-lead-btn-${lead.id}`}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
                         </div>
                       </td>
                     </tr>

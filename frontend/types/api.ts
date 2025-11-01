@@ -10,6 +10,7 @@ export interface User {
   first_name: string;
   last_name: string;
   role: "admin" | "agent" | "client";
+  client_id?: string;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -31,6 +32,7 @@ export interface UserCreate {
   first_name: string;
   last_name: string;
   role?: "admin" | "agent" | "client";
+  client_id?: string;
 }
 
 export interface LoginRequest {

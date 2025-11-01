@@ -87,7 +87,26 @@ class LeadService:
                 {"assigned_to": None}
             ]
         elif current_user.role == UserRole.CLIENT:
-            query_filter["created_by"] = current_user.id
+            # For clients, filter leads by campaigns that have their client_id
+            if current_user.client_id:
+                # Get all campaigns with this client_id
+                campaigns = await self.campaign_repo.get_campaigns_by_user(
+                    current_user.id, current_user.role, current_user.client_id
+                )
+                # Extract campaign names
+                campaign_names = [
+                    c.get("campaign_name") or c.get("name") 
+                    for c in campaigns 
+                    if c.get("campaign_name") or c.get("name")
+                ]
+                if campaign_names:
+                    query_filter["campaign_name"] = {"$in": campaign_names}
+                else:
+                    # No campaigns found, return empty results
+                    query_filter["campaign_name"] = {"$in": []}
+            else:
+                # Fallback to old behavior if client_id not set
+                query_filter["created_by"] = current_user.id
         
         # Additional filters
         if assigned_to and current_user.role == UserRole.ADMIN:
@@ -147,9 +166,26 @@ class LeadService:
             raise HTTPException(status_code=404, detail="Lead not found")
         
         # Check permissions
-        if (current_user.role == UserRole.AGENT and existing_lead["assigned_to"] != current_user.id and existing_lead["assigned_to"] is not None) or \
-           (current_user.role == UserRole.CLIENT and existing_lead["created_by"] != current_user.id):
-            raise HTTPException(status_code=403, detail="Not authorized to update this lead")
+        if current_user.role == UserRole.AGENT:
+            # Agents can only update leads assigned to them
+            if existing_lead["assigned_to"] != current_user.id and existing_lead["assigned_to"] is not None:
+                raise HTTPException(status_code=403, detail="Not authorized to update this lead")
+        elif current_user.role == UserRole.CLIENT:
+            # Clients can update leads from campaigns with their client_id
+            if current_user.client_id:
+                # Get the campaign for this lead to check client_id
+                campaign_name = existing_lead.get("campaign_name")
+                if campaign_name:
+                    # Find campaign by name and check client_id
+                    campaign = await self.campaign_repo.campaigns.find_one({"campaign_name": campaign_name})
+                    if not campaign or campaign.get("client_id") != current_user.client_id:
+                        raise HTTPException(status_code=403, detail="Not authorized to update this lead")
+                else:
+                    raise HTTPException(status_code=403, detail="Not authorized to update this lead")
+            else:
+                # Fallback: clients can only update leads they created
+                if existing_lead["created_by"] != current_user.id:
+                    raise HTTPException(status_code=403, detail="Not authorized to update this lead")
         
         # Check for duplicates (excluding current lead)
         if lead_data.lead_email and lead_data.lead_email != existing_lead.get("email"):
@@ -185,7 +221,10 @@ class LeadService:
         if not existing_lead:
             raise HTTPException(status_code=404, detail="Lead not found")
         
-        # Check permissions (only creator or admin can delete)
+        # Check permissions (only admin and agent can delete, clients cannot delete)
+        if current_user.role == UserRole.CLIENT:
+            raise HTTPException(status_code=403, detail="Clients are not authorized to delete leads")
+        
         if current_user.role != UserRole.ADMIN and existing_lead["created_by"] != current_user.id:
             raise HTTPException(status_code=403, detail="Not authorized to delete this lead")
         
