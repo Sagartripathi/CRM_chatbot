@@ -257,7 +257,6 @@ function LeadManagement() {
         leadData.updated_at_shared = "";
 
         leadData.is_valid = true;
-
       } else if (newLead.lead_type === "organization") {
         leadData.business_name = newLead.business_name;
         leadData.business_phone = newLead.business_phone;
@@ -270,7 +269,6 @@ function LeadManagement() {
         leadData.updated_at_shared = "";
 
         leadData.is_valid = true;
-
       }
 
       // Add optional legacy fields
@@ -1398,12 +1396,12 @@ function LeadManagement() {
                     <SelectContent>
                       <SelectItem value="new">New</SelectItem>
                       <SelectItem value="ready">Ready</SelectItem>
-                      <SelectItem value="pending-preview">
+                      <SelectItem value="pending_preview">
                         Pending Review
                       </SelectItem>
                       <SelectItem value="previewed">Reviewed</SelectItem>
                       <SelectItem value="lost">Lost</SelectItem>
-                      <SelectItem value="no-response">No Response</SelectItem>
+                      <SelectItem value="no_response">No Response</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

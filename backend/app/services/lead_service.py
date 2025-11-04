@@ -88,10 +88,11 @@ class LeadService:
             ]
         elif current_user.role == UserRole.CLIENT:
             # For clients, filter leads by campaigns that have their client_id
-            if current_user.client_id:
+            client_id = getattr(current_user, 'client_id', None)
+            if client_id:
                 # Get all campaigns with this client_id
                 campaigns = await self.campaign_repo.get_campaigns_by_user(
-                    current_user.id, current_user.role, current_user.client_id
+                    current_user.id, current_user.role, client_id
                 )
                 # Extract campaign names
                 campaign_names = [
@@ -172,13 +173,14 @@ class LeadService:
                 raise HTTPException(status_code=403, detail="Not authorized to update this lead")
         elif current_user.role == UserRole.CLIENT:
             # Clients can update leads from campaigns with their client_id
-            if current_user.client_id:
+            client_id = getattr(current_user, 'client_id', None)
+            if client_id:
                 # Get the campaign for this lead to check client_id
                 campaign_name = existing_lead.get("campaign_name")
                 if campaign_name:
                     # Find campaign by name and check client_id
                     campaign = await self.campaign_repo.campaigns.find_one({"campaign_name": campaign_name})
-                    if not campaign or campaign.get("client_id") != current_user.client_id:
+                    if not campaign or campaign.get("client_id") != client_id:
                         raise HTTPException(status_code=403, detail="Not authorized to update this lead")
                 else:
                     raise HTTPException(status_code=403, detail="Not authorized to update this lead")
