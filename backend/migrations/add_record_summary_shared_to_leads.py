@@ -12,14 +12,14 @@ backend_dir = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(backend_dir))
 
 from motor.motor_asyncio import AsyncIOMotorClient
-from app.core.config import settings
+from app.config import settings
 
 
 async def migrate_leads():
     """Add record_summary_shared field to all existing leads."""
     # Connect to MongoDB
-    client = AsyncIOMotorClient(settings.mongodb_url)
-    db = client[settings.mongodb_db_name]
+    client = AsyncIOMotorClient(settings.mongo_url)
+    db = client[settings.db_name]
     leads_collection = db["leads"]
     
     print("Starting migration: Adding record_summary_shared field to leads...")
