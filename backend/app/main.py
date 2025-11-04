@@ -22,6 +22,7 @@ from app.routers import (
     meetings_router, tickets_router
 )
 from app.routers.debug import router as debug_router
+from app.routers.migrations import router as migrations_router
 import uvicorn
 
 
@@ -79,6 +80,7 @@ app.include_router(leads_router, prefix="/api")
 app.include_router(campaigns_router, prefix="/api")
 app.include_router(meetings_router, prefix="/api")
 app.include_router(tickets_router, prefix="/api")
+app.include_router(migrations_router, prefix="/api")
 app.include_router(debug_router, prefix="/api")
 
 
