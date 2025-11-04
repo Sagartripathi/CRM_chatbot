@@ -147,7 +147,7 @@ function Login(): React.ReactElement {
             </div>
             <h2 className="text-4xl font-extrabold">
               <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-                Lw&w CRM
+                Lw&w
               </span>
             </h2>
             <p className="mt-3 text-base text-gray-600 font-medium">
@@ -478,7 +478,7 @@ function Login(): React.ReactElement {
             <p className="text-sm text-gray-500">
               Secure authentication powered by{" "}
               <span className="font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                Lw&w CRM
+                Lw&w
               </span>
             </p>
           </div>
