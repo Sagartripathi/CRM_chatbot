@@ -257,7 +257,6 @@ function LeadManagement() {
         leadData.updated_at_shared = "";
 
         leadData.is_valid = true;
-
       } else if (newLead.lead_type === "organization") {
         leadData.business_name = newLead.business_name;
         leadData.business_phone = newLead.business_phone;
@@ -270,7 +269,6 @@ function LeadManagement() {
         leadData.updated_at_shared = "";
 
         leadData.is_valid = true;
-
       }
 
       // Add optional legacy fields
