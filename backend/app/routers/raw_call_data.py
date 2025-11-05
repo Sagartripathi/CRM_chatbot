@@ -104,7 +104,7 @@ async def create_call_record_flexible(
             "demo_booking_shared": payload.get("demo_booking_shared"),
             "date_created": payload.get("date_created", ""),
             "date_updated": payload.get("date_updated", ""),
-            "raw_CD_original": payload  # Store COMPLETE original payload
+            "raw_CD_original": {}  # Empty object, n8n can populate later
         }
         
         # Create the record
