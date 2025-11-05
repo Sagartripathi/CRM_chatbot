@@ -142,3 +142,46 @@ async def migrate_fix_lead_status_values(
         "success": remaining_hyphenated == 0
     }
 
+
+@router.post("/add-is-processed-field")
+async def migrate_add_is_processed_field(
+    current_user: User = Depends(get_current_user)
+):
+
+    # Only admins can run migrations
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Only administrators can run migrations")
+    
+    leads_collection = db.database["leads"]
+    
+    # Count total leads
+    total_leads = await leads_collection.count_documents({})
+    
+    if total_leads == 0:
+        return {
+            "message": "No leads found in database",
+            "total_leads": 0,
+            "modified": 0,
+            "matched": 0
+        }
+    
+    # Add the is_processed_shared field to all leads that don't have it
+    result = await leads_collection.update_many(
+        {"is_processed_shared": {"$exists": False}},
+        {"$set": {"is_processed_shared": None}}
+    )
+    
+    # Verify the migration
+    leads_with_field = await leads_collection.count_documents(
+        {"is_processed_shared": {"$exists": True}}
+    )
+    
+    return {
+        "message": "Migration completed successfully",
+        "total_leads": total_leads,
+        "modified": result.modified_count,
+        "matched": result.matched_count,
+        "verified": leads_with_field,
+        "success": leads_with_field == total_leads
+    }
+

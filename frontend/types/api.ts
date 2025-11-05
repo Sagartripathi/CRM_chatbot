@@ -84,6 +84,7 @@ export interface Lead {
   meeting_booked_shared?: boolean;
   demo_booking_shared?: DemoBooking;
   updated_by_shared?: string;
+  is_processed_shared?: boolean;
 }
 
 export interface LeadCreate {
@@ -117,6 +118,7 @@ export interface LeadCreate {
   meeting_booked_shared?: boolean;
   demo_booking_shared?: DemoBooking;
   updated_by_shared?: string;
+  is_processed_shared?: boolean;
 }
 
 export interface CampaignHistory {
