@@ -56,25 +56,7 @@ async def add_sample_data():
             "demo_booking_shared": None,
             "date_created": "Wed, 05 Nov 2025 10:14:00 +0000",
             "date_updated": "Wed, 05 Nov 2025 10:15:45 +0000",
-            "raw_CD_original": {
-                "twilio_response": {
-                    "call_sid": "CAf2280f8ce65faefdc4b5d322e76de001",
-                    "from": "+18559072608",
-                    "to": "+19016316632",
-                    "status": "completed",
-                    "duration": 45,
-                    "recording_url": "https://api.twilio.com/recordings/RE12345"
-                },
-                "n8n_metadata": {
-                    "workflow_id": "wf_001",
-                    "execution_id": "exec_001",
-                    "timestamp": "2025-11-05T10:15:45Z"
-                },
-                "additional_data": {
-                    "sentiment": "positive",
-                    "keywords": ["demo", "pricing", "features"]
-                }
-            },
+            "raw_CD_original": {},
             "created_at": datetime.now(),
             "updated_at": datetime.now()
         },
@@ -107,21 +89,7 @@ async def add_sample_data():
             "demo_booking_shared": None,
             "date_created": "Wed, 05 Nov 2025 11:29:00 +0000",
             "date_updated": "Wed, 05 Nov 2025 11:30:12 +0000",
-            "raw_CD_original": {
-                "twilio_response": {
-                    "call_sid": "CAf2280f8ce65faefdc4b5d322e76de002",
-                    "from": "+18559072608",
-                    "to": "+15550123456",
-                    "status": "no-answer",
-                    "duration": 12,
-                    "answeredBy": "machine_start"
-                },
-                "n8n_metadata": {
-                    "workflow_id": "wf_002",
-                    "execution_id": "exec_002",
-                    "timestamp": "2025-11-05T11:30:12Z"
-                }
-            },
+            "raw_CD_original": {},
             "created_at": datetime.now(),
             "updated_at": datetime.now()
         },
@@ -154,38 +122,7 @@ async def add_sample_data():
             "demo_booking_shared": "{\"date\":\"2025-11-12\",\"time\":\"14:00\"}",
             "date_created": "Wed, 05 Nov 2025 14:01:00 +0000",
             "date_updated": "Wed, 05 Nov 2025 14:05:00 +0000",
-            "raw_CD_original": {
-                "twilio_response": {
-                    "call_sid": "CAf2280f8ce65faefdc4b5d322e76de003",
-                    "from": "+18559072608",
-                    "to": "+15550987654",
-                    "status": "completed",
-                    "duration": 180,
-                    "direction": "outbound-api",
-                    "answered_by": "human",
-                    "price": "-0.0200",
-                    "price_unit": "USD",
-                    "recording_url": "https://api.twilio.com/recordings/RE67890",
-                    "transcription_text": "Full conversation transcript here..."
-                },
-                "n8n_metadata": {
-                    "workflow_id": "wf_003",
-                    "execution_id": "exec_003",
-                    "timestamp": "2025-11-05T14:05:00Z",
-                    "webhook_source": "twilio_status_callback"
-                },
-                "ai_analysis": {
-                    "sentiment": "positive",
-                    "intent": "purchase",
-                    "confidence": 0.92,
-                    "next_action": "schedule_demo"
-                },
-                "custom_fields": {
-                    "call_quality": "excellent",
-                    "agent_notes": "Customer was very responsive",
-                    "follow_up_priority": "high"
-                }
-            },
+            "raw_CD_original": {},
             "created_at": datetime.now(),
             "updated_at": datetime.now()
         }

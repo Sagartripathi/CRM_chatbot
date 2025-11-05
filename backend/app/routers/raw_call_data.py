@@ -75,6 +75,22 @@ async def create_call_record_flexible(
         dict: Success message with created record ID
     """
     try:
+        # If n8n sends raw_CD_original separately, use it; otherwise store only extra fields
+        raw_original = payload.get("raw_CD_original")
+        
+        # If no raw_CD_original provided, extract only unknown/extra fields
+        if raw_original is None:
+            known_fields = {
+                "sid", "phone_number_sid", "account_sid", "source_trigger", "direction",
+                "duration", "start_time", "end_time", "queue_time", "content_lenght",
+                "conn_ip", "origin", "execution_mode", "status", "batch_id",
+                "campaign_id", "campaign_history", "lead_id", "lead_type",
+                "called_from", "called_to", "record_summary_shared", "leads_notes",
+                "meeting_booked_shared", "demo_booking_shared", "date_created", "date_updated"
+            }
+            # Store only extra/unknown fields
+            raw_original = {k: v for k, v in payload.items() if k not in known_fields}
+        
         # Extract required fields (with defaults)
         call_data_dict = {
             "sid": payload.get("sid", f"MISSING-SID-{payload.get('lead_id', 'UNKNOWN')}"),
@@ -104,7 +120,7 @@ async def create_call_record_flexible(
             "demo_booking_shared": payload.get("demo_booking_shared"),
             "date_created": payload.get("date_created", ""),
             "date_updated": payload.get("date_updated", ""),
-            "raw_CD_original": payload  # Store COMPLETE original payload
+            "raw_CD_original": raw_original if raw_original else None
         }
         
         # Create the record

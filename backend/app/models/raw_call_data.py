@@ -58,8 +58,8 @@ class RawCallData(BaseModel):
     date_created: str  # Store as string from Twilio format
     date_updated: str  # Store as string from Twilio format
     
-    # Original Payload - Stores complete JSON from Twilio/n8n
-    raw_CD_original: Dict[str, Any] = Field(..., description="Complete original JSON payload")
+    # Original Payload - Stores the raw JSON from n8n (separate from structured fields)
+    raw_CD_original: Optional[Dict[str, Any]] = Field(None, description="Original n8n/Twilio JSON payload")
     
     # System timestamps
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
@@ -118,8 +118,8 @@ class RawCallDataCreate(BaseModel):
     date_created: str
     date_updated: str
     
-    # Original Payload
-    raw_CD_original: Dict[str, Any]
+    # Original Payload - Optional, stores raw n8n JSON separately
+    raw_CD_original: Optional[Dict[str, Any]] = None
     
     class Config:
         """Pydantic configuration."""
