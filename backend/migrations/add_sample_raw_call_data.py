@@ -26,170 +26,48 @@ async def add_sample_data():
     print("Starting: Adding sample raw call data records...")
     
     # Sample data records
-    sample_records = [
-        {
-            "id": "550e8400-e29b-41d4-a716-446655440001",
-            "sid": "CAf2280f8ce65faefdc4b5d322e76de001",
-            "phone_number_sid": "PNaf84023ee887b55e2c2ace76c1817a4d",
-            "account_sid": "AC2d6a0b60ca3cb98032136b0cb9a77a5d",
-            "source_trigger": "lets-optimize.app.n8n.cloud",
-            "direction": "outbound-api",
-            "duration": "45",
-            "end_time": "Wed, 05 Nov 2025 10:15:45 +0000",
-            "start_time": "Wed, 05 Nov 2025 10:15:00 +0000",
-            "queue_time": "2",
-            "content_lenght": "150",
-            "conn_ip": "47.187.146.247",
-            "origin": None,
-            "execution_mode": "production",
-            "status": "completed",
-            "batch_id": "2025-11-05T10:14:00.000Z",
-            "campaign_id": "C-VR9B7",
-            "campaign_history": "[]",
-            "lead_id": "L-E9711DF",
-            "lead_type": "organization",
-            "called_from": "+18559072608",
-            "called_to": "+19016316632",
-            "record_summary_shared": "Lead engaged, interested in product demo",
-            "leads_notes": "Follow up next week",
-            "meeting_booked_shared": "true",
-            "demo_booking_shared": None,
-            "date_created": "Wed, 05 Nov 2025 10:14:00 +0000",
-            "date_updated": "Wed, 05 Nov 2025 10:15:45 +0000",
-            "raw_CD_original": {
-                "twilio_response": {
-                    "call_sid": "CAf2280f8ce65faefdc4b5d322e76de001",
-                    "from": "+18559072608",
-                    "to": "+19016316632",
-                    "status": "completed",
-                    "duration": 45,
-                    "recording_url": "https://api.twilio.com/recordings/RE12345"
-                },
-                "n8n_metadata": {
-                    "workflow_id": "wf_001",
-                    "execution_id": "exec_001",
-                    "timestamp": "2025-11-05T10:15:45Z"
-                },
-                "additional_data": {
-                    "sentiment": "positive",
-                    "keywords": ["demo", "pricing", "features"]
-                }
-            },
-            "created_at": datetime.now(),
-            "updated_at": datetime.now()
-        },
-        {
-            "id": "550e8400-e29b-41d4-a716-446655440002",
-            "sid": "CAf2280f8ce65faefdc4b5d322e76de002",
-            "phone_number_sid": "PNaf84023ee887b55e2c2ace76c1817a4d",
-            "account_sid": "AC2d6a0b60ca3cb98032136b0cb9a77a5d",
-            "source_trigger": "lets-optimize.app.n8n.cloud",
-            "direction": "outbound-api",
-            "duration": "12",
-            "end_time": "Wed, 05 Nov 2025 11:30:12 +0000",
-            "start_time": "Wed, 05 Nov 2025 11:30:00 +0000",
-            "queue_time": "1",
-            "content_lenght": "85",
-            "conn_ip": "47.187.146.248",
-            "origin": None,
-            "execution_mode": "production",
-            "status": "no-answer",
-            "batch_id": "2025-11-05T11:29:00.000Z",
-            "campaign_id": "C-NS204",
-            "campaign_history": "[]",
-            "lead_id": "L-82566C9",
-            "lead_type": "individual",
-            "called_from": "+18559072608",
-            "called_to": "+15550123456",
-            "record_summary_shared": None,
-            "leads_notes": None,
-            "meeting_booked_shared": None,
-            "demo_booking_shared": None,
-            "date_created": "Wed, 05 Nov 2025 11:29:00 +0000",
-            "date_updated": "Wed, 05 Nov 2025 11:30:12 +0000",
-            "raw_CD_original": {
-                "twilio_response": {
-                    "call_sid": "CAf2280f8ce65faefdc4b5d322e76de002",
-                    "from": "+18559072608",
-                    "to": "+15550123456",
-                    "status": "no-answer",
-                    "duration": 12,
-                    "answeredBy": "machine_start"
-                },
-                "n8n_metadata": {
-                    "workflow_id": "wf_002",
-                    "execution_id": "exec_002",
-                    "timestamp": "2025-11-05T11:30:12Z"
-                }
-            },
-            "created_at": datetime.now(),
-            "updated_at": datetime.now()
-        },
-        {
-            "id": "550e8400-e29b-41d4-a716-446655440003",
-            "sid": "CAf2280f8ce65faefdc4b5d322e76de003",
-            "phone_number_sid": "PNaf84023ee887b55e2c2ace76c1817a4d",
-            "account_sid": "AC2d6a0b60ca3cb98032136b0cb9a77a5d",
-            "source_trigger": "lets-optimize.app.n8n.cloud",
-            "direction": "outbound-api",
-            "duration": "180",
-            "end_time": "Wed, 05 Nov 2025 14:05:00 +0000",
-            "start_time": "Wed, 05 Nov 2025 14:02:00 +0000",
-            "queue_time": "3",
-            "content_lenght": "320",
-            "conn_ip": "47.187.146.249",
-            "origin": None,
-            "execution_mode": "test",
-            "status": "completed",
-            "batch_id": "2025-11-05T14:01:00.000Z",
-            "campaign_id": "C-VR9B7",
-            "campaign_history": "[{\"from\":\"C-OLD123\",\"to\":\"C-VR9B7\",\"changed_at\":\"2025-11-04\"}]",
-            "lead_id": "L-D954399",
-            "lead_type": "individual",
-            "called_from": "+18559072608",
-            "called_to": "+15550987654",
-            "record_summary_shared": "Very interested customer, discussed pricing and next steps",
-            "leads_notes": "Ready to schedule demo for next week",
-            "meeting_booked_shared": "true",
-            "demo_booking_shared": "{\"date\":\"2025-11-12\",\"time\":\"14:00\"}",
-            "date_created": "Wed, 05 Nov 2025 14:01:00 +0000",
-            "date_updated": "Wed, 05 Nov 2025 14:05:00 +0000",
-            "raw_CD_original": {
-                "twilio_response": {
-                    "call_sid": "CAf2280f8ce65faefdc4b5d322e76de003",
-                    "from": "+18559072608",
-                    "to": "+15550987654",
-                    "status": "completed",
-                    "duration": 180,
-                    "direction": "outbound-api",
-                    "answered_by": "human",
-                    "price": "-0.0200",
-                    "price_unit": "USD",
-                    "recording_url": "https://api.twilio.com/recordings/RE67890",
-                    "transcription_text": "Full conversation transcript here..."
-                },
-                "n8n_metadata": {
-                    "workflow_id": "wf_003",
-                    "execution_id": "exec_003",
-                    "timestamp": "2025-11-05T14:05:00Z",
-                    "webhook_source": "twilio_status_callback"
-                },
-                "ai_analysis": {
-                    "sentiment": "positive",
-                    "intent": "purchase",
-                    "confidence": 0.92,
-                    "next_action": "schedule_demo"
-                },
-                "custom_fields": {
-                    "call_quality": "excellent",
-                    "agent_notes": "Customer was very responsive",
-                    "follow_up_priority": "high"
-                }
-            },
-            "created_at": datetime.now(),
-            "updated_at": datetime.now()
-        }
-    ]
+    # sample_records = [
+    #     {
+    #         "id": "550e8400-e29b-41d4-a716-446655440001",
+    #         "sid": "CAf2280f8ce65faefdc4b5d322e76de001",
+    #         "phone_number_sid": "PNaf84023ee887b55e2c2ace76c1817a4d",
+    #         "account_sid": "AC2d6a0b60ca3cb98032136b0cb9a77a5d",
+    #         "source_trigger": "lets-optimize.app.n8n.cloud",
+    #         "direction": "outbound-api",
+    #         "duration": "45",
+    #         "end_time": "Wed, 05 Nov 2025 10:15:45 +0000",
+    #         "start_time": "Wed, 05 Nov 2025 10:15:00 +0000",
+    #         "queue_time": "2",
+    #         "content_lenght": "150",
+    #         "conn_ip": "47.187.146.247",
+    #         "origin": None,
+    #         "execution_mode": "production",
+    #         "status": "completed",
+    #         "batch_id": "2025-11-05T10:14:00.000Z",
+    #         "campaign_id": "C-VR9B7",
+    #         "campaign_history": "[]",
+    #         "lead_id": "L-E9711DF",
+    #         "lead_type": "organization",
+    #         "called_from": "+18559072608",
+    #         "called_to": "+19016316632",
+    #         "record_summary_shared": "Lead engaged, interested in product demo",
+    #         "leads_notes": "Follow up next week",
+    #         "meeting_booked_shared": "true",
+    #         "demo_booking_shared": None,
+    #         "date_created": "Wed, 05 Nov 2025 10:14:00 +0000",
+    #         "date_updated": "Wed, 05 Nov 2025 10:15:45 +0000",
+    #         "raw_CD_original": {
+               
+    #             # "n8n_metadata": {
+    #             #     "workflow_id": "wf_001",
+    #             #     "execution_id": "exec_001",
+    #             #     "timestamp": "2025-11-05T10:15:45Z"
+    #             # }
+    #         },
+    #         "created_at": datetime.now(),
+    #         "updated_at": datetime.now()
+    #     }
+    # ]
     
     # Insert sample records
     inserted_count = 0
