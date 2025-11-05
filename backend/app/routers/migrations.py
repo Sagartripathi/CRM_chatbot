@@ -147,19 +147,7 @@ async def migrate_fix_lead_status_values(
 async def migrate_add_is_processed_field(
     current_user: User = Depends(get_current_user)
 ):
-    """
-    Add is_processed_shared field to all existing leads.
-    Only accessible by admin users.
-    
-    Args:
-        current_user: Current authenticated user (must be admin)
-        
-    Returns:
-        dict: Migration results with statistics
-        
-    Raises:
-        HTTPException: If user is not admin
-    """
+
     # Only admins can run migrations
     if current_user.role != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Only administrators can run migrations")
