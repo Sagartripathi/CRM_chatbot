@@ -8,6 +8,7 @@ from .lead import Lead, LeadCreate, NextLeadResponse, CampaignLead
 from .campaign import Campaign, CampaignCreate, CampaignUpdate, CallLog, CallLogCreate
 from .meeting import Meeting, MeetingCreate, MeetingProposal
 from .ticket import SupportTicket, TicketCreate, TicketUpdate
+from .raw_call_data import RawCallData, RawCallDataCreate
 from .enums import (
     UserRole, LeadStatus, CallOutcome, CampaignLeadStatus,
     MeetingStatus, TicketStatus, TicketPriority
@@ -24,6 +25,8 @@ __all__ = [
     "Meeting", "MeetingCreate", "MeetingProposal",
     # Ticket models
     "SupportTicket", "TicketCreate", "TicketUpdate",
+    # Raw call data models
+    "RawCallData", "RawCallDataCreate",
     # Enums
     "UserRole", "LeadStatus", "CallOutcome", "CampaignLeadStatus",
     "MeetingStatus", "TicketStatus", "TicketPriority"

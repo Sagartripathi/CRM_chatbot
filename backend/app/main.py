@@ -23,6 +23,7 @@ from app.routers import (
 )
 from app.routers.debug import router as debug_router
 from app.routers.migrations import router as migrations_router
+from app.routers.raw_call_data import router as raw_call_data_router
 import uvicorn
 
 
@@ -80,6 +81,7 @@ app.include_router(leads_router, prefix="/api")
 app.include_router(campaigns_router, prefix="/api")
 app.include_router(meetings_router, prefix="/api")
 app.include_router(tickets_router, prefix="/api")
+app.include_router(raw_call_data_router, prefix="/api")
 app.include_router(migrations_router, prefix="/api")
 app.include_router(debug_router, prefix="/api")
 
