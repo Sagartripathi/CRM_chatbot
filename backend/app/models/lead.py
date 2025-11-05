@@ -183,6 +183,7 @@ class Lead(BaseModel):
     
     # System Audit (CRM/System-managed)
     updated_by_shared: Optional[str] = None
+    is_processed_shared: Optional[bool] = None  # Processing status flag
     
 
     @model_validator(mode='after')
@@ -250,6 +251,7 @@ class LeadCreate(BaseModel):
     meeting_booked_shared: Optional[bool] = None
     demo_booking_shared: Optional[DemoBooking] = None
     updated_by_shared: Optional[str] = None
+    is_processed_shared: Optional[bool] = None  # Processing status flag
     
     class Config:
         """Pydantic configuration."""
