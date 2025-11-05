@@ -119,6 +119,13 @@ class Database:
             await self.database.tickets.create_index("status")
             await self.database.tickets.create_index("priority")
             
+            # Raw call data indexes
+            await self.database.raw_call_data.create_index("sid", unique=True)
+            await self.database.raw_call_data.create_index("lead_id")
+            await self.database.raw_call_data.create_index("campaign_id")
+            await self.database.raw_call_data.create_index("status")
+            await self.database.raw_call_data.create_index("start_time")
+            
             logger.info("Database indexes created successfully")
             
         except Exception as e:
