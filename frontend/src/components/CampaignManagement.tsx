@@ -559,7 +559,9 @@ function CampaignManagement() {
 
       // Trigger n8n webhook
       const webhookUrl =
+
         "https://lets-optimize.app.n8n.cloud/webhook-test/30d5455b-9d92-491a-ae55-2f463ecf9b20";
+
 
       const response = await fetch(webhookUrl, {
         method: "POST",
