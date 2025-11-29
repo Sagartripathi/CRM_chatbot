@@ -185,6 +185,13 @@ class Lead(BaseModel):
     updated_by_shared: Optional[str] = None
     is_processed_shared: Optional[bool] = None  # Processing status flag
     
+    @field_validator('status', mode='before')
+    @classmethod
+    def normalize_status(cls, v):
+        """Normalize status to lowercase to handle case-insensitive database values."""
+        if isinstance(v, str):
+            return v.lower()
+        return v
 
     @model_validator(mode='after')
     def populate_legacy_fields(self):
@@ -252,6 +259,14 @@ class LeadCreate(BaseModel):
     demo_booking_shared: Optional[DemoBooking] = None
     updated_by_shared: Optional[str] = None
     is_processed_shared: Optional[bool] = None  # Processing status flag
+    
+    @field_validator('status', mode='before')
+    @classmethod
+    def normalize_status(cls, v):
+        """Normalize status to lowercase to handle case-insensitive database values."""
+        if isinstance(v, str):
+            return v.lower()
+        return v
     
     class Config:
         """Pydantic configuration."""
