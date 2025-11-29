@@ -540,8 +540,51 @@ function CampaignManagement() {
     }
   };
 
-  const handleStartCampaign = (campaignId) => {
-    navigate(`/campaigns/${campaignId}/call`);
+  const handleStartCampaign = async (campaignId) => {
+    try {
+      toast.info("Starting campaign calls...");
+
+      // Find the first lead with status = "ready"
+      const readyLead = leads.find(
+        (lead) => lead.status === "ready" && lead.campaign_id === campaignId
+      );
+
+      if (!readyLead) {
+        toast.error("No ready leads found for this campaign");
+        return;
+      }
+
+      // Get batch_id from the ready lead
+      const batchId = readyLead.batch_id || new Date().toISOString();
+
+      // Trigger n8n webhook
+      const webhookUrl =
+        "https://n8n.letsoptimize.us/webhook-test/30d5455b-9d92-491a-ae55-2f463ecf9b20";
+
+      const response = await fetch(webhookUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          triggered_by: "cam_start_button",
+          initiated_by: "lt&w",
+          batch_id: batchId,
+          campaign_id: campaignId,
+          lead_id: readyLead.lead_id || readyLead.id,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Request failed: ${response.status}`);
+      }
+
+      const data = await response.json().catch(() => ({}));
+
+      toast.success("✅ Workflow triggered successfully!");
+      console.log("n8n Response:", data);
+    } catch (err) {
+      console.error("Error triggering workflow:", err);
+      toast.error("❌ Error triggering workflow. Check console.");
+    }
   };
 
   const handleViewStats = async (campaign) => {
