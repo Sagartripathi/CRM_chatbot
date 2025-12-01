@@ -173,9 +173,26 @@ function LeadManagement() {
         apiClient.get("/leads/"),
         apiClient.get("/campaigns/"),
       ]);
-      setLeads(leadsResponse.data);
-      setFilteredLeads(leadsResponse.data);
-      setCampaigns(campaignsResponse.data);
+
+      // Sort leads by created_at descending (newest first)
+      const sortedLeads = [...(leadsResponse.data || [])].sort((a, b) => {
+        const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return dateB - dateA;
+      });
+
+      // Sort campaigns by created_at descending (newest first)
+      const sortedCampaigns = [...(campaignsResponse.data || [])].sort(
+        (a, b) => {
+          const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+          const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+          return dateB - dateA;
+        }
+      );
+
+      setLeads(sortedLeads);
+      setFilteredLeads(sortedLeads);
+      setCampaigns(sortedCampaigns);
     } catch (error: any) {
       if (error.response?.status === 401 || error.response?.status === 403) {
         toast.error("Please log in to access leads data");

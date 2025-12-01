@@ -377,6 +377,8 @@ function CampaignManagement() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 9; // 12 campaigns per page as requested
   const [searchTerm, setSearchTerm] = useState("");
+  const [campaignLeadsPage, setCampaignLeadsPage] = useState(1);
+  const campaignLeadsPerPage = 5; // 8 leads per page as requested
   // Sidebar managed by Layout component
 
   // Campaign form state matching backend Campaign model
@@ -458,8 +460,24 @@ function CampaignManagement() {
         apiClient.get("/leads"),
       ]);
 
-      setCampaigns(campaignsResponse.data);
-      setLeads(leadsResponse.data);
+      // Sort campaigns by created_at descending (newest first)
+      const sortedCampaigns = [...(campaignsResponse.data || [])].sort(
+        (a, b) => {
+          const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+          const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+          return dateB - dateA;
+        }
+      );
+
+      // Sort leads by created_at descending (newest first)
+      const sortedLeads = [...(leadsResponse.data || [])].sort((a, b) => {
+        const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return dateB - dateA;
+      });
+
+      setCampaigns(sortedCampaigns);
+      setLeads(sortedLeads);
     } catch (error: any) {
       if (error.response?.status === 401 || error.response?.status === 403) {
         toast.error("Please log in to access this data");
@@ -475,7 +493,13 @@ function CampaignManagement() {
   const fetchLeadsOnly = async () => {
     try {
       const leadsResponse = await apiClient.get("/leads");
-      setLeads(leadsResponse.data);
+      // Sort leads by created_at descending (newest first)
+      const sortedLeads = [...(leadsResponse.data || [])].sort((a, b) => {
+        const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return dateB - dateA;
+      });
+      setLeads(sortedLeads);
     } catch (error: any) {
       console.error("Error fetching leads:", error);
     }
@@ -705,6 +729,7 @@ function CampaignManagement() {
       setEditDialogOpen(false);
       setSelectedCampaign(null);
       setSelectedLeads([]);
+      setCampaignLeadsPage(1); // Reset to first page after update
       fetchData();
     } catch (error) {
       toast.error(error.response?.data?.detail || "Failed to update campaign");
@@ -739,6 +764,7 @@ function CampaignManagement() {
       [];
     setSelectedLeads(Array.isArray(leadIds) ? leadIds : []);
     setIsEditingCampaign(false);
+    setCampaignLeadsPage(1); // Reset to first page when opening edit dialog
     setEditDialogOpen(true);
   };
 
@@ -1959,6 +1985,7 @@ function CampaignManagement() {
                       setEditDialogOpen(false);
                       setSelectedCampaign(null);
                       setSelectedLeads([]);
+                      setCampaignLeadsPage(1); // Reset to first page when closing dialog
                     }}
                     className="text-xs"
                   >
@@ -1988,140 +2015,213 @@ function CampaignManagement() {
                       lead.campaign_name === selectedCampaign.campaign_name
                   );
 
+                  // Pagination calculations
+                  const totalLeadsPages = Math.ceil(
+                    campaignLeads.length / campaignLeadsPerPage
+                  );
+                  const leadsStartIndex =
+                    (campaignLeadsPage - 1) * campaignLeadsPerPage;
+                  const leadsEndIndex = leadsStartIndex + campaignLeadsPerPage;
+                  const paginatedLeads = campaignLeads.slice(
+                    leadsStartIndex,
+                    leadsEndIndex
+                  );
+
                   return campaignLeads.length > 0 ? (
-                    <div className="border rounded-lg overflow-hidden max-h-96">
-                      <div className="overflow-y-auto">
-                        <table className="min-w-full divide-y divide-gray-200">
-                          <thead className="bg-gray-50 sticky top-0">
-                            <tr>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Name
-                              </th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Contact
-                              </th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Status
-                              </th>
-                              <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Actions
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody className="bg-white divide-y divide-gray-200">
-                            {campaignLeads.map((lead) => (
-                              <tr
-                                key={lead.id}
-                                className="hover:bg-gray-50"
-                                data-testid={`lead-row-${lead.id}`}
-                              >
-                                <td className="px-4 py-3 whitespace-nowrap">
-                                  <div className="flex flex-col">
-                                    <div className="text-sm font-medium text-gray-900">
-                                      {lead.lead_type === "individual"
-                                        ? `${lead.lead_first_name || ""} ${
-                                            lead.lead_last_name || ""
-                                          }`.trim() || "No name"
-                                        : lead.business_name ||
-                                          "No business name"}
+                    <>
+                      <div className="border rounded-lg overflow-hidden max-h-96">
+                        <div className="overflow-y-auto">
+                          <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gray-50 sticky top-0">
+                              <tr>
+                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                  Name
+                                </th>
+                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                  Contact
+                                </th>
+                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                  Status
+                                </th>
+                                <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                  Actions
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                              {paginatedLeads.map((lead) => (
+                                <tr
+                                  key={lead.id}
+                                  className="hover:bg-gray-50"
+                                  data-testid={`lead-row-${lead.id}`}
+                                >
+                                  <td className="px-4 py-3 whitespace-nowrap">
+                                    <div className="flex flex-col">
+                                      <div className="text-sm font-medium text-gray-900">
+                                        {lead.lead_type === "individual"
+                                          ? `${lead.lead_first_name || ""} ${
+                                              lead.lead_last_name || ""
+                                            }`.trim() || "No name"
+                                          : lead.business_name ||
+                                            "No business name"}
+                                      </div>
+                                      <div className="text-xs text-gray-500 flex items-center space-x-2">
+                                        <Badge
+                                          variant="outline"
+                                          className="capitalize text-xs"
+                                        >
+                                          {lead.lead_type || "Unknown"}
+                                        </Badge>
+                                        {lead.lead_id && (
+                                          <span className="font-mono text-xs text-gray-400">
+                                            {lead.lead_id}
+                                          </span>
+                                        )}
+                                      </div>
                                     </div>
-                                    <div className="text-xs text-gray-500 flex items-center space-x-2">
-                                      <Badge
-                                        variant="outline"
-                                        className="capitalize text-xs"
-                                      >
-                                        {lead.lead_type || "Unknown"}
-                                      </Badge>
-                                      {lead.lead_id && (
-                                        <span className="font-mono text-xs text-gray-400">
-                                          {lead.lead_id}
-                                        </span>
+                                  </td>
+                                  <td className="px-4 py-3 whitespace-nowrap">
+                                    <div className="flex flex-col space-y-1">
+                                      {lead.lead_type === "individual" ? (
+                                        <>
+                                          <div className="flex items-center space-x-1">
+                                            <Mail className="h-3 w-3 text-gray-400 flex-shrink-0" />
+                                            <span className="truncate max-w-xs text-sm text-gray-900">
+                                              {lead.lead_email ||
+                                                lead.email ||
+                                                "No email"}
+                                            </span>
+                                          </div>
+                                          <div className="flex items-center space-x-1">
+                                            <Phone className="h-3 w-3 text-gray-400 flex-shrink-0" />
+                                            <span className="text-sm text-gray-900">
+                                              {lead.lead_phone ||
+                                                lead.phone ||
+                                                "No phone"}
+                                            </span>
+                                          </div>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <div className="flex items-center space-x-1">
+                                            <Building2 className="h-3 w-3 text-gray-400 flex-shrink-0" />
+                                            <span className="truncate max-w-xs text-sm text-gray-900">
+                                              {lead.business_name ||
+                                                "No business name"}
+                                            </span>
+                                          </div>
+                                          <div className="flex items-center space-x-1">
+                                            <Phone className="h-3 w-3 text-gray-400 flex-shrink-0" />
+                                            <span className="text-sm text-gray-900">
+                                              {lead.business_phone ||
+                                                "No phone"}
+                                            </span>
+                                          </div>
+                                        </>
                                       )}
                                     </div>
-                                  </div>
-                                </td>
-                                <td className="px-4 py-3 whitespace-nowrap">
-                                  <div className="flex flex-col space-y-1">
-                                    {lead.lead_type === "individual" ? (
-                                      <>
-                                        <div className="flex items-center space-x-1">
-                                          <Mail className="h-3 w-3 text-gray-400 flex-shrink-0" />
-                                          <span className="truncate max-w-xs text-sm text-gray-900">
-                                            {lead.lead_email ||
-                                              lead.email ||
-                                              "No email"}
-                                          </span>
-                                        </div>
-                                        <div className="flex items-center space-x-1">
-                                          <Phone className="h-3 w-3 text-gray-400 flex-shrink-0" />
-                                          <span className="text-sm text-gray-900">
-                                            {lead.lead_phone ||
-                                              lead.phone ||
-                                              "No phone"}
-                                          </span>
-                                        </div>
-                                      </>
-                                    ) : (
-                                      <>
-                                        <div className="flex items-center space-x-1">
-                                          <Building2 className="h-3 w-3 text-gray-400 flex-shrink-0" />
-                                          <span className="truncate max-w-xs text-sm text-gray-900">
-                                            {lead.business_name ||
-                                              "No business name"}
-                                          </span>
-                                        </div>
-                                        <div className="flex items-center space-x-1">
-                                          <Phone className="h-3 w-3 text-gray-400 flex-shrink-0" />
-                                          <span className="text-sm text-gray-900">
-                                            {lead.business_phone || "No phone"}
-                                          </span>
-                                        </div>
-                                      </>
-                                    )}
-                                  </div>
-                                </td>
-                                <td className="px-4 py-3 whitespace-nowrap">
-                                  <Badge
-                                    className={`${getStatusColor(
-                                      lead.status
-                                    )} capitalize text-xs`}
-                                  >
-                                    {lead.status.replace("_", " ")}
-                                  </Badge>
-                                </td>
-                                <td className="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
-                                  <div className="flex items-center justify-end space-x-1">
-                                    <Button
-                                      type="button"
-                                      size="sm"
-                                      variant="ghost"
-                                      onClick={() =>
-                                        openEditLeadInCampaignDialog(lead)
-                                      }
-                                      data-testid={`edit-lead-btn-${lead.id}`}
+                                  </td>
+                                  <td className="px-4 py-3 whitespace-nowrap">
+                                    <Badge
+                                      className={`${getStatusColor(
+                                        lead.status
+                                      )} capitalize text-xs`}
                                     >
-                                      <Edit className="h-4 w-4" />
-                                    </Button>
-                                    <Button
-                                      type="button"
-                                      size="sm"
-                                      variant="ghost"
-                                      onClick={() =>
-                                        openDeleteLeadInCampaignDialog(lead)
-                                      }
-                                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                      data-testid={`delete-lead-btn-${lead.id}`}
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                  </div>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
+                                      {lead.status.replace("_", " ")}
+                                    </Badge>
+                                  </td>
+                                  <td className="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
+                                    <div className="flex items-center justify-end space-x-1">
+                                      <Button
+                                        type="button"
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() =>
+                                          openEditLeadInCampaignDialog(lead)
+                                        }
+                                        data-testid={`edit-lead-btn-${lead.id}`}
+                                      >
+                                        <Edit className="h-4 w-4" />
+                                      </Button>
+                                      <Button
+                                        type="button"
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() =>
+                                          openDeleteLeadInCampaignDialog(lead)
+                                        }
+                                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                        data-testid={`delete-lead-btn-${lead.id}`}
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                      </Button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
                       </div>
-                    </div>
+                      {/* Pagination for Campaign Leads */}
+                      {totalLeadsPages > 1 && (
+                        <div className="mt-4 flex items-center justify-center gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              setCampaignLeadsPage((prev) =>
+                                Math.max(prev - 1, 1)
+                              )
+                            }
+                            disabled={campaignLeadsPage === 1}
+                            className="text-xs"
+                          >
+                            Previous
+                          </Button>
+                          <div className="flex items-center gap-1">
+                            {Array.from(
+                              { length: totalLeadsPages },
+                              (_, i) => i + 1
+                            ).map((page) => (
+                              <Button
+                                key={page}
+                                type="button"
+                                variant={
+                                  campaignLeadsPage === page
+                                    ? "default"
+                                    : "outline"
+                                }
+                                size="sm"
+                                onClick={() => setCampaignLeadsPage(page)}
+                                className={`text-xs ${
+                                  campaignLeadsPage === page
+                                    ? "bg-indigo-600 text-white"
+                                    : ""
+                                }`}
+                              >
+                                {page}
+                              </Button>
+                            ))}
+                          </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              setCampaignLeadsPage((prev) =>
+                                Math.min(prev + 1, totalLeadsPages)
+                              )
+                            }
+                            disabled={campaignLeadsPage === totalLeadsPages}
+                            className="text-xs"
+                          >
+                            Next
+                          </Button>
+                        </div>
+                      )}
+                    </>
                   ) : (
                     <p className="text-gray-500 text-center py-4">
                       No leads available for this campaign.
