@@ -542,48 +542,108 @@ function CampaignManagement() {
 
   const handleStartCampaign = async (campaignId) => {
     try {
-      toast.info("Starting campaign calls...");
-
-      // Find the first lead with status = "ready"
-      const readyLead = leads.find(
-        (lead) => lead.status === "ready" && lead.campaign_id === campaignId
-      );
-
-      if (!readyLead) {
-        toast.error("No ready leads found for this campaign");
+      // Step 1: Get the campaign to find its campaign_id
+      const campaign = campaigns.find((c) => c.id === campaignId);
+      if (!campaign) {
+        toast.error("Campaign not found");
         return;
       }
 
-      // Get batch_id from the ready lead
-      const batchId = readyLead.batch_id || new Date().toISOString();
-
-      // Trigger n8n webhook
-      const webhookUrl =
-        "https://n8n.letsoptimize.us/webhook-test/30d5455b-9d92-491a-ae55-2f463ecf9b20";
-
-      const response = await fetch(webhookUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          triggered_by: "cam_start_button",
-          initiated_by: "lt&w",
-          batch_id: batchId,
-          campaign_id: campaignId,
-          lead_id: readyLead.lead_id || readyLead.id,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Request failed: ${response.status}`);
+      // Use campaign.campaign_id field (e.g., "C-NAI5B")
+      if (!campaign.campaign_id) {
+        console.error(
+          `❌ [Campaign ${
+            campaign.campaign_name || campaignId
+          }] campaign_id field is missing`
+        );
+        toast.error("Campaign ID (campaign_id) is missing");
+        return;
       }
 
-      const data = await response.json().catch(() => ({}));
+      const campaignIdentifier = campaign.campaign_id;
 
-      toast.success("✅ Workflow triggered successfully!");
-      console.log("n8n Response:", data);
+      // Step 2: Fetch leads from the database
+      let allLeads;
+      try {
+        const leadsResponse = await apiClient.get("/leads");
+        allLeads = leadsResponse.data || [];
+      } catch (error) {
+        toast.error("Failed to fetch leads from database");
+        return;
+      }
+
+      // Step 3: Filter leads by campaign_name and status = "ready"
+      // Note: Leads are associated with campaigns by campaign_name, not campaign_id
+      const campaignName = campaign.campaign_name || campaign.name;
+      const readyLeads = allLeads.filter(
+        (lead) => lead.campaign_name === campaignName && lead.status === "ready"
+      );
+
+      if (readyLeads.length === 0) {
+        toast.error(
+          `No leads with status 'ready' found for campaign ${campaignIdentifier}`
+        );
+        return;
+      }
+
+      // Step 4: Sort by most recent (by created_at or updated_at, then by id as fallback)
+      // and get the most recent ready lead
+      const sortedReadyLeads = [...readyLeads].sort((a, b) => {
+        // Try updated_at first, then created_at, then id
+        const dateA = a.updated_at || a.created_at || a.id || "";
+        const dateB = b.updated_at || b.created_at || b.id || "";
+        return new Date(dateB).getTime() - new Date(dateA).getTime();
+      });
+
+      // Get the most recent ready lead (first one after sorting)
+      const mostRecentReadyLead = sortedReadyLeads[0];
+
+      // Step 5: Extract batch_id and validate
+      const batchId = mostRecentReadyLead.batch_id;
+      if (!batchId || batchId.trim() === "") {
+        toast.error(
+          "batch_id is null or empty for the most recent ready record"
+        );
+        return;
+      }
+
+      console.log("Starting campaign calls...");
+      console.log(`batch_id validated: ${batchId}`);
+
+      // ============================================
+      // WEBHOOK SECTION
+      // ============================================
+      // Step 6: Build the webhook URL with batch_id
+      // The webhook URL format: https://n8n.letsoptimize.us/webhook-test/{batch_id}
+      // where {batch_id} is replaced with the actual batch_id from the most recent ready lead
+      const webhookBaseUrl = "https://n8n.letsoptimize.us/webhook-test";
+      const webhookUrl = `${webhookBaseUrl}/${batchId}`;
+      console.log(`Webhook URL: ${webhookUrl}`);
+
+      // Step 7: Prepare the webhook payload
+      // This payload will be sent to n8n webhook with campaign and lead information
+      const payload = {
+        triggered_by: "cam_start_button",
+        initiated_by: "lt&w",
+        batch_id: batchId, // The batch_id from the most recent ready lead
+        campaign_id: campaignIdentifier, // The campaign_id (e.g., "C-NAI5B")
+        lead_id: mostRecentReadyLead.lead_id || mostRecentReadyLead.id, // The lead_id from the selected lead
+      };
+
+      // Step 8: Send the webhook request (fire and forget - don't wait for response)
+      // Send POST request to n8n webhook URL with the payload
+      fetch(webhookUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      }).catch(() => {
+        // Silently handle errors - we don't wait for response
+      });
+
+      // Immediately show success message without waiting for response
+      toast.success("Call initiated - check n8n");
     } catch (err) {
-      console.error("Error triggering workflow:", err);
-      toast.error("❌ Error triggering workflow. Check console.");
+      toast.error(`❌ Call Failed: ${err.message || "Unknown error"}`);
     }
   };
 
