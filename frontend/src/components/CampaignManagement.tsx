@@ -637,11 +637,10 @@ function CampaignManagement() {
       // ============================================
       // WEBHOOK SECTION
       // ============================================
-      // Step 6: Build the webhook URL with batch_id
-      // The webhook URL format: https://n8n.letsoptimize.us/webhook-test/{batch_id}
-      // where {batch_id} is replaced with the actual batch_id from the most recent ready lead
-      const webhookBaseUrl = "https://n8n.letsoptimize.us/webhook-test";
-      const webhookUrl = `${webhookBaseUrl}/${batchId}`;
+      // Step 6: Build the webhook URL
+      // The webhook URL with UUID endpoint, batch_id is sent in the JSON payload
+      const webhookUrl =
+        "https://n8n.letsoptimize.us/webhook-test/30d5455b-9d92-491a-ae55-2f463ecf9b20";
       console.log(`Webhook URL: ${webhookUrl}`);
 
       // Step 7: Prepare the webhook payload
