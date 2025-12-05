@@ -637,12 +637,13 @@ function CampaignManagement() {
       // ============================================
       // WEBHOOK SECTION
       // ============================================
-      // Step 6: Build the webhook URL
-      // The webhook URL with UUID endpoint, batch_id is sent in the JSON payload
-      const webhookUrl =
-        // "https://lets-optimize.app.n8n.cloud/webhook-test/30d5455b-9d92-491a-ae55-2f463ecf9b20";
-        "https://n8n.letsoptimize.us/webhook-test/30d5455b-9d92-491a-ae55-2f463ecf9b20";
-      console.log(`Webhook URL: ${webhookUrl}`);
+      // Step 6: Build the webhook URLs
+      // Multiple webhook URLs - batch_id is sent in the JSON payload
+      const webhookUrls = [
+        "https://n8n.letsoptimize.us/webhook-test/30d5455b-9d92-491a-ae55-2f463ecf9b20",
+        "https://lets-optimize.app.n8n.cloud/webhook/start-calling",
+      ];
+      console.log(`Webhook URLs:`, webhookUrls);
 
       // Step 7: Prepare the webhook payload
       // This payload will be sent to n8n webhook with campaign and lead information
@@ -654,14 +655,16 @@ function CampaignManagement() {
         lead_id: mostRecentReadyLead.lead_id || mostRecentReadyLead.id, // The lead_id from the selected lead
       };
 
-      // Step 8: Send the webhook request (fire and forget - don't wait for response)
-      // Send POST request to n8n webhook URL with the payload
-      fetch(webhookUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      }).catch(() => {
-        // Silently handle errors - we don't wait for response
+      // Step 8: Send webhook requests to all URLs (fire and forget - don't wait for response)
+      // Send POST request to each n8n webhook URL with the payload
+      webhookUrls.forEach((url) => {
+        fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }).catch(() => {
+          // Silently handle errors - we don't wait for response
+        });
       });
 
       // Immediately show success message without waiting for response
