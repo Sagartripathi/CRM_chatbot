@@ -640,7 +640,7 @@ function CampaignManagement() {
       // Step 6: Build the webhook URLs
       // Multiple webhook URLs - batch_id is sent in the JSON payload
       const webhookUrls = [
-        "https://n8n.letsoptimize.us/webhook-test/30d5455b-9d92-491a-ae55-2f463ecf9b20",
+        // "https://n8n.letsoptimize.us/webhook-test/30d5455b-9d92-491a-ae55-2f463ecf9b20",
         "https://lets-optimize.app.n8n.cloud/webhook/start-calling",
       ];
       console.log(`Webhook URLs:`, webhookUrls);
