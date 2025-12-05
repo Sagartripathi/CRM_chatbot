@@ -74,7 +74,28 @@ async def get_leads(
     Returns:
         List[Lead]: List of lead objects
     """
-    return await lead_service.get_leads(current_user, status, source, assigned_to)
+    try:
+        return await lead_service.get_leads(current_user, status, source, assigned_to)
+    except HTTPException:
+        # Re-raise HTTP exceptions (like 403, 404)
+        raise
+    except Exception as e:
+        import logging
+        import traceback
+        logger = logging.getLogger(__name__)
+        error_traceback = traceback.format_exc()
+        logger.error(f"Error getting leads: {str(e)}")
+        logger.error(error_traceback)
+        
+        # Return a more detailed error message
+        error_detail = f"Failed to retrieve leads: {str(e)}"
+        if "validation" in str(e).lower() or "value" in str(e).lower():
+            error_detail += ". This may be due to invalid data in the database. Check server logs for details."
+        
+        raise HTTPException(
+            status_code=500,
+            detail=error_detail
+        )
 
 
 @router.get("/{lead_id}", response_model=Lead)

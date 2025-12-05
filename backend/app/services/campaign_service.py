@@ -82,7 +82,63 @@ class CampaignService:
         campaigns = await self.campaign_repo.get_campaigns_by_user(
             current_user.id, current_user.role, getattr(current_user, 'client_id', None)
         )
-        return [Campaign(**campaign) for campaign in campaigns]
+        
+        # Convert campaigns to Campaign models with error handling
+        import logging
+        logger = logging.getLogger(__name__)
+        valid_campaigns = []
+        
+        for idx, campaign_dict in enumerate(campaigns):
+            try:
+                # Ensure required fields have defaults if missing
+                if not campaign_dict.get("campaign_name"):
+                    campaign_dict["campaign_name"] = campaign_dict.get("name", "Unknown Campaign")
+                if not campaign_dict.get("campaign_description"):
+                    campaign_dict["campaign_description"] = campaign_dict.get("description", "")
+                if not campaign_dict.get("campaign_id"):
+                    from app.utils.validators import generate_campaign_id
+                    campaign_dict["campaign_id"] = generate_campaign_id()
+                if not campaign_dict.get("client_id"):
+                    campaign_dict["client_id"] = "CLI-00001"  # Default client ID
+                if not campaign_dict.get("agent_id"):
+                    campaign_dict["agent_id"] = campaign_dict.get("agent_id_vb", "AGE-00001")  # Default agent ID
+                if not campaign_dict.get("created_by"):
+                    campaign_dict["created_by"] = ""
+                if not campaign_dict.get("id"):
+                    import uuid
+                    campaign_dict["id"] = str(uuid.uuid4())
+                
+                # Ensure boolean fields are properly set
+                if "is_active" not in campaign_dict:
+                    campaign_dict["is_active"] = False
+                
+                # Ensure integer fields have defaults
+                if "total_leads" not in campaign_dict:
+                    campaign_dict["total_leads"] = 0
+                if "completed_leads" not in campaign_dict:
+                    campaign_dict["completed_leads"] = 0
+                
+                valid_campaigns.append(Campaign(**campaign_dict))
+            except Exception as e:
+                # Log the error with detailed information
+                campaign_id = campaign_dict.get('id', 'unknown')
+                campaign_campaign_id = campaign_dict.get('campaign_id', 'unknown')
+                logger.error(
+                    f"Error converting campaign {idx + 1}/{len(campaigns)} to Campaign model: {str(e)}",
+                    extra={
+                        "campaign_id": campaign_id,
+                        "campaign_campaign_id": campaign_campaign_id,
+                        "error_type": type(e).__name__,
+                        "campaign_keys": list(campaign_dict.keys())
+                    }
+                )
+                # Continue to next campaign instead of failing the entire request
+                continue
+        
+        if len(valid_campaigns) < len(campaigns):
+            logger.warning(f"Skipped {len(campaigns) - len(valid_campaigns)} invalid campaigns out of {len(campaigns)} total")
+        
+        return valid_campaigns
     
     async def get_campaign_by_id(self, campaign_id: str, current_user: User) -> Campaign:
         """
@@ -102,7 +158,43 @@ class CampaignService:
         if not campaign:
             raise HTTPException(status_code=404, detail="Campaign not found")
         
-        return Campaign(**campaign)
+        try:
+            # Ensure required fields have defaults if missing
+            if not campaign.get("campaign_name"):
+                campaign["campaign_name"] = campaign.get("name", "Unknown Campaign")
+            if not campaign.get("campaign_description"):
+                campaign["campaign_description"] = campaign.get("description", "")
+            if not campaign.get("campaign_id"):
+                from app.utils.validators import generate_campaign_id
+                campaign["campaign_id"] = generate_campaign_id()
+            if not campaign.get("client_id"):
+                campaign["client_id"] = "CLI-00001"
+            if not campaign.get("agent_id"):
+                campaign["agent_id"] = campaign.get("agent_id_vb", "AGE-00001")
+            if not campaign.get("created_by"):
+                campaign["created_by"] = ""
+            if not campaign.get("id"):
+                import uuid
+                campaign["id"] = str(uuid.uuid4())
+            
+            # Ensure boolean and integer fields
+            if "is_active" not in campaign:
+                campaign["is_active"] = False
+            if "total_leads" not in campaign:
+                campaign["total_leads"] = 0
+            if "completed_leads" not in campaign:
+                campaign["completed_leads"] = 0
+            
+            return Campaign(**campaign)
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error converting campaign to Campaign model: {str(e)}")
+            logger.error(f"Campaign data: {campaign.get('id', 'unknown')} - {campaign.get('campaign_id', 'unknown')}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to retrieve campaign: {str(e)}"
+            )
     
     async def start_campaign_agent(self, campaign_id: str, current_user: User) -> NextLeadResponse:
         """
@@ -228,11 +320,48 @@ class CampaignService:
         if role_val != UserRole.ADMIN.value and existing_campaign["created_by"] != current_user.id:
             raise HTTPException(status_code=403, detail="Not authorized to update this campaign")
         
+        # Define protected fields that cannot be changed during updates
+        protected_fields = {
+            "id",
+            "campaign_id",
+            "client_id",
+            "created_by",
+            "created_at",
+            "_id",  # MongoDB internal ID
+        }
+        
+        # Filter out protected fields from update data
+        update_dict = campaign_data.dict(exclude_unset=True, exclude_none=True)
+        filtered_update = {
+            key: value for key, value in update_dict.items()
+            if key not in protected_fields
+        }
+        
+        # Normalize case-sensitive fields if present
+        # client_id and agent_id should maintain their exact case (they have specific formats)
+        # But we can validate them if they're being changed
+        
+        # Create a new CampaignUpdate object with filtered fields for validation
+        from app.models import CampaignUpdate
+        filtered_campaign_data = CampaignUpdate(**filtered_update)
+        
         updated_campaign = await self.campaign_repo.update_campaign(
-            campaign_id, campaign_data, current_user.id
+            campaign_id, filtered_campaign_data, current_user.id
         )
         
-        return Campaign(**updated_campaign)
+        if not updated_campaign:
+            raise HTTPException(status_code=404, detail="Campaign not found after update")
+        
+        try:
+            return Campaign(**updated_campaign)
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error converting updated campaign to Campaign model: {str(e)}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to retrieve updated campaign: {str(e)}"
+            )
     
     async def delete_campaign(self, campaign_id: str, current_user: User) -> dict:
         """

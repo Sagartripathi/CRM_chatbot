@@ -4,7 +4,7 @@ Handles campaign CRUD operations and call logging.
 """
 
 from typing import List
-from fastapi import APIRouter, Depends, UploadFile, File, Query
+from fastapi import APIRouter, Depends, UploadFile, File, Query, HTTPException
 from app.models import (
     Campaign, CampaignCreate, CampaignUpdate, CallLog, CallLogCreate, User,
     NextLeadResponse
@@ -68,7 +68,28 @@ async def get_campaigns(
     Returns:
         List[Campaign]: List of campaign objects
     """
-    return await campaign_service.get_campaigns(current_user)
+    try:
+        return await campaign_service.get_campaigns(current_user)
+    except HTTPException:
+        # Re-raise HTTP exceptions (like 403, 404)
+        raise
+    except Exception as e:
+        import logging
+        import traceback
+        logger = logging.getLogger(__name__)
+        error_traceback = traceback.format_exc()
+        logger.error(f"Error getting campaigns: {str(e)}")
+        logger.error(error_traceback)
+        
+        # Return a more detailed error message
+        error_detail = f"Failed to retrieve campaigns: {str(e)}"
+        if "validation" in str(e).lower() or "value" in str(e).lower():
+            error_detail += ". This may be due to invalid data in the database. Check server logs for details."
+        
+        raise HTTPException(
+            status_code=500,
+            detail=error_detail
+        )
 
 
 @router.post("/{campaign_id}/start", response_model=NextLeadResponse)
@@ -162,7 +183,27 @@ async def update_campaign(
     Raises:
         HTTPException: If user not authorized or campaign not found
     """
-    return await campaign_service.update_campaign(campaign_id, campaign_data, current_user)
+    try:
+        return await campaign_service.update_campaign(campaign_id, campaign_data, current_user)
+    except HTTPException:
+        # Re-raise HTTP exceptions (like 403, 404)
+        raise
+    except Exception as e:
+        import logging
+        import traceback
+        logger = logging.getLogger(__name__)
+        error_traceback = traceback.format_exc()
+        logger.error(f"Error updating campaign {campaign_id}: {str(e)}")
+        logger.error(error_traceback)
+        
+        error_detail = f"Failed to update campaign: {str(e)}"
+        if "validation" in str(e).lower() or "value" in str(e).lower():
+            error_detail += ". This may be due to invalid data. Check server logs for details."
+        
+        raise HTTPException(
+            status_code=500,
+            detail=error_detail
+        )
 
 
 @router.delete("/{campaign_id}")

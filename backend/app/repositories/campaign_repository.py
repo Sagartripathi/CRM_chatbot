@@ -109,7 +109,7 @@ class CampaignRepository:
                 # Fallback to old behavior if client_id not provided
                 query["created_by"] = user_id
         
-        campaigns = await self.campaigns.find(query).to_list(settings.max_page_size)
+        campaigns = await self.campaigns.find(query).sort("created_at", -1).to_list(settings.max_page_size)
         
         # Update total_leads count by counting leads with matching campaign_name
         for campaign in campaigns:

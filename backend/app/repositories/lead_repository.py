@@ -86,7 +86,7 @@ class LeadRepository:
         if created_by:
             query["created_by"] = created_by
         
-        return await self.db.find(query).to_list(1000)
+        return await self.db.find(query).sort("created_at", -1).to_list(1000)
     
     async def update_lead(self, lead_id: str, update_data: dict) -> Optional[dict]:
         """
