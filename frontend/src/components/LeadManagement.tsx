@@ -151,7 +151,15 @@ function LeadManagement() {
     }
 
     if (statusFilter && statusFilter !== "all") {
-      filtered = filtered.filter((lead) => lead.status === statusFilter);
+      if (statusFilter === "null" || statusFilter === "no_status") {
+        // Filter for leads with null or undefined status
+        filtered = filtered.filter(
+          (lead) =>
+            lead.status == null || lead.status === null || lead.status === ""
+        );
+      } else {
+        filtered = filtered.filter((lead) => lead.status === statusFilter);
+      }
     }
 
     if (sourceFilter && sourceFilter !== "all") {
@@ -600,7 +608,11 @@ function LeadManagement() {
       lost: "bg-red-100 text-red-800",
       no_response: "bg-gray-100 text-gray-800",
     };
-    return colors[status] || colors.new;
+    // Handle null, undefined, or empty string status
+    if (!status || status === null || status === "") {
+      return "bg-gray-100 text-gray-600";
+    }
+    return colors[status] || "bg-gray-100 text-gray-800";
   };
 
   const getUniqueValues = (field) => {
@@ -913,6 +925,7 @@ function LeadManagement() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="null">No Status</SelectItem>
               <SelectItem value="new">New</SelectItem>
               <SelectItem value="ready">Ready</SelectItem>
               <SelectItem value="pending_preview">Pending Review</SelectItem>
@@ -1072,7 +1085,9 @@ function LeadManagement() {
                               lead.status
                             )} capitalize`}
                           >
-                            {lead.status.replace("_", " ")}
+                            {lead.status
+                              ? lead.status.replace(/_/g, " ")
+                              : "No Status"}
                           </Badge>
                         </div>
                       </td>

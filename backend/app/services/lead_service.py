@@ -142,9 +142,11 @@ class LeadService:
                     import uuid
                     lead_dict["lead_id"] = f"L-{uuid.uuid4().hex[:7].upper()}"
                 
-                # Normalize status to lowercase if it's a string
-                if "status" in lead_dict and isinstance(lead_dict["status"], str):
-                    lead_dict["status"] = lead_dict["status"].lower()
+                # Normalize status to lowercase if it's a string, but preserve null
+                if "status" in lead_dict and lead_dict["status"] is not None:
+                    if isinstance(lead_dict["status"], str):
+                        lead_dict["status"] = lead_dict["status"].lower()
+                # Keep null status as null
                 
                 # Normalize lead_type to lowercase if it's a string
                 if "lead_type" in lead_dict and isinstance(lead_dict["lead_type"], str):

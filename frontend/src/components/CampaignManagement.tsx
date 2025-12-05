@@ -931,12 +931,19 @@ function CampaignManagement() {
   const getStatusColor = (status) => {
     const colors = {
       new: "bg-blue-100 text-blue-800",
+      ready: "bg-green-100 text-green-800",
       contacted: "bg-yellow-100 text-yellow-800",
       converted: "bg-green-100 text-green-800",
       lost: "bg-red-100 text-red-800",
       no_response: "bg-gray-100 text-gray-800",
+      pending_preview: "bg-orange-100 text-orange-800",
+      previewed: "bg-purple-100 text-purple-800",
     };
-    return colors[status] || colors.new;
+    // Handle null, undefined, or empty string status
+    if (!status || status === null || status === "") {
+      return "bg-gray-100 text-gray-600";
+    }
+    return colors[status] || "bg-gray-100 text-gray-800";
   };
 
   // Sidebar component removed - now using GlobalSidebar via Layout
@@ -2130,7 +2137,9 @@ function CampaignManagement() {
                                         lead.status
                                       )} capitalize text-xs`}
                                     >
-                                      {lead.status.replace("_", " ")}
+                                      {lead.status
+                                        ? lead.status.replace(/_/g, " ")
+                                        : "No Status"}
                                     </Badge>
                                   </td>
                                   <td className="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">

@@ -146,7 +146,7 @@ class Lead(BaseModel):
 
     source: Optional[str] = None
     notes: Optional[str] = None
-    status: LeadStatus = LeadStatus.NEW
+    status: Optional[LeadStatus] = None  # Allow null status
     assigned_to: Optional[str] = None  # User ID
     campaign_history: List[dict] = Field(default_factory=list)  # Track campaign changes
     created_by: str  # User ID
@@ -189,6 +189,9 @@ class Lead(BaseModel):
     @classmethod
     def normalize_status(cls, v):
         """Normalize status to lowercase to handle case-insensitive database values."""
+        # Allow null/None values
+        if v is None:
+            return None
         if isinstance(v, str):
             return v.lower()
         return v
@@ -264,6 +267,9 @@ class LeadCreate(BaseModel):
     @classmethod
     def normalize_status(cls, v):
         """Normalize status to lowercase to handle case-insensitive database values."""
+        # Allow null/None values
+        if v is None:
+            return None
         if isinstance(v, str):
             return v.lower()
         return v
