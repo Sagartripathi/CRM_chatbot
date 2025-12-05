@@ -119,7 +119,62 @@ class LeadService:
             query_filter=query_filter
         )
         
-        return [Lead(**lead) for lead in leads]
+        # Convert leads to Lead models with error handling
+        import logging
+        logger = logging.getLogger(__name__)
+        valid_leads = []
+        
+        for idx, lead_dict in enumerate(leads):
+            try:
+                # Ensure required fields have defaults if missing
+                if not lead_dict.get("lead_type"):
+                    lead_dict["lead_type"] = "individual"
+                if not lead_dict.get("campaign_name"):
+                    lead_dict["campaign_name"] = lead_dict.get("name", "Unknown Campaign")
+                if not lead_dict.get("campaign_id"):
+                    lead_dict["campaign_id"] = ""
+                if not lead_dict.get("created_by"):
+                    lead_dict["created_by"] = ""
+                if not lead_dict.get("id"):
+                    import uuid
+                    lead_dict["id"] = str(uuid.uuid4())
+                if not lead_dict.get("lead_id"):
+                    import uuid
+                    lead_dict["lead_id"] = f"L-{uuid.uuid4().hex[:7].upper()}"
+                
+                # Normalize status to lowercase if it's a string
+                if "status" in lead_dict and isinstance(lead_dict["status"], str):
+                    lead_dict["status"] = lead_dict["status"].lower()
+                
+                # Normalize lead_type to lowercase if it's a string
+                if "lead_type" in lead_dict and isinstance(lead_dict["lead_type"], str):
+                    lead_dict["lead_type"] = lead_dict["lead_type"].lower()
+                
+                # Normalize source to lowercase if present
+                if "source" in lead_dict and isinstance(lead_dict["source"], str):
+                    lead_dict["source"] = lead_dict["source"].lower()
+                
+                valid_leads.append(Lead(**lead_dict))
+            except Exception as e:
+                # Log the error with detailed information
+                lead_id = lead_dict.get('id', 'unknown')
+                lead_lead_id = lead_dict.get('lead_id', 'unknown')
+                logger.error(
+                    f"Error converting lead {idx + 1}/{len(leads)} to Lead model: {str(e)}",
+                    extra={
+                        "lead_id": lead_id,
+                        "lead_lead_id": lead_lead_id,
+                        "error_type": type(e).__name__,
+                        "lead_keys": list(lead_dict.keys())
+                    }
+                )
+                # Continue to next lead instead of failing the entire request
+                continue
+        
+        if len(valid_leads) < len(leads):
+            logger.warning(f"Skipped {len(leads) - len(valid_leads)} invalid leads out of {len(leads)} total")
+        
+        return valid_leads
     
     async def get_lead_by_id(self, lead_id: str, current_user: User) -> Lead:
         """
