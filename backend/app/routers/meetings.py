@@ -71,22 +71,29 @@ async def propose_meeting(
     return await meeting_service.propose_meeting(proposal, current_user)
 
 
-@router.get("/", response_model=List[Meeting])
+@router.get("/")
 async def get_meetings(
     current_user: User = Depends(get_current_user),
     meeting_service: MeetingService = Depends(get_meeting_service)
 ):
     """
     Get meetings accessible to the user.
+    Returns raw meeting data from database (including Google Calendar format).
     
     Args:
         current_user: Current authenticated user
         meeting_service: Meeting service dependency
         
     Returns:
-        List[Meeting]: List of meeting objects
+        List[dict]: List of meeting documents (raw from database)
     """
-    return await meeting_service.get_meetings(current_user)
+    # Get raw meetings from repository to preserve Google Calendar format
+    meeting_repo = MeetingRepository(db.database)
+    meetings = await meeting_repo.get_meetings_by_user(
+        current_user.id, current_user.role
+    )
+    # Return raw documents - frontend will handle normalization
+    return meetings
 
 
 @router.get("/{meeting_id}", response_model=Meeting)

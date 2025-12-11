@@ -16,7 +16,7 @@ class Meeting(BaseModel):
     Contains meeting details and scheduling information.
     """
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    lead_id: str
+    lead_id: Optional[str] = None
     organizer_id: str  # User ID
     title: Optional[str] = None
     start_time: datetime
@@ -36,7 +36,7 @@ class MeetingCreate(BaseModel):
     Meeting creation schema.
     Used for creating new meetings.
     """
-    lead_id: str
+    lead_id: Optional[str] = None
     title: Optional[str] = None
     start_time: datetime
     duration_minutes: int = 60
