@@ -6,7 +6,7 @@ Handles all meeting-related database interactions.
 from typing import Optional, List
 from datetime import datetime, timezone, timedelta
 from app.models import Meeting, MeetingCreate, MeetingProposal, MeetingStatus
-from app.utils import prepare_for_mongo
+from app.utils import prepare_for_mongo, parse_from_mongo
 
 
 class MeetingRepository:
@@ -62,26 +62,65 @@ class MeetingRepository:
         Returns:
             Optional[dict]: Meeting document if found, None otherwise
         """
-        return await self.db.find_one({"id": meeting_id})
+        meeting = await self.db.find_one({"id": meeting_id})
+        if meeting:
+            # Parse datetime strings back to datetime objects for compatibility
+            meeting = parse_from_mongo(meeting)
+        return meeting
     
     async def get_meetings_by_user(self, user_id: str, user_role: str) -> List[dict]:
         """
         Get meetings accessible to a user based on their role.
+        Returns all meetings regardless of format (standard or Google Calendar).
         
         Args:
             user_id: User's unique identifier
             user_role: User's role (admin, agent, client)
             
         Returns:
-            List[dict]: List of meeting documents
+            List[dict]: List of meeting documents (raw from database)
         """
+        # For admin, return all meetings
+        # For agents/clients, return all meetings (Google Calendar format doesn't have organizer_id)
+        # In the future, we can add filtering based on organizer.displayName for Google Calendar
         query = {}
         
-        if user_role in ["agent", "client"]:
-            query["organizer_id"] = user_id
-        # Admin can see all meetings (no filter)
+        # Get all meetings - handle both standard and Google Calendar format
+        # Don't sort by start_time as Google Calendar format uses start.dateTime
+        # Return raw documents without modification
+        try:
+            # Get all documents - no filtering for now to include Google Calendar meetings
+            cursor = self.db.find({})
+            meetings = await cursor.to_list(1000)
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error fetching meetings: {e}")
+            meetings = []
         
-        return await self.db.find(query).sort("start_time", 1).to_list(1000)
+        # Return raw documents - don't parse/modify them
+        # Frontend will handle normalization
+        # Convert MongoDB documents to dicts
+        result = []
+        for meeting in meetings:
+            try:
+                if isinstance(meeting, dict):
+                    # Create a copy to avoid modifying original
+                    meeting_dict = dict(meeting)
+                    # Remove MongoDB _id if present (convert to string if needed)
+                    if "_id" in meeting_dict:
+                        del meeting_dict["_id"]
+                    result.append(meeting_dict)
+                else:
+                    # Convert document to dict
+                    result.append(dict(meeting))
+            except Exception as e:
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.warning(f"Error processing meeting document: {e}")
+                continue
+        
+        return result
     
     async def update_meeting(self, meeting_id: str, meeting_data: MeetingCreate) -> Optional[dict]:
         """
@@ -102,7 +141,11 @@ class MeetingRepository:
         update_data = prepare_for_mongo(update_data)
         
         await self.db.update_one({"id": meeting_id}, {"$set": update_data})
-        return await self.get_meeting_by_id(meeting_id)
+        meeting = await self.get_meeting_by_id(meeting_id)
+        # Parse datetime strings back to datetime objects
+        if meeting:
+            meeting = parse_from_mongo(meeting)
+        return meeting
     
     async def update_meeting_status(self, meeting_id: str, status: MeetingStatus) -> Optional[dict]:
         """
@@ -117,11 +160,16 @@ class MeetingRepository:
         """
         update_data = {
             "status": status.value,
-            "updated_at": datetime.now(timezone.utc).isoformat()
+            "updated_at": datetime.now(timezone.utc)
         }
+        update_data = prepare_for_mongo(update_data)
         
         await self.db.update_one({"id": meeting_id}, {"$set": update_data})
-        return await self.get_meeting_by_id(meeting_id)
+        meeting = await self.get_meeting_by_id(meeting_id)
+        # Parse datetime strings back to datetime objects
+        if meeting:
+            meeting = parse_from_mongo(meeting)
+        return meeting
     
     async def delete_meeting(self, meeting_id: str) -> bool:
         """

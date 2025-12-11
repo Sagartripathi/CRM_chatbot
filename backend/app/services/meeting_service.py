@@ -81,7 +81,19 @@ class MeetingService:
         meetings = await self.meeting_repo.get_meetings_by_user(
             current_user.id, current_user.role
         )
-        return [Meeting(**meeting) for meeting in meetings]
+        result = []
+        for meeting in meetings:
+            try:
+                # Ensure all required datetime fields are present and valid
+                meeting_obj = Meeting(**meeting)
+                result.append(meeting_obj)
+            except Exception as e:
+                # Log error but don't fail completely - skip invalid meetings
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.warning(f"Error parsing meeting {meeting.get('id', 'unknown')}: {e}. Meeting data: {meeting}")
+                continue
+        return result
     
     async def get_meeting_by_id(self, meeting_id: str, current_user: User) -> Meeting:
         """
@@ -102,10 +114,13 @@ class MeetingService:
             raise HTTPException(status_code=404, detail="Meeting not found")
         
         # Check permissions
-        if current_user.role != UserRole.ADMIN and meeting["organizer_id"] != current_user.id:
+        if current_user.role != UserRole.ADMIN and meeting.get("organizer_id") != current_user.id:
             raise HTTPException(status_code=403, detail="Not authorized to view this meeting")
         
-        return Meeting(**meeting)
+        try:
+            return Meeting(**meeting)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error parsing meeting data: {str(e)}")
     
     async def update_meeting(self, meeting_id: str, meeting_data: MeetingCreate, current_user: User) -> Meeting:
         """
@@ -131,7 +146,12 @@ class MeetingService:
             raise HTTPException(status_code=403, detail="Not authorized to update this meeting")
         
         updated_meeting = await self.meeting_repo.update_meeting(meeting_id, meeting_data)
-        return Meeting(**updated_meeting)
+        if not updated_meeting:
+            raise HTTPException(status_code=404, detail="Meeting not found after update")
+        try:
+            return Meeting(**updated_meeting)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error parsing updated meeting data: {str(e)}")
     
     async def update_meeting_status(self, meeting_id: str, status: MeetingStatus, current_user: User) -> Meeting:
         """
@@ -157,7 +177,12 @@ class MeetingService:
             raise HTTPException(status_code=403, detail="Not authorized to update this meeting")
         
         updated_meeting = await self.meeting_repo.update_meeting_status(meeting_id, status)
-        return Meeting(**updated_meeting)
+        if not updated_meeting:
+            raise HTTPException(status_code=404, detail="Meeting not found after status update")
+        try:
+            return Meeting(**updated_meeting)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error parsing updated meeting data: {str(e)}")
     
     async def delete_meeting(self, meeting_id: str, current_user: User) -> dict:
         """

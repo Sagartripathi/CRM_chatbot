@@ -144,26 +144,29 @@ async def test_database():
 @app.on_event("startup")
 async def startup_event():
     """Connect to MongoDB when app starts"""
+    import asyncio
+    
     try:
-        await db.connect()
+        # Try to connect with a timeout to prevent hanging
+        await asyncio.wait_for(db.connect(), timeout=10.0)
         logger.info("✅ Database connection established successfully")
+    except asyncio.TimeoutError:
+        logger.error("❌ Database connection timeout - MongoDB may not be running")
+        logger.warning("Server will continue but database operations will fail")
+        logger.info("To fix: Start MongoDB or set SKIP_DB_CHECK=true in .env")
     except Exception as e:
         logger.error(f"❌ Database connection failed: {str(e)}")
         if settings.skip_db_check:
             logger.warning("SKIP_DB_CHECK=1 — continuing without database connection")
         else:
-            logger.error(
-                "MongoDB is not reachable.\n"
+            logger.warning(
+                "MongoDB is not reachable. Server will continue but some features may not work.\n"
                 "To fix this:\n"
-                "1️⃣ Start Docker Desktop, then run:\n"
-                "   docker run -d --name mongo -p 27017:27017 mongo\n"
-                "2️⃣ Or install MongoDB locally:\n"
-                "   brew tap mongodb/brew && brew install mongodb-community@6.0\n"
-                "   brew services start mongodb-community@6.0\n"
+                "1️⃣ Start MongoDB: docker run -d --name mongo -p 27017:27017 mongo\n"
+                "2️⃣ Or set SKIP_DB_CHECK=true in backend/.env\n"
                 "3️⃣ Or use MongoDB Atlas — update MONGO_URL in backend/.env\n"
-                "After setup, restart backend:\n"
-                "   python3 main.py\n"
             )
+            logger.warning("Continuing startup without database connection...")
 
 
 @app.on_event("shutdown")
