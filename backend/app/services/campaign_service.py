@@ -4,6 +4,7 @@ Handles business logic for campaign operations.
 """
 
 from typing import List, Optional
+from datetime import datetime
 from fastapi import HTTPException, status, UploadFile
 import csv
 import io
@@ -290,6 +291,35 @@ class CampaignService:
             raise HTTPException(status_code=404, detail="Campaign not found")
         
         return await self.campaign_repo.get_campaign_stats(campaign_id)
+    
+    async def get_call_statistics(
+        self,
+        current_user: User,
+        agent_id: Optional[str] = None,
+        start_date: Optional[datetime] = None,
+        end_date: Optional[datetime] = None
+    ) -> dict:
+        """
+        Get call statistics with optional filtering.
+        
+        Args:
+            current_user: Current authenticated user
+            agent_id: Optional agent ID to filter by (only for admin)
+            start_date: Optional start date for filtering
+            end_date: Optional end date for filtering
+            
+        Returns:
+            dict: Call statistics
+            
+        Raises:
+            HTTPException: If user not authorized
+        """
+        # If user is agent, only show their calls
+        role_val = _role_value(current_user.role)
+        if role_val == UserRole.AGENT.value:
+            agent_id = current_user.id
+        
+        return await self.campaign_repo.get_call_statistics(agent_id, start_date, end_date)
     
     async def update_campaign(self, campaign_id: str, campaign_data: CampaignUpdate, current_user: User) -> Campaign:
         """
