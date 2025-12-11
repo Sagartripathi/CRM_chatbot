@@ -3,7 +3,8 @@ Campaign management API routes.
 Handles campaign CRUD operations and call logging.
 """
 
-from typing import List
+from typing import List, Optional
+from datetime import datetime
 from fastapi import APIRouter, Depends, UploadFile, File, Query, HTTPException
 from app.models import (
     Campaign, CampaignCreate, CampaignUpdate, CallLog, CallLogCreate, User,
@@ -254,3 +255,50 @@ async def upload_campaigns_csv(
         HTTPException: If file format is invalid or required columns missing
     """
     return await campaign_service.upload_campaigns_csv(file, current_user, client_id, agent_id)
+
+
+@router.get("/calls/statistics")
+async def get_call_statistics(
+    agent_id: Optional[str] = Query(None, description="Filter by agent ID"),
+    start_date: Optional[str] = Query(None, description="Start date (ISO format)"),
+    end_date: Optional[str] = Query(None, description="End date (ISO format)"),
+    current_user: User = Depends(get_current_user),
+    campaign_service: CampaignService = Depends(get_campaign_service)
+):
+    """
+    Get call statistics with optional filtering.
+    
+    Args:
+        agent_id: Optional agent ID to filter by
+        start_date: Optional start date for filtering (ISO format)
+        end_date: Optional end date for filtering (ISO format)
+        current_user: Current authenticated user
+        campaign_service: Campaign service dependency
+        
+    Returns:
+        dict: Call statistics including total calls and breakdown by outcome
+        
+    Raises:
+        HTTPException: If user not authorized
+    """
+    start_dt = None
+    end_dt = None
+    
+    if start_date:
+        try:
+            start_dt = datetime.fromisoformat(start_date.replace('Z', '+00:00'))
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid start_date format. Use ISO format.")
+    
+    if end_date:
+        try:
+            end_dt = datetime.fromisoformat(end_date.replace('Z', '+00:00'))
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid end_date format. Use ISO format.")
+    
+    return await campaign_service.get_call_statistics(
+        current_user,
+        agent_id=agent_id,
+        start_date=start_dt,
+        end_date=end_dt
+    )

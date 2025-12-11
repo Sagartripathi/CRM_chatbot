@@ -379,3 +379,88 @@ class CampaignRepository:
             "call_outcomes": call_outcomes,
             "conversion_rate": (completed_leads / total_leads * 100) if total_leads > 0 else 0
         }
+    
+    async def get_call_statistics(
+        self,
+        agent_id: Optional[str] = None,
+        start_date: Optional[datetime] = None,
+        end_date: Optional[datetime] = None
+    ) -> dict:
+        """
+        Get call statistics with optional filtering.
+        
+        Args:
+            agent_id: Optional agent ID to filter by
+            start_date: Optional start date for filtering
+            end_date: Optional end date for filtering
+            
+        Returns:
+            dict: Call statistics including total calls and breakdown by outcome
+        """
+        # Build query
+        query = {}
+        if agent_id:
+            query["agent_id"] = agent_id
+        if start_date or end_date:
+            query["call_time"] = {}
+            if start_date:
+                query["call_time"]["$gte"] = start_date
+            if end_date:
+                # Add one day to include the entire end_date day
+                end_date_inclusive = end_date + timedelta(days=1)
+                query["call_time"]["$lt"] = end_date_inclusive
+        
+        # Get total calls
+        total_calls = await self.call_logs.count_documents(query)
+        
+        # Get calls by outcome
+        pipeline = []
+        if query:
+            pipeline.append({"$match": query})
+        pipeline.append({
+            "$group": {
+                "_id": "$outcome",
+                "count": {"$sum": 1}
+            }
+        })
+        
+        outcomes = {}
+        async for result in self.call_logs.aggregate(pipeline):
+            outcomes[result["_id"]] = result["count"]
+        
+        # Get calls by date (for date range) - simplified approach
+        calls_by_date = {}
+        try:
+            # First get all matching calls and process in Python
+            matching_calls = await self.call_logs.find(query).to_list(10000)
+            for call in matching_calls:
+                call_time = call.get("call_time")
+                if call_time:
+                    # Handle both datetime objects and ISO strings
+                    if isinstance(call_time, datetime):
+                        date_str = call_time.strftime("%Y-%m-%d")
+                    elif isinstance(call_time, str):
+                        try:
+                            # Parse ISO string
+                            if call_time.endswith('Z'):
+                                call_time = call_time[:-1] + '+00:00'
+                            dt = datetime.fromisoformat(call_time)
+                            date_str = dt.strftime("%Y-%m-%d")
+                        except (ValueError, AttributeError):
+                            continue
+                    else:
+                        continue
+                    
+                    calls_by_date[date_str] = calls_by_date.get(date_str, 0) + 1
+        except Exception as e:
+            # If processing fails, just return empty dict
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"Error getting calls by date: {e}")
+            calls_by_date = {}
+        
+        return {
+            "total_calls": total_calls,
+            "calls_by_outcome": outcomes,
+            "calls_by_date": calls_by_date
+        }
