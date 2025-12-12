@@ -155,12 +155,24 @@ function LeadManagement() {
         // Filter for leads with null or undefined status
         filtered = filtered.filter(
           (lead) =>
-            lead.status == null || lead.status === null || lead.status === ""
+            lead.status == null || 
+            lead.status === null || 
+            lead.status === undefined ||
+            lead.status === ""
         );
       } else {
-        filtered = filtered.filter((lead) => lead.status === statusFilter);
+        // Filter by specific status - include leads that match exactly
+        filtered = filtered.filter((lead) => {
+          const leadStatus = lead.status;
+          // Handle null/undefined status when filtering for specific status
+          if (leadStatus == null || leadStatus === null || leadStatus === undefined || leadStatus === "") {
+            return false; // Exclude null status when filtering for specific status
+          }
+          return leadStatus === statusFilter;
+        });
       }
     }
+    // When statusFilter is "all", show ALL leads including null status (no filtering)
 
     if (sourceFilter && sourceFilter !== "all") {
       filtered = filtered.filter((lead) => lead.source === sourceFilter);

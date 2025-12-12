@@ -79,37 +79,9 @@ class LeadService:
         """
         query_filter = {}
         
-        # Role-based filtering
-        if current_user.role == UserRole.AGENT:
-            # Agents can see leads assigned to them OR unassigned leads
-            query_filter["$or"] = [
-                {"assigned_to": current_user.id},
-                {"assigned_to": None}
-            ]
-        elif current_user.role == UserRole.CLIENT:
-            # For clients, filter leads by campaigns that have their client_id
-            client_id = getattr(current_user, 'client_id', None)
-            if client_id:
-                # Get all campaigns with this client_id
-                campaigns = await self.campaign_repo.get_campaigns_by_user(
-                    current_user.id, current_user.role, client_id
-                )
-                # Extract campaign names
-                campaign_names = [
-                    c.get("campaign_name") or c.get("name") 
-                    for c in campaigns 
-                    if c.get("campaign_name") or c.get("name")
-                ]
-                if campaign_names:
-                    query_filter["campaign_name"] = {"$in": campaign_names}
-                else:
-                    # No campaigns found, return empty results
-                    query_filter["campaign_name"] = {"$in": []}
-            else:
-                # Fallback to old behavior if client_id not set
-                query_filter["created_by"] = current_user.id
-        
-        # Additional filters
+        # Role-based filtering - REMOVED to show ALL leads from database
+        # All users (ADMIN, CLIENT, AGENT) will see all leads
+        # Only apply optional assigned_to filter if specified by ADMIN
         if assigned_to and current_user.role == UserRole.ADMIN:
             query_filter["assigned_to"] = assigned_to
         
@@ -119,9 +91,12 @@ class LeadService:
             query_filter=query_filter
         )
         
-        # Convert leads to Lead models with error handling
+        # Log the number of leads retrieved from database
         import logging
         logger = logging.getLogger(__name__)
+        logger.info(f"Retrieved {len(leads)} leads from database for user {current_user.id} (role: {current_user.role})")
+        
+        # Convert leads to Lead models with error handling
         valid_leads = []
         
         for idx, lead_dict in enumerate(leads):
@@ -156,25 +131,57 @@ class LeadService:
                 if "source" in lead_dict and isinstance(lead_dict["source"], str):
                     lead_dict["source"] = lead_dict["source"].lower()
                 
+                # For organization leads, ensure null values are properly set (not missing keys)
+                # This prevents Pydantic from raising validation errors
+                if lead_dict.get("lead_type") == "organization":
+                    # Ensure optional individual fields are explicitly set to None if missing/null
+                    if "lead_first_name" not in lead_dict or lead_dict.get("lead_first_name") is None:
+                        lead_dict["lead_first_name"] = None
+                    if "lead_last_name" not in lead_dict or lead_dict.get("lead_last_name") is None:
+                        lead_dict["lead_last_name"] = None
+                    if "lead_phone" not in lead_dict or lead_dict.get("lead_phone") is None:
+                        lead_dict["lead_phone"] = None
+                    if "lead_email" not in lead_dict or lead_dict.get("lead_email") is None:
+                        lead_dict["lead_email"] = None
+                    if "leads_notes" not in lead_dict or lead_dict.get("leads_notes") is None:
+                        lead_dict["leads_notes"] = None
+                
+                # Ensure batch_id is always a string (not None)
+                if lead_dict.get("batch_id") is None:
+                    lead_dict["batch_id"] = ""
+                # updated_at_shared can be None (it's Optional in the model)
+                # If it's None or missing, keep it as None
+                if "updated_at_shared" not in lead_dict:
+                    lead_dict["updated_at_shared"] = None
+                
                 valid_leads.append(Lead(**lead_dict))
             except Exception as e:
-                # Log the error with detailed information
+                # Log the error with detailed information including the lead data
                 lead_id = lead_dict.get('id', 'unknown')
                 lead_lead_id = lead_dict.get('lead_id', 'unknown')
+                campaign_name = lead_dict.get('campaign_name', 'N/A')
+                lead_type = lead_dict.get('lead_type', 'N/A')
                 logger.error(
                     f"Error converting lead {idx + 1}/{len(leads)} to Lead model: {str(e)}",
                     extra={
                         "lead_id": lead_id,
                         "lead_lead_id": lead_lead_id,
+                        "campaign_name": campaign_name,
+                        "lead_type": lead_type,
                         "error_type": type(e).__name__,
-                        "lead_keys": list(lead_dict.keys())
+                        "error_message": str(e),
+                        "lead_keys": list(lead_dict.keys()),
+                        "lead_dict_sample": {k: v for k, v in list(lead_dict.items())[:10]}  # First 10 fields for debugging
                     }
                 )
                 # Continue to next lead instead of failing the entire request
                 continue
         
         if len(valid_leads) < len(leads):
-            logger.warning(f"Skipped {len(leads) - len(valid_leads)} invalid leads out of {len(leads)} total")
+            skipped_count = len(leads) - len(valid_leads)
+            logger.warning(f"Skipped {skipped_count} invalid leads out of {len(leads)} total")
+        
+        logger.info(f"Returning {len(valid_leads)} valid leads to frontend (filtered from {len(leads)} database leads)")
         
         return valid_leads
     

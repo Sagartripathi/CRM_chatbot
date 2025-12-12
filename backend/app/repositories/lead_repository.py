@@ -77,7 +77,9 @@ class LeadRepository:
         """
         query = query_filter or {}
         
-        if status:
+        # Only apply status filter if explicitly provided (not None/empty)
+        # This ensures leads with null status are still returned
+        if status is not None:
             query["status"] = status
         if source:
             query["source"] = source

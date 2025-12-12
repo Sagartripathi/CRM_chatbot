@@ -140,7 +140,7 @@ class Lead(BaseModel):
     
     # Legacy fields (kept for backward compatibility)
     batch_id: str = ""
-    updated_at_shared: str = ""
+    updated_at_shared: Optional[str] = None
 
     is_valid: bool = True
 

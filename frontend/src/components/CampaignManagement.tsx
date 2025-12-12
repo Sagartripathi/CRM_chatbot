@@ -2020,9 +2020,11 @@ function CampaignManagement() {
                 </Label>
 
                 {(() => {
+                  // Show all leads from database, including those with null status
                   const campaignLeads = leads.filter(
                     (lead) =>
-                      lead.campaign_name === selectedCampaign.campaign_name
+                      lead.campaign_name === selectedCampaign.campaign_name ||
+                      lead.campaign_name === selectedCampaign.name
                   );
 
                   // Pagination calculations
