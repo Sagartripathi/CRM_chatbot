@@ -220,6 +220,13 @@ class CampaignService:
         if not campaign:
             raise HTTPException(status_code=404, detail="Campaign not found")
         
+        # Check if campaign is active before allowing calls
+        if not campaign.get("is_active", False):
+            raise HTTPException(
+                status_code=400, 
+                detail="Your campaign is not active. Please activate the campaign before making calls."
+            )
+        
         # Find next available lead for this agent
         next_campaign_lead = await self.campaign_repo.get_next_campaign_lead(
             campaign_id, current_user.id

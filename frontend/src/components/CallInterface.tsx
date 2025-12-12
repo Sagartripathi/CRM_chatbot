@@ -79,6 +79,9 @@ function CallInterface() {
       if (error.response?.status === 401 || error.response?.status === 403) {
         toast.error("Please log in to access call interface");
         navigate("/login");
+      } else if (error.response?.status === 400 && error.response?.data?.detail?.includes("not active")) {
+        toast.error(error.response?.data?.detail || "Your campaign is not active. Please activate the campaign before making calls.");
+        navigate("/campaigns");
       } else if (error.response?.status === 404) {
         toast.info("No more leads available in this campaign");
         navigate("/campaigns");

@@ -79,8 +79,14 @@ class LeadRepository:
         
         # Only apply status filter if explicitly provided (not None/empty)
         # This ensures leads with null status are still returned
+        # Normalize status to lowercase for case-insensitive matching
         if status is not None:
-            query["status"] = status
+            status_str = str(status.value).lower() if hasattr(status, 'value') else str(status).lower()
+            # Normalize common variations (spaces/dashes to underscores)
+            status_normalized = status_str.replace(' ', '_').replace('-', '_')
+            # Use case-insensitive regex for status matching (handles "No Answer", "no_answer", "NO_ANSWER", etc.)
+            # Match status with any combination of spaces, dashes, or underscores
+            query["status"] = {"$regex": f"^{status_normalized}$", "$options": "i"}
         if source:
             query["source"] = source
         if assigned_to:

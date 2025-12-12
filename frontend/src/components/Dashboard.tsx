@@ -27,7 +27,18 @@ import {
 } from "lucide-react";
 import { Campaign, Lead } from "../../types/api";
 import { Calendar as CalendarComponent } from "./ui/calendar";
-import { format, startOfDay, endOfDay, subDays, isSameDay } from "date-fns";
+import {
+  format,
+  startOfDay,
+  endOfDay,
+  subDays,
+  isSameDay,
+  isWithinInterval,
+  startOfWeek,
+  endOfWeek,
+  startOfMonth,
+  endOfMonth,
+} from "date-fns";
 
 interface DashboardStats {
   totalLeads: number;
@@ -131,10 +142,7 @@ function Dashboard(): React.ReactElement {
       const activeMeetings = meetings.filter((m) => {
         try {
           const startTime =
-            m.start_time ||
-            m.start?.dateTime ||
-            m.start?.date ||
-            m.start_time;
+            m.start_time || m.start?.dateTime || m.start?.date || m.start_time;
           if (!startTime) return false;
           const meetingStart = new Date(startTime);
           if (isNaN(meetingStart.getTime())) return false;
@@ -153,58 +161,124 @@ function Dashboard(): React.ReactElement {
         (l) => l.status === "converted"
       ).length;
       const conversionRate =
-        totalLeadsCount > 0
-          ? (convertedLeads / totalLeadsCount) * 100
-          : 0;
+        totalLeadsCount > 0 ? (convertedLeads / totalLeadsCount) * 100 : 0;
 
-      // Fetch call statistics
-      let callStatistics: CallStatistics = {
+      // Calculate completed leads counts for different periods
+      const todayStart = startOfDay(now);
+      const todayEnd = endOfDay(now);
+      const weekStartDate = startOfWeek(now, { weekStartsOn: 1 }); // Monday
+      const weekEndDate = endOfWeek(now, { weekStartsOn: 1 });
+      const monthStartDate = startOfMonth(now);
+      const monthEndDate = endOfMonth(now);
+
+      // Helper function to normalize status (case-insensitive)
+      const normalizeStatus = (status: string | null | undefined): string => {
+        if (!status) return "";
+        return String(status).toLowerCase().replace(/[\s-]/g, "_");
+      };
+
+      // Count completed leads for today
+      const completedLeadsToday = leads.filter((lead) => {
+        const normalizedStatus = normalizeStatus(lead.status);
+        if (normalizedStatus !== "completed") return false;
+
+        // Check if lead was updated today (using updated_at or created_at)
+        try {
+          const updatedDate = lead.updated_at
+            ? new Date(lead.updated_at)
+            : lead.created_at
+            ? new Date(lead.created_at)
+            : null;
+          if (!updatedDate || isNaN(updatedDate.getTime())) return false;
+          return updatedDate >= todayStart && updatedDate <= todayEnd;
+        } catch {
+          return false;
+        }
+      }).length;
+
+      // Count completed leads for this week
+      const completedLeadsThisWeek = leads.filter((lead) => {
+        const normalizedStatus = normalizeStatus(lead.status);
+        if (normalizedStatus !== "completed") return false;
+
+        try {
+          const updatedDate = lead.updated_at
+            ? new Date(lead.updated_at)
+            : lead.created_at
+            ? new Date(lead.created_at)
+            : null;
+          if (!updatedDate || isNaN(updatedDate.getTime())) return false;
+          return isWithinInterval(updatedDate, {
+            start: weekStartDate,
+            end: weekEndDate,
+          });
+        } catch {
+          return false;
+        }
+      }).length;
+
+      // Count completed leads for this month (using batch_id if available, otherwise use date)
+      const completedLeadsThisMonth = leads.filter((lead) => {
+        const normalizedStatus = normalizeStatus(lead.status);
+        if (normalizedStatus !== "completed") return false;
+
+        // If batch_id exists, use it for filtering
+        const leadAny = lead as any;
+        if (leadAny.batch_id && String(leadAny.batch_id).trim() !== "") {
+          // Filter leads with batch_id that were updated/created this month
+          try {
+            const updatedDate = lead.updated_at
+              ? new Date(lead.updated_at)
+              : lead.created_at
+              ? new Date(lead.created_at)
+              : null;
+            if (!updatedDate || isNaN(updatedDate.getTime())) return false;
+            return isWithinInterval(updatedDate, {
+              start: monthStartDate,
+              end: monthEndDate,
+            });
+          } catch {
+            return false;
+          }
+        } else {
+          // If no batch_id, just use date filter
+          try {
+            const updatedDate = lead.updated_at
+              ? new Date(lead.updated_at)
+              : lead.created_at
+              ? new Date(lead.created_at)
+              : null;
+            if (!updatedDate || isNaN(updatedDate.getTime())) return false;
+            return isWithinInterval(updatedDate, {
+              start: monthStartDate,
+              end: monthEndDate,
+            });
+          } catch {
+            return false;
+          }
+        }
+      }).length;
+
+      // Use completed leads counts for display
+      const callsToday = completedLeadsToday;
+      const callsThisWeek = completedLeadsThisWeek;
+      const callsThisMonth = completedLeadsThisMonth;
+      // Total calls shows count of all completed leads (all-time)
+      const totalCalls = leads.filter(
+        (lead) => normalizeStatus(lead.status) === "completed"
+      ).length;
+
+      // Keep call statistics for backward compatibility (empty for now)
+      const callStatistics: CallStatistics = {
         total_calls: 0,
         calls_by_outcome: {},
         calls_by_date: {},
       };
 
-      try {
-        const today = new Date();
-        const startDate = callDateFilter
-          ? startOfDay(callDateFilter)
-          : startOfDay(subDays(today, 30)); // Last 30 days by default
-        const endDate = callDateFilter
-          ? endOfDay(callDateFilter)
-          : endOfDay(today);
-
-        const callsResponse = await apiClient.get<CallStatistics>(
-          `/campaigns/calls/statistics?start_date=${startDate.toISOString()}&end_date=${endDate.toISOString()}`
-        );
-        callStatistics = callsResponse.data || callStatistics;
-      } catch (error: any) {
-        // Silently fail if call statistics endpoint doesn't exist or fails
-        // This is expected if the endpoint hasn't been deployed yet
-        callStatistics = {
-          total_calls: 0,
-          calls_by_outcome: {},
-          calls_by_date: {},
-        };
-      }
-
-      // Calculate calls for different periods
-      const today = format(new Date(), "yyyy-MM-dd");
-      const callsToday = callStatistics.calls_by_date[today] || 0;
-
-      const weekStart = format(subDays(new Date(), 7), "yyyy-MM-dd");
-      const callsThisWeek = Object.entries(callStatistics.calls_by_date)
-        .filter(([date]) => date >= weekStart)
-        .reduce((sum, [, count]) => sum + count, 0);
-
-      const monthStart = format(subDays(new Date(), 30), "yyyy-MM-dd");
-      const callsThisMonth = Object.entries(callStatistics.calls_by_date)
-        .filter(([date]) => date >= monthStart)
-        .reduce((sum, [, count]) => sum + count, 0);
-
       setStats({
         totalLeads: totalLeadsCount,
         activeCampaigns: activeCampaignsCount,
-        totalCalls: callStatistics.total_calls,
+        totalCalls: totalCalls,
         conversionRate,
         activeMeetings: activeMeetings.length,
         callsToday,
@@ -239,7 +313,9 @@ function Dashboard(): React.ReactElement {
         <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
           <div className="text-center">
             <div className="animate-spin rounded-full h-16 w-16 border-4 border-indigo-600 border-t-transparent mx-auto mb-4"></div>
-            <p className="text-gray-600 font-medium">Loading your dashboard...</p>
+            <p className="text-gray-600 font-medium">
+              Loading your dashboard...
+            </p>
           </div>
         </div>
       </Layout>
@@ -251,9 +327,12 @@ function Dashboard(): React.ReactElement {
       <div className="space-y-6 pb-8">
         {/* Attractive Welcome Header */}
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 p-8 text-white shadow-2xl">
-          <div className="absolute inset-0 opacity-20" style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
-          }}></div>
+          <div
+            className="absolute inset-0 opacity-20"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+            }}
+          ></div>
           <div className="relative">
             <div className="flex items-center justify-between flex-wrap gap-4">
               <div>
@@ -274,11 +353,15 @@ function Dashboard(): React.ReactElement {
               </div>
               <div className="flex items-center gap-3">
                 <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 text-center">
-                  <div className="text-3xl font-bold">{stats.activeCampaigns}</div>
+                  <div className="text-3xl font-bold">
+                    {stats.activeCampaigns}
+                  </div>
                   <div className="text-sm text-indigo-100">Active</div>
                 </div>
                 <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 text-center">
-                  <div className="text-3xl font-bold">{stats.activeMeetings}</div>
+                  <div className="text-3xl font-bold">
+                    {stats.activeMeetings}
+                  </div>
                   <div className="text-sm text-indigo-100">Meetings</div>
                 </div>
               </div>
@@ -358,7 +441,9 @@ function Dashboard(): React.ReactElement {
               <div className="flex items-center gap-4 mt-2 text-xs">
                 <div className="flex items-center gap-1 text-green-600">
                   <Clock className="h-3 w-3" />
-                  <span className="font-semibold">{stats.callsToday} today</span>
+                  <span className="font-semibold">
+                    {stats.callsToday} today
+                  </span>
                 </div>
                 <div className="text-gray-500">
                   {stats.callsThisWeek} this week
@@ -638,9 +723,7 @@ function Dashboard(): React.ReactElement {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() =>
-                            navigate(`/campaigns/${campaign.id}`)
-                          }
+                          onClick={() => navigate(`/campaigns/${campaign.id}`)}
                           className="ml-4"
                         >
                           View
@@ -692,7 +775,7 @@ function Dashboard(): React.ReactElement {
                   {activeMeetingsList.slice(0, 5).map((meeting) => {
                     let meetingDate: Date | null = null;
                     let meetingEnd: Date | null = null;
-                    
+
                     try {
                       const startTime =
                         meeting.start_time ||
@@ -704,7 +787,7 @@ function Dashboard(): React.ReactElement {
                           meetingDate = null;
                         }
                       }
-                      
+
                       const endTime =
                         meeting.end_time ||
                         meeting.end?.dateTime ||
@@ -732,16 +815,14 @@ function Dashboard(): React.ReactElement {
                           {meetingDate && !isNaN(meetingDate.getTime()) && (
                             <div className="flex items-center gap-2 mt-2 text-sm text-gray-600">
                               <Calendar className="h-4 w-4" />
-                              <span>
-                                {format(meetingDate, "MMM d, yyyy")}
-                              </span>
+                              <span>{format(meetingDate, "MMM d, yyyy")}</span>
                               <Clock className="h-4 w-4 ml-2" />
                               <span>
                                 {meetingEnd && !isNaN(meetingEnd.getTime())
-                                  ? `${format(meetingDate, "h:mm a")} - ${format(
-                                      meetingEnd,
+                                  ? `${format(
+                                      meetingDate,
                                       "h:mm a"
-                                    )}`
+                                    )} - ${format(meetingEnd, "h:mm a")}`
                                   : format(meetingDate, "h:mm a")}
                               </span>
                             </div>

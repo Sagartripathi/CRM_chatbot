@@ -21,6 +21,10 @@ class LeadStatus(str, Enum):
     PREVIEWED = "previewed"
     LOST = "lost"
     NO_RESPONSE = "no_response"
+    BUSY = "busy"
+    NO_ANSWER = "no_answer"
+    COMPLETED = "completed"
+    CONVERTED = "converted"
 
 
 class CallOutcome(str, Enum):

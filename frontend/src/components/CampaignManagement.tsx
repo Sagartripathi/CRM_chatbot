@@ -357,6 +357,10 @@ function CampaignManagement() {
   const [leads, setLeads] = useState([]);
   const [selectedLeads, setSelectedLeads] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [campaignStats, setCampaignStats] = useState<Record<string, any>>({});
+  const [disabledStartButtons, setDisabledStartButtons] = useState<
+    Record<string, boolean>
+  >({});
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -477,6 +481,27 @@ function CampaignManagement() {
       });
 
       setCampaigns(sortedCampaigns);
+
+      // Fetch campaign stats (call outcomes) for all campaigns
+      const statsPromises = sortedCampaigns.map(async (campaign) => {
+        try {
+          const statsResponse = await apiClient.get(
+            `/campaigns/${campaign.id}/stats`
+          );
+          return { campaignId: campaign.id, stats: statsResponse.data };
+        } catch (error) {
+          // If stats fetch fails, return empty stats
+          return { campaignId: campaign.id, stats: { call_outcomes: {} } };
+        }
+      });
+
+      const statsResults = await Promise.all(statsPromises);
+      const statsMap: Record<string, any> = {};
+      statsResults.forEach(({ campaignId, stats }) => {
+        statsMap[campaignId] = stats;
+      });
+      setCampaignStats(statsMap);
+
       setLeads(sortedLeads);
     } catch (error: any) {
       if (error.response?.status === 401 || error.response?.status === 403) {
@@ -565,11 +590,35 @@ function CampaignManagement() {
   };
 
   const handleStartCampaign = async (campaignId) => {
+    // Prevent multiple clicks - disable button immediately
+    if (disabledStartButtons[campaignId]) {
+      return;
+    }
+
+    // Disable the button for this campaign
+    setDisabledStartButtons((prev) => ({ ...prev, [campaignId]: true }));
+
     try {
       // Step 1: Get the campaign to find its campaign_id
       const campaign = campaigns.find((c) => c.id === campaignId);
       if (!campaign) {
         toast.error("Campaign not found");
+        // Re-enable button after error
+        setTimeout(() => {
+          setDisabledStartButtons((prev) => ({ ...prev, [campaignId]: false }));
+        }, 10000);
+        return;
+      }
+
+      // Check if campaign is active before allowing webhook calls
+      if (!campaign.is_active) {
+        toast.error(
+          "Your campaign is not active. Please activate the campaign before making calls."
+        );
+        // Re-enable button after error
+        setTimeout(() => {
+          setDisabledStartButtons((prev) => ({ ...prev, [campaignId]: false }));
+        }, 10000);
         return;
       }
 
@@ -581,6 +630,10 @@ function CampaignManagement() {
           }] campaign_id field is missing`
         );
         toast.error("Campaign ID (campaign_id) is missing");
+        // Re-enable button after error
+        setTimeout(() => {
+          setDisabledStartButtons((prev) => ({ ...prev, [campaignId]: false }));
+        }, 10000);
         return;
       }
 
@@ -593,20 +646,33 @@ function CampaignManagement() {
         allLeads = leadsResponse.data || [];
       } catch (error) {
         toast.error("Failed to fetch leads from database");
+        // Re-enable button after error
+        setTimeout(() => {
+          setDisabledStartButtons((prev) => ({ ...prev, [campaignId]: false }));
+        }, 10000);
         return;
       }
 
-      // Step 3: Filter leads by campaign_name and status = "ready"
+      // Step 3: Filter leads by campaign_name and status = "ready" (case-insensitive)
       // Note: Leads are associated with campaigns by campaign_name, not campaign_id
       const campaignName = campaign.campaign_name || campaign.name;
-      const readyLeads = allLeads.filter(
-        (lead) => lead.campaign_name === campaignName && lead.status === "ready"
-      );
+      const readyLeads = allLeads.filter((lead) => {
+        const normalizedStatus = lead.status
+          ? String(lead.status).toLowerCase().replace(/[\s-]/g, "_")
+          : "";
+        return (
+          lead.campaign_name === campaignName && normalizedStatus === "ready"
+        );
+      });
 
       if (readyLeads.length === 0) {
         toast.error(
           `No leads with status 'ready' found for campaign ${campaignIdentifier}`
         );
+        // Re-enable button after error
+        setTimeout(() => {
+          setDisabledStartButtons((prev) => ({ ...prev, [campaignId]: false }));
+        }, 10000);
         return;
       }
 
@@ -628,6 +694,10 @@ function CampaignManagement() {
         toast.error(
           "batch_id is null or empty for the most recent ready record"
         );
+        // Re-enable button after error
+        setTimeout(() => {
+          setDisabledStartButtons((prev) => ({ ...prev, [campaignId]: false }));
+        }, 10000);
         return;
       }
 
@@ -669,8 +739,17 @@ function CampaignManagement() {
 
       // Immediately show success message without waiting for response
       toast.success("Call initiated - check n8n");
+
+      // Re-enable button after 10 seconds
+      setTimeout(() => {
+        setDisabledStartButtons((prev) => ({ ...prev, [campaignId]: false }));
+      }, 10000);
     } catch (err) {
       toast.error(`❌ Call Failed: ${err.message || "Unknown error"}`);
+      // Re-enable button after error
+      setTimeout(() => {
+        setDisabledStartButtons((prev) => ({ ...prev, [campaignId]: false }));
+      }, 10000);
     }
   };
 
@@ -1431,21 +1510,79 @@ function CampaignManagement() {
                   <CardContent>
                     <div className="space-y-3">
                       {/* Stats Section */}
-                      <div className="grid grid-cols-2 gap-4 pb-3 border-b">
-                        <div>
-                          <div className="text-xs text-gray-500">
-                            Total Leads
+                      <div className="space-y-3 pb-3 border-b">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <div className="text-xs text-gray-500">
+                              Total Leads
+                            </div>
+                            <div className="text-lg font-semibold">
+                              {campaignStats[campaign.id]?.total_leads ??
+                                campaign.total_leads ??
+                                0}
+                            </div>
                           </div>
-                          <div className="text-lg font-semibold">
-                            {campaign.total_leads || 0}
+                          <div>
+                            <div className="text-xs text-gray-500">
+                              Completed
+                            </div>
+                            <div className="text-lg font-semibold text-green-600">
+                              {campaignStats[campaign.id]?.completed_leads ??
+                                campaign.completed_leads ??
+                                0}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-xs text-gray-500">Busy</div>
+                            <div className="text-lg font-semibold text-orange-600">
+                              {campaignStats[campaign.id]?.busy_leads ?? 0}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-xs text-gray-500">
+                              No Answer
+                            </div>
+                            <div className="text-lg font-semibold text-purple-600">
+                              {campaignStats[campaign.id]?.no_answer_leads ?? 0}
+                            </div>
                           </div>
                         </div>
-                        <div>
-                          <div className="text-xs text-gray-500">Completed</div>
-                          <div className="text-lg font-semibold">
-                            {campaign.completed_leads || 0}
-                          </div>
-                        </div>
+
+                        {/* Call Outcome Statistics */}
+                        {campaignStats[campaign.id]?.call_outcomes &&
+                          Object.keys(campaignStats[campaign.id].call_outcomes)
+                            .length > 0 && (
+                            <div className="pt-2 border-t">
+                              <div className="text-xs font-semibold text-gray-600 mb-2">
+                                Call Outcomes
+                              </div>
+                              <div className="grid grid-cols-2 gap-2">
+                                {Object.entries(
+                                  campaignStats[campaign.id].call_outcomes
+                                ).map(([outcome, count]: [string, any]) => (
+                                  <div
+                                    key={outcome}
+                                    className="flex items-center justify-between"
+                                  >
+                                    <span className="text-xs text-gray-600 capitalize">
+                                      {outcome === "answered"
+                                        ? "Completed"
+                                        : outcome === "no_answer"
+                                        ? "No Answer"
+                                        : outcome === "busy"
+                                        ? "Busy"
+                                        : outcome === "voicemail"
+                                        ? "Voicemail"
+                                        : outcome.replace("_", " ")}
+                                    </span>
+                                    <span className="text-xs font-semibold text-gray-900">
+                                      {count || 0}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                       </div>
 
                       {/* Campaign Details */}
@@ -1536,7 +1673,14 @@ function CampaignManagement() {
                         {user?.role !== "client" && (
                           <button
                             onClick={() => handleStartCampaign(campaign.id)}
-                            className="flex-1 px-3 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 text-sm font-medium"
+                            disabled={
+                              disabledStartButtons[campaign.id] || false
+                            }
+                            className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-all ${
+                              disabledStartButtons[campaign.id]
+                                ? "bg-gray-400 text-gray-200 cursor-not-allowed"
+                                : "bg-indigo-600 text-white hover:bg-indigo-700"
+                            }`}
                           >
                             <Phone className="h-4 w-4 inline mr-1" />
                             Start Calls
@@ -2270,9 +2414,12 @@ function CampaignManagement() {
                 const campaignLeads = leads.filter(
                   (lead) => lead.campaign_name === campaignName
                 );
-                const hasReadyLeads = campaignLeads.some(
-                  (lead) => lead.status === "ready"
-                );
+                const hasReadyLeads = campaignLeads.some((lead) => {
+                  const normalizedStatus = lead.status
+                    ? String(lead.status).toLowerCase().replace(/[\s-]/g, "_")
+                    : "";
+                  return normalizedStatus === "ready";
+                });
 
                 if (isActive && leadCount > 0) {
                   // Active campaign with leads - cannot delete

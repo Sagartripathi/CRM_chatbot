@@ -326,12 +326,30 @@ class CampaignRepository:
         if not campaign:
             return {}
         
-        # Get campaign leads stats
-        total_leads = await self.campaign_leads.count_documents({"campaign_id": campaign_id})
-        completed_leads = await self.campaign_leads.count_documents({
-            "campaign_id": campaign_id,
-            "status": CampaignLeadStatus.COMPLETED.value
+        # Get campaign name to match with leads
+        campaign_name = campaign.get("campaign_name") or campaign.get("name", "")
+        
+        # Get leads stats from leads collection (by status field, case-insensitive)
+        # Count total leads for this campaign
+        total_leads = await self.leads.count_documents({"campaign_name": campaign_name})
+        
+        # Count leads by status (case-insensitive matching)
+        completed_leads = await self.leads.count_documents({
+            "campaign_name": campaign_name,
+            "status": {"$regex": "^completed$", "$options": "i"}
         })
+        
+        busy_leads = await self.leads.count_documents({
+            "campaign_name": campaign_name,
+            "status": {"$regex": "^busy$", "$options": "i"}
+        })
+        
+        no_answer_leads = await self.leads.count_documents({
+            "campaign_name": campaign_name,
+            "status": {"$regex": "^no_answer$", "$options": "i"}
+        })
+        
+        # Also get campaign_leads stats for backward compatibility
         in_progress_leads = await self.campaign_leads.count_documents({
             "campaign_id": campaign_id,
             "status": CampaignLeadStatus.IN_PROGRESS.value
@@ -370,12 +388,14 @@ class CampaignRepository:
         
         return {
             "campaign_id": campaign_id,
-            "campaign_name": campaign["name"],
+            "campaign_name": campaign.get("campaign_name") or campaign.get("name", ""),
             "total_leads": total_leads,
             "completed_leads": completed_leads,
             "in_progress_leads": in_progress_leads,
             "failed_leads": failed_leads,
-            "pending_leads": total_leads - completed_leads - in_progress_leads - failed_leads,
+            "busy_leads": busy_leads,
+            "no_answer_leads": no_answer_leads,
+            "pending_leads": total_leads - completed_leads - busy_leads - no_answer_leads,
             "call_outcomes": call_outcomes,
             "conversion_rate": (completed_leads / total_leads * 100) if total_leads > 0 else 0
         }
