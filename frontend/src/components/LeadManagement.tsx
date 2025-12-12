@@ -155,20 +155,33 @@ function LeadManagement() {
         // Filter for leads with null or undefined status
         filtered = filtered.filter(
           (lead) =>
-            lead.status == null || 
-            lead.status === null || 
+            lead.status == null ||
+            lead.status === null ||
             lead.status === undefined ||
             lead.status === ""
         );
       } else {
-        // Filter by specific status - include leads that match exactly
+        // Filter by specific status - case-insensitive matching
         filtered = filtered.filter((lead) => {
           const leadStatus = lead.status;
           // Handle null/undefined status when filtering for specific status
-          if (leadStatus == null || leadStatus === null || leadStatus === undefined || leadStatus === "") {
+          if (
+            leadStatus == null ||
+            leadStatus === null ||
+            leadStatus === undefined ||
+            leadStatus === ""
+          ) {
             return false; // Exclude null status when filtering for specific status
           }
-          return leadStatus === statusFilter;
+          // Normalize both statuses to lowercase for case-insensitive comparison
+          // Also normalize spaces/dashes to underscores
+          const normalizedLeadStatus = String(leadStatus)
+            .toLowerCase()
+            .replace(/[\s-]/g, "_");
+          const normalizedFilterStatus = String(statusFilter)
+            .toLowerCase()
+            .replace(/[\s-]/g, "_");
+          return normalizedLeadStatus === normalizedFilterStatus;
         });
       }
     }
@@ -610,21 +623,29 @@ function LeadManagement() {
   };
 
   const getStatusColor = (status) => {
+    // Normalize status to lowercase for case-insensitive matching
+    const normalizedStatus = status
+      ? String(status).toLowerCase().replace(/[\s-]/g, "_")
+      : "";
+
     const colors = {
-      new: "bg-blue-100 text-blue-800",
-      ready: "bg-indigo-100 text-indigo-800",
+      new: "bg-green-100 text-green-700", // Light green
+      ready: "bg-yellow-100 text-yellow-800", // Yellow
+      completed: "bg-green-600 text-white", // Dark green
       pending_preview: "bg-violet-100 text-violet-800",
       previewed: "bg-purple-100 text-purple-800",
       contacted: "bg-yellow-100 text-yellow-800",
-      converted: "bg-green-100 text-green-800",
+      converted: "bg-green-500 text-white",
       lost: "bg-red-100 text-red-800",
       no_response: "bg-gray-100 text-gray-800",
+      busy: "bg-orange-100 text-orange-800",
+      no_answer: "bg-purple-100 text-purple-800",
     };
     // Handle null, undefined, or empty string status
-    if (!status || status === null || status === "") {
+    if (!status || status === null || status === "" || !normalizedStatus) {
       return "bg-gray-100 text-gray-600";
     }
-    return colors[status] || "bg-gray-100 text-gray-800";
+    return colors[normalizedStatus] || "bg-gray-100 text-gray-800";
   };
 
   const getUniqueValues = (field) => {

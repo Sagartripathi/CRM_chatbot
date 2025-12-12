@@ -61,9 +61,13 @@ function CampaignDetail() {
       setCampaign(campaignData);
       setCampaignStats(statsResponse.data);
 
-      // Fetch campaign leads (would need new endpoint, for now using leads)
+      // Fetch campaign leads - filter by campaign_name
       const leadsResponse = await apiClient.get("/leads");
-      setCampaignLeads(leadsResponse.data.slice(0, 5)); // Mock: first 5 leads
+      const campaignName = campaignData.campaign_name || campaignData.name;
+      const filteredLeads = leadsResponse.data.filter(
+        (lead) => lead.campaign_name === campaignName
+      );
+      setCampaignLeads(filteredLeads.slice(0, 10)); // Show first 10 leads
     } catch (error) {
       toast.error("Failed to load campaign details");
       console.error("Fetch error:", error);
@@ -74,6 +78,13 @@ function CampaignDetail() {
   };
 
   const handleStartCampaign = () => {
+    // Check if campaign is active before navigating to call interface
+    if (!campaign || !campaign.is_active) {
+      toast.error(
+        "Your campaign is not active. Please activate the campaign before making calls."
+      );
+      return;
+    }
     navigate(`/campaigns/${campaignId}/call`);
   };
 
@@ -284,6 +295,18 @@ function CampaignDetail() {
                         {campaignStats.completed_leads}
                       </p>
                       <p className="text-xs text-green-600">Completed</p>
+                    </div>
+                    <div className="text-center p-3 bg-orange-50 rounded-lg">
+                      <p className="text-2xl font-bold text-orange-600">
+                        {campaignStats.busy_leads || 0}
+                      </p>
+                      <p className="text-xs text-orange-600">Busy</p>
+                    </div>
+                    <div className="text-center p-3 bg-purple-50 rounded-lg">
+                      <p className="text-2xl font-bold text-purple-600">
+                        {campaignStats.no_answer_leads || 0}
+                      </p>
+                      <p className="text-xs text-purple-600">No Answer</p>
                     </div>
                     <div className="text-center p-3 bg-yellow-50 rounded-lg">
                       <p className="text-2xl font-bold text-yellow-600">

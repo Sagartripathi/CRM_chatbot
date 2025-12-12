@@ -55,9 +55,24 @@ export interface Lead {
   email?: string;
   source?: string;
   notes?: string;
-  status: "new" | "contacted" | "converted" | "lost" | "no_response";
+  status:
+    | "new"
+    | "contacted"
+    | "converted"
+    | "lost"
+    | "no_response"
+    | "completed"
+    | "busy"
+    | "no_answer"
+    | "ready"
+    | "pending_preview"
+    | "previewed"
+    | string
+    | null;
   assigned_to?: string;
   campaign_id?: string;
+  campaign_name?: string;
+  batch_id?: string;
   campaign_history: CampaignHistory[];
   created_by: string;
   created_at: string;

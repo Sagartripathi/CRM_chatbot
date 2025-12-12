@@ -393,8 +393,9 @@ class LeadService:
         skipped_leads = []
         errors = []
         
-        # Valid status values from LeadStatus enum
-        valid_statuses = ['new', 'ready', 'pending_preview', 'previewed', 'lost', 'no_response', 'converted']
+        # Valid status values from LeadStatus enum (case-insensitive)
+        valid_statuses = ['new', 'ready', 'pending_preview', 'previewed', 'lost', 'no_response', 'converted', 'busy', 'no_answer', 'completed']
+        valid_statuses_lower = [s.lower() for s in valid_statuses]
         
         for row_num, row in enumerate(csv_reader, start=2):
             try:
@@ -404,9 +405,16 @@ class LeadService:
                     errors.append(f"Row {row_num}: Invalid lead_type '{row['lead_type']}'. Must be 'individual' or 'organization'")
                     continue
                 
-                # Validate status
-                status_value = row['status'].lower()
-                if status_value not in valid_statuses:
+                # Validate status (case-insensitive)
+                status_value = row['status'].strip().lower()
+                # Normalize common variations
+                status_normalized = status_value.replace(' ', '_').replace('-', '_')
+                if status_normalized == 'no_answer' or status_value == 'no answer':
+                    status_normalized = 'no_answer'
+                elif status_normalized == 'no_response' or status_value == 'no response':
+                    status_normalized = 'no_response'
+                
+                if status_normalized not in valid_statuses_lower:
                     errors.append(f"Row {row_num}: Invalid status '{row['status']}'. Must be one of: {', '.join(valid_statuses)}")
                     continue
                 
@@ -454,7 +462,7 @@ class LeadService:
                         phone=row.get('phone'),
                         email=row.get('email') or row.get('lead_email'),
                         notes=row.get('leads_notes') or row.get('notes'),
-                        status=status_value,
+                        status=status_normalized,  # Use normalized status (lowercase with underscores)
                         source="csv_upload"
                     )
                 else:  # organization
@@ -476,7 +484,7 @@ class LeadService:
                         phone=row['business_phone'],
                         email=row.get('email') or row.get('lead_email'),
                         notes=row.get('business_summary') or row.get('notes'),
-                        status=status_value,
+                        status=status_normalized,  # Use normalized status (lowercase with underscores)
                         source="csv_upload"
                     )
                 
